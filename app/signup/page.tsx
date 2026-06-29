@@ -25,8 +25,8 @@ export default async function SignupPage({
 
         <p className="saas-auth-copy">
           {invite
-            ? 'Use your manager invite to create a secure account. Workspace access unlocks after approval.'
-            : 'Create your secure account first. A manager invite and approval are required before workspace access unlocks.'}
+            ? 'Use your manager invite to create a secure Disputer account. Workspace access unlocks after approval.'
+            : 'Create your secure Disputer account first. A manager invite and approval are required before workspace access unlocks.'}
         </p>
 
         <div className="saas-auth-status-row" aria-label="Onboarding steps">
@@ -43,7 +43,7 @@ export default async function SignupPage({
 
           <label>
             <span>Full name</span>
-            <input name="fullName" type="text" required placeholder="Client full name" autoComplete="name" />
+            <input name="fullName" type="text" required placeholder="Disputer full name" autoComplete="name" />
           </label>
 
           <label>
@@ -65,13 +65,13 @@ export default async function SignupPage({
       </section>
 
       <aside className="saas-auth-hero native-auth-hero" aria-label="xDisputer onboarding preview">
-        <p className="saas-auth-eyebrow">Client access control</p>
+        <p className="saas-auth-eyebrow">Disputer access control</p>
         <h2>Account creation is clean, protected, and approval-aware before entering the workspace.</h2>
 
         <div className="saas-auth-feature-grid native-auth-feature-grid">
           <div>
             <strong>Invite aware</strong>
-            <span>Clients can join through a manager invite link.</span>
+            <span>Disputers can join through a manager invite link.</span>
           </div>
           <div>
             <strong>Approval gated</strong>
