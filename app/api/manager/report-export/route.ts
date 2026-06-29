@@ -24,6 +24,19 @@ function outputPay(totalPay: number, baseSalary: number) {
   return Math.max(0, totalPay - baseSalary);
 }
 
+function reportTypeName(report: ManagerReportData) {
+  if (report.input.type === 'salary_outputs') return 'Salary';
+  if (report.input.type === 'users') return 'Users';
+  if (report.input.type === 'per_boss') return 'Per Boss';
+  return 'Summary';
+}
+
+function filenameReportType(report: ManagerReportData) {
+  if (report.input.type === 'salary_outputs') return 'salary';
+  if (report.input.type === 'per_boss') return 'per-boss';
+  return report.input.type;
+}
+
 function styleId(style?: CellStyle) {
   if (style === 'header') return 1;
   if (style === 'money') return 2;
@@ -47,7 +60,7 @@ function columnName(index: number) {
 function cellXml(cell: SheetRow[number], rowIndex: number, columnIndex: number) {
   const reference = `${columnName(columnIndex)}${rowIndex + 1}`;
   const style = styleId(cell.style);
-  const styleAttr = style ? ` s="${style}"` : '';
+  const styleAttr = style ? ` s="${style}"` : ' s="0"';
   const value = cell.value;
   if (typeof value === 'number' && Number.isFinite(value)) return `<c r="${reference}"${styleAttr}><v>${value}</v></c>`;
   return `<c r="${reference}" t="inlineStr"${styleAttr}><is><t>${escapeXml(value ?? '')}</t></is></c>`;
@@ -75,8 +88,12 @@ function rootRelsXml() {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
 }
 
+function xf(fontId: number, fillId: number, borderId = 1, extra = '') {
+  return `<xf numFmtId="0" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"${extra}><alignment horizontal="center" vertical="center" wrapText="1"/></xf>`;
+}
+
 function stylesXml() {
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFF0000"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1D4ED8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFCBD5E1"/></left><right style="thin"><color rgb="FFCBD5E1"/></right><top style="thin"><color rgb="FFCBD5E1"/></top><bottom style="thin"><color rgb="FFCBD5E1"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0"/><xf numFmtId="0" fontId="3" fillId="0" borderId="1" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1"/></cellXfs></styleSheet>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFF0000"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1D4ED8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFCBD5E1"/></left><right style="thin"><color rgb="FFCBD5E1"/></right><top style="thin"><color rgb="FFCBD5E1"/></top><bottom style="thin"><color rgb="FFCBD5E1"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellStyleXfs><cellXfs count="6">${xf(0, 0)}${xf(1, 2)}${xf(2, 0)}${xf(3, 0)}${xf(4, 0)}${xf(0, 3)}</cellXfs></styleSheet>`;
 }
 
 function cell(value: CellValue, style: CellStyle = 'text') { return { value, style }; }
@@ -89,9 +106,10 @@ function buildSheets(report: ManagerReportData, managerEmail: string): SheetSpec
     [cell(`Range: ${formatReportDateRange(report.input.range)}`, 'muted')],
     [],
     header(['Metric', 'Value']),
-    [cell('Report type'), cell(report.input.type === 'salary_outputs' ? 'Salary' : report.input.type)],
+    [cell('Report type'), cell(reportTypeName(report))],
     [cell('Date range'), cell(formatReportDateRange(report.input.range))],
     [cell('Disputers'), cell(report.totals.userCount)],
+    [cell('Bosses'), cell(report.bosses.length)],
     [cell('Active Disputers'), cell(report.totals.activeUsers)],
     [cell('Output items'), cell(report.totals.totalOutputItems)],
     [cell('Approved rows'), cell(report.totals.approvedRows)],
@@ -114,8 +132,8 @@ function buildSheets(report: ManagerReportData, managerEmail: string): SheetSpec
     [cell('Output Detail', 'title')],
     [cell(`Range: ${formatReportDateRange(report.input.range)}`, 'muted')],
     [],
-    header(['Date', 'Disputer', 'Letter client', 'Round', 'Status', 'Output type', 'Count', 'Rate', 'Pay']),
-    ...report.outputs.map((item) => [cell(formatReportDate(item.createdAt)), cell(item.disputerName), cell(item.clientName), cell(item.roundLabel), cell(item.status), cell(item.outputType), cell(item.outputCount), cell(moneyText(item.rateAmount), 'money'), cell(moneyText(item.estimatedPay), 'money')])
+    header(['Date', 'Boss', 'Disputer', 'Letter client', 'Round', 'Status', 'Output type', 'Count', 'Rate', 'Pay']),
+    ...report.outputs.map((item) => [cell(formatReportDate(item.createdAt)), cell(item.bossName), cell(item.disputerName), cell(item.clientName), cell(item.roundLabel), cell(item.status), cell(item.outputType), cell(item.outputCount), cell(moneyText(item.rateAmount), 'money'), cell(moneyText(item.estimatedPay), 'money')])
   ];
 
   const userRows: SheetRow[] = [
@@ -126,8 +144,17 @@ function buildSheets(report: ManagerReportData, managerEmail: string): SheetSpec
     ...report.users.map((item) => [cell(item.name), cell(item.email), cell(item.status), cell(item.employmentType), cell(item.outputLimit ?? 'Needs Master cap'), cell(item.outputs), cell(item.approvedOutputs), cell(item.pendingOutputs), cell(item.returnedOutputs), cell(moneyText(item.estimatedPay), 'totalPay')])
   ];
 
+  const bossRows: SheetRow[] = [
+    [cell('Per Boss', 'title')],
+    [cell(`Range: ${formatReportDateRange(report.input.range)}`, 'muted')],
+    [],
+    header(['Boss', 'Disputers', 'Output rows', 'Output items', 'Approved outputs', 'Pending outputs', 'Returned outputs', 'Full-time rows', 'Output pay', 'Total pay']),
+    ...report.bosses.map((item) => [cell(item.bossName), cell(item.disputerCount), cell(item.outputRows), cell(item.outputItems), cell(item.approvedOutputs), cell(item.pendingOutputs), cell(item.returnedOutputs), cell(item.fulltimeRows), cell(moneyText(item.outputPay), 'money'), cell(moneyText(item.totalPay), 'totalPay')])
+  ];
+
   if (report.input.type === 'users') return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Users', rows: userRows, widths: [24, 32, 16, 16, 18, 12, 12, 12, 12, 16] }];
-  return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Salary', rows: salaryRows, widths: [24, 32, 16, 18, 16, 14, 18, 18, 18, 16, 16] }, { name: 'Output Detail', rows: outputRows, widths: [18, 22, 26, 16, 16, 18, 10, 14, 14] }];
+  if (report.input.type === 'per_boss') return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Per Boss', rows: bossRows, widths: [26, 14, 14, 14, 18, 18, 18, 16, 16, 16] }, { name: 'Output Detail', rows: outputRows, widths: [18, 22, 22, 26, 16, 16, 18, 10, 14, 14] }];
+  return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Salary', rows: salaryRows, widths: [24, 32, 16, 18, 16, 14, 18, 18, 18, 16, 16] }, { name: 'Output Detail', rows: outputRows, widths: [18, 22, 22, 26, 16, 16, 18, 10, 14, 14] }];
 }
 
 async function createWorkbook(report: ManagerReportData, managerEmail: string) {
@@ -149,7 +176,7 @@ export async function GET(request: NextRequest) {
   const input = parseManagerReportInput({ reportType: params.get('reportType') || undefined, from: params.get('from') || undefined, to: params.get('to') || undefined });
   const report = await listManagerReportData(supabase, user.id, input);
   const workbook = await createWorkbook(report, profile?.email || user.email || 'Manager');
-  const filename = `xdisputer-${input.type === 'salary_outputs' ? 'salary' : input.type}-report-${input.range.fromDate}-to-${input.range.toDate}.xlsx`;
+  const filename = `xdisputer-${filenameReportType(report)}-report-${input.range.fromDate}-to-${input.range.toDate}.xlsx`;
   return new NextResponse(workbook, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
