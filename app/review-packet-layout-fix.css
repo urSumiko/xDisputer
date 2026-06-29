@@ -74,7 +74,7 @@
   min-height: 0 !important;
   height: 100% !important;
   display: grid !important;
-  grid-template-columns: 272px minmax(0, 1fr) !important;
+  grid-template-columns: 264px minmax(0, 1fr) !important;
   overflow: hidden !important;
 }
 
@@ -85,7 +85,7 @@
   height: 100% !important;
   min-width: 0 !important;
   overflow: auto !important;
-  padding: 1rem !important;
+  padding: .9rem !important;
   border-right: 1px solid rgba(203, 213, 225, .9) !important;
   background: linear-gradient(180deg, #ffffff, #f8fbff) !important;
   box-shadow: 10px 0 28px rgba(15, 23, 42, .04) !important;
@@ -106,9 +106,9 @@
 .editor-packet-map.document-rail button {
   width: 100% !important;
   display: grid !important;
-  grid-template-columns: 36px minmax(0, 1fr) !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
   align-items: center !important;
-  gap: .55rem !important;
+  gap: .5rem !important;
   text-align: left !important;
 }
 
@@ -131,16 +131,22 @@
   height: 100% !important;
   min-height: 0 !important;
   overflow: auto !important;
-  padding: 1rem clamp(1rem, 3vw, 2.25rem) 4rem !important;
-  scroll-padding-top: 118px !important;
+  overscroll-behavior: contain !important;
+  padding: .85rem clamp(.85rem, 2.4vw, 2rem) 4rem !important;
+  scroll-padding-top: 132px !important;
 }
 
-.packet-focus-section.packet-stack-editable {
+.packet-focus-section.packet-stack-editable,
+.packet-focus-section.packet-stack-insert {
   min-width: 0 !important;
   display: grid !important;
   grid-template-rows: auto auto minmax(0, 1fr) !important;
   gap: 0 !important;
   align-content: start !important;
+}
+
+.packet-focus-section.packet-stack-insert {
+  grid-template-rows: auto minmax(0, 1fr) !important;
 }
 
 .packet-document-toolbar {
@@ -150,13 +156,43 @@
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  gap: .75rem !important;
+  gap: .65rem !important;
   min-height: 56px !important;
   padding: .65rem .85rem !important;
   border: 1px solid rgba(203, 213, 225, .9) !important;
   border-radius: 18px 18px 0 0 !important;
   background: rgba(255, 255, 255, .96) !important;
   backdrop-filter: blur(12px) !important;
+}
+
+.packet-insert-toolbar {
+  border-radius: 18px !important;
+  margin-bottom: .85rem !important;
+}
+
+.packet-edit-state {
+  margin-right: auto !important;
+  color: #475569 !important;
+  font-size: .82rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+
+.packet-close-button {
+  min-height: 42px !important;
+  padding: 0 .95rem !important;
+  border: 1px solid rgba(15, 23, 42, .12) !important;
+  border-radius: 14px !important;
+  background: #0f172a !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, .14) !important;
+}
+
+.packet-close-button:hover {
+  background: #1e293b !important;
 }
 
 .docx-format-toolbar {
@@ -190,7 +226,7 @@
 
 .packet-inline-docx-host {
   min-height: 100% !important;
-  padding: 1.6rem 0 5rem !important;
+  padding: 1.4rem 0 5rem !important;
   display: grid !important;
   justify-items: center !important;
 }
@@ -198,17 +234,13 @@
 .packet-inline-docx-host .docx,
 .packet-inline-docx-host .packet-inline-docx.docx,
 .packet-inline-docx-host .packet-inline-docx .docx {
-  max-width: min(8.5in, calc(100vw - 360px)) !important;
+  max-width: min(8.5in, calc(100vw - 326px)) !important;
   margin: 0 auto 2rem !important;
   box-shadow: 0 24px 70px rgba(15, 23, 42, .16) !important;
 }
 
-.packet-stack-insert {
-  min-height: 100% !important;
-}
-
 .packet-stack-insert .support-layout-editor {
-  min-height: calc(100dvh - 130px) !important;
+  min-height: calc(100dvh - 185px) !important;
 }
 
 .packet-header-evidence-slot:empty {
