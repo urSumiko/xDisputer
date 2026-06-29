@@ -98,7 +98,7 @@ export default function TemplateRoundOnlyLibrary() {
   const [round, setRound] = useState<Round>('1st Round');
   const [assets, setAssets] = useState<TemplateAsset[]>([]);
   const [managerTemplateScope, setManagerTemplateScope] = useState<ManagerTemplateScopeUi | null>(null);
-  const [message, setMessage] = useState('Loading manager template authority. Upload controls stay locked until verified.');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -112,7 +112,7 @@ export default function TemplateRoundOnlyLibrary() {
       if (!response.ok) throw new Error(payloadMessage(payload, 'Could not load manager templates.'));
       setAssets(Array.isArray(data?.assets) ? data.assets : []);
       setManagerTemplateScope(data?.managerTemplateScope || null);
-      setMessage(data?.managerTemplateScope?.canManageTemplates ? `${selectedRound} manager template authority verified. Upload controls are enabled.` : 'Manager template authority is read-only or unavailable. Upload controls are locked.');
+      setMessage('');
     } catch (error) {
       const nextMessage = error instanceof Error ? error.message : 'Could not load manager templates.';
       setLoadError(nextMessage);
@@ -148,10 +148,10 @@ export default function TemplateRoundOnlyLibrary() {
 
   return <section className="manager-template-client-flow manager-workspace-body-shell template-library-native-progressive-hub" data-template-library-minimal="progressive-upload" data-manager-template-progressive="uses-active-disputer-template-ui" data-manager-template-scope-state={managerTemplateScope?.canManageTemplates ? 'verified-upload' : loading ? 'loading' : 'locked'}>
     <ManagerTemplateWorkspaceChrome />
-    {message ? <section className={`admin-monitor-card manager-template-workflow-status compact-workspace-command merged-template-command ${loadError ? 'error' : ''}`} aria-label="Manager template workspace status">
+    {loadError ? <section className="admin-monitor-card manager-template-workflow-status compact-workspace-command merged-template-command error" aria-label="Manager template workspace status">
       <div className="merged-template-command-copy">
         <p className="eyebrow">Template Library</p>
-        <strong>{loading ? 'Checking authority' : loadError ? 'Needs attention' : managerTemplateScope?.canManageTemplates ? 'Ready to upload' : 'Read only'}</strong>
+        <strong>Needs attention</strong>
         <span>{message}</span>
       </div>
     </section> : null}
@@ -161,7 +161,7 @@ export default function TemplateRoundOnlyLibrary() {
       supportingReady={false}
       managerTemplateScope={managerTemplateScope}
       managedExhibits={exhibits}
-      onSelectRound={(next) => { setRound(next); setMessage(`${next} selected for manager default template setup.`); }}
+      onSelectRound={(next) => { setRound(next); setMessage(''); }}
       onUploadLetter={handleUploadLetter}
       onRemoveLetter={handleRemoveLetter}
       onExhibitsChange={handleExhibitsHydrated}
