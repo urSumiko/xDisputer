@@ -25,7 +25,9 @@ function privateTemplateCacheHeaders(input: { etag: string; filename: string; mi
     'x-template-manager-user-id': input.managerUserId,
     'x-template-read-mode': input.readMode,
     'ETag': input.etag,
-    'Cache-Control': 'private, max-age=60, stale-while-revalidate=300'
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0'
   };
 }
 
@@ -89,16 +91,14 @@ export async function GET(request: NextRequest) {
       managerTemplateScope: managerTemplateScopePayload(scope),
       readMode: readClient.mode,
       warning: readClient.warning
-    }, { status: 404 });
+    }, { status: 404, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } });
   }
 
   const etag = `"template-${asset.id}-${asset.version_number}-${asset.updated_at}"`;
   const headers = privateTemplateCacheHeaders({ etag, filename: asset.original_filename, mimeType: asset.mime_type, managerUserId: scope.managerUserId, readMode: readClient.mode });
 
-  if (request.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers });
-
   const download = await downloadManagerTemplateObject({ sessionSupabase: session.supabase, bucket: asset.storage_bucket || 'template-assets', path: asset.storage_path });
-  if (download.error || !download.data) return NextResponse.json({ error: download.error?.message || 'Template file could not be loaded.', category: 'MANAGER_TEMPLATE', readMode: readClient.mode, warning: readClient.warning }, { status: 500 });
+  if (download.error || !download.data) return NextResponse.json({ error: download.error?.message || 'Template file could not be loaded.', category: 'MANAGER_TEMPLATE', readMode: readClient.mode, warning: readClient.warning }, { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } });
   headers['x-template-storage-mode'] = download.mode;
 
   return new Response(download.data, { headers });
