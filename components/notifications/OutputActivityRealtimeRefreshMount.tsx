@@ -3,9 +3,11 @@
 import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { createSupabaseBrowserClient } from '../../lib/supabase/browser';
+import { createSupabaseBrowserClient, hasSupabaseBrowserEnv } from '../../lib/supabase/browser';
 
 const OUTPUT_ACTIVITY_PATH = '/admin/output-activity-v2';
+const MIN_REFRESH_INTERVAL_MS = 12_000;
+const REFRESH_DELAY_MS = 750;
 
 export default function OutputActivityRealtimeRefreshMount() {
   const pathname = usePathname();
@@ -14,7 +16,7 @@ export default function OutputActivityRealtimeRefreshMount() {
   const lastRefreshAt = useRef(0);
 
   useEffect(() => {
-    if (pathname !== OUTPUT_ACTIVITY_PATH) return;
+    if (pathname !== OUTPUT_ACTIVITY_PATH || !hasSupabaseBrowserEnv()) return;
 
     let cancelled = false;
     let channel: RealtimeChannel | null = null;
@@ -23,7 +25,7 @@ export default function OutputActivityRealtimeRefreshMount() {
     function scheduleRefresh(reason = 'event') {
       if (cancelled || refreshTimer.current) return;
       const elapsed = Date.now() - lastRefreshAt.current;
-      const delay = elapsed > 1500 ? 350 : 1500 - elapsed;
+      const delay = elapsed > MIN_REFRESH_INTERVAL_MS ? REFRESH_DELAY_MS : MIN_REFRESH_INTERVAL_MS - elapsed;
       refreshTimer.current = window.setTimeout(() => {
         refreshTimer.current = null;
         if (cancelled) return;
@@ -35,14 +37,9 @@ export default function OutputActivityRealtimeRefreshMount() {
 
     const focusHandler = () => scheduleRefresh('focus');
     const visibilityHandler = () => { if (!document.hidden) scheduleRefresh('visibility'); };
-    const notificationHandler = (event: Event) => {
-      const detail = (event as CustomEvent).detail as { outputActivityUnreadCount?: number } | undefined;
-      if (!detail || Number(detail.outputActivityUnreadCount || 0) > 0) scheduleRefresh('notifications-refreshed');
-    };
 
     window.addEventListener('focus', focusHandler);
     window.addEventListener('online', focusHandler);
-    window.addEventListener('xdisputer:notifications-refreshed', notificationHandler);
     document.addEventListener('visibilitychange', visibilityHandler);
 
     void supabase.auth.getUser().then(({ data }) => {
@@ -55,17 +52,14 @@ export default function OutputActivityRealtimeRefreshMount() {
           { event: '*', schema: 'public', table: 'manager_disputer_output_approvals', filter: `manager_id=eq.${managerId}` },
           () => scheduleRefresh('output-activity-realtime')
         );
-      void channel.subscribe((status) => { if (status === 'SUBSCRIBED') scheduleRefresh('subscribed'); });
+      void channel.subscribe();
     }).catch(() => undefined);
-
-    scheduleRefresh('mount');
 
     return () => {
       cancelled = true;
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
       window.removeEventListener('focus', focusHandler);
       window.removeEventListener('online', focusHandler);
-      window.removeEventListener('xdisputer:notifications-refreshed', notificationHandler);
       document.removeEventListener('visibilitychange', visibilityHandler);
       if (channel) void supabase.removeChannel(channel);
     };
