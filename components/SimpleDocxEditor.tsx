@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { readEditableParagraphs, saveEditedParagraphs, type EditableParagraph, type ParagraphAlignment } from '../lib/simple-docx-editor';
 import { loadTemplateExhibits } from '../lib/template-exhibits';
 import { getPacketPositions, isFtcEnabled } from '../lib/workflow-framework';
@@ -122,7 +123,7 @@ function applyPreviewFormatting(node: HTMLElement, block: EditableParagraph) {
   });
 }
 
-function EditablePacketSection({ slot, onSave }: { slot: Slot; onSave: Props['onSave'] }) {
+function EditablePacketSection({ slot, onClose, onSave }: { slot: Slot; onClose: Props['onClose']; onSave: Props['onSave'] }) {
   const output = slot.document!;
   const host = useRef<HTMLDivElement>(null);
   const paragraphNodes = useRef<Map<string, HTMLElement>>(new Map());
@@ -242,6 +243,7 @@ function EditablePacketSection({ slot, onSave }: { slot: Slot; onSave: Props['on
         <button className="packet-save-button" type="button" disabled={!dirty || saving} onClick={() => void save()}>
           {saving ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
         </button>
+        <button type="button" className="packet-close-button" onClick={onClose}>Close</button>
       </div>
 
       <div className="docx-format-toolbar" aria-label="Document formatting toolbar">
@@ -306,7 +308,8 @@ function PacketInsertSection({
   warnings,
   toolbarTargetId,
   onEvidenceChanged,
-  onMessage
+  onMessage,
+  onClose
 }: {
   slot: Slot;
   round: Props['round'];
@@ -316,11 +319,16 @@ function PacketInsertSection({
   toolbarTargetId?: string;
   onEvidenceChanged?: Props['onEvidenceChanged'];
   onMessage?: Props['onMessage'];
+  onClose: Props['onClose'];
 }) {
   const viewable = slot.id === 'SUPPORTING' || slot.id === 'FCRA' || slot.id === 'ATTACHMENT';
 
   return (
     <article className="packet-focus-section packet-stack-insert" data-slot={slot.id}>
+      <div className="packet-document-toolbar packet-insert-toolbar">
+        <span className="packet-edit-state">{stateOf(slot)}</span>
+        <button type="button" className="packet-close-button" onClick={onClose}>Close</button>
+      </div>
       {viewable ? (
         <PacketInsertViewer
           kind={slot.id as 'SUPPORTING' | 'FCRA' | 'ATTACHMENT'}
@@ -355,6 +363,8 @@ export default function SimpleDocxEditor({
   onSave
 }: Props) {
   const [active, setActive] = useState<SlotId>(() => slotForDocument(initialDocumentPath, documents));
+  const [portalReady, setPortalReady] = useState(false);
+  const scrollHost = useRef<HTMLDivElement>(null);
   const lastInitialDocumentPath = useRef(initialDocumentPath);
   const exhibits = useMemo(() => loadTemplateExhibits(round), [round]);
 
@@ -414,6 +424,15 @@ export default function SimpleDocxEditor({
   }, [output.type, letter, affidavit, ftc, evidence?.supporting.length, exhibits]);
 
   useEffect(() => {
+    setPortalReady(true);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
     if (lastInitialDocumentPath.current !== initialDocumentPath) {
       lastInitialDocumentPath.current = initialDocumentPath;
       setActive(slotForDocument(initialDocumentPath, documents));
@@ -425,6 +444,13 @@ export default function SimpleDocxEditor({
       setActive(slots[0]?.id || 'LETTER');
     }
   }, [active, slots]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      scrollHost.current?.scrollTo({ top: 0, left: 0 });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, output.path]);
 
   const activeIndex = Math.max(0, slots.findIndex((slot) => slot.id === active));
   const selected = slots[activeIndex] || slots[0];
@@ -451,9 +477,9 @@ export default function SimpleDocxEditor({
     ? [...slots.filter((slot) => slot.id !== 'FTC'), ftcRailSlot].sort((a, b) => a.number - b.number)
     : slots;
 
-  if (!selected) return null;
+  if (!selected || !portalReady || typeof document === 'undefined') return null;
 
-  return (
+  const editor = (
     <div className="simple-editor-backdrop">
       <section className="simple-editor-modal ordered-packet-modal premium-document-editor focused-packet-editor consolidated-packet-editor" role="dialog" aria-modal="true" aria-label={`${output.bureau} ordered packet editor`} data-ftc-editor-slots={slots.map((slot) => slot.id).join('|')} data-ftc-rail-slots={railSlots.map((slot) => slot.id).join('|')}>
         <header className="simple-editor-header editor-command-header">
@@ -485,8 +511,6 @@ export default function SimpleDocxEditor({
               <button type="button" className="secondary-button" disabled={!previous} onClick={() => previous && setActive(previous.id)}>Previous</button>
               <button type="button" className="secondary-button" disabled={!next} onClick={() => next && setActive(next.id)}>Next</button>
             </div>
-
-            <button type="button" className="close-editor" onClick={onClose} aria-label="Close editor">×</button>
           </div>
         </header>
 
@@ -513,9 +537,9 @@ export default function SimpleDocxEditor({
           </aside>
 
           <main className="packet-focus-workspace">
-            <div className="packet-focus-scroll">
+            <div ref={scrollHost} className="packet-focus-scroll">
               {selected.document ? (
-                <EditablePacketSection key={`${output.path}-${selected.id}`} slot={selected} onSave={onSave} />
+                <EditablePacketSection key={`${output.path}-${selected.id}`} slot={selected} onClose={onClose} onSave={onSave} />
               ) : (
                 <PacketInsertSection
                   key={`${output.path}-${selected.id}`}
@@ -527,6 +551,7 @@ export default function SimpleDocxEditor({
                   toolbarTargetId={evidenceToolsId}
                   onEvidenceChanged={onEvidenceChanged}
                   onMessage={onMessage}
+                  onClose={onClose}
                 />
               )}
             </div>
@@ -535,4 +560,6 @@ export default function SimpleDocxEditor({
       </section>
     </div>
   );
+
+  return createPortal(editor, document.body);
 }
