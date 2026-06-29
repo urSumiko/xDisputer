@@ -24,46 +24,22 @@ const META = 'lettergenerator.packet-assets.v1.';
 const blank = (): PacketAssets => ({ supporting: [], legalPdf: null });
 const assetKey = (round: string, id: string) => `packet/${round}/${id}`;
 
+function supportSlot(index: number, total: number): Pick<SupportingPlacement, 'x' | 'y' | 'width' | 'height'> {
+  const count = Math.max(1, Math.min(total || 1, 12));
+  const safeIndex = Math.max(0, Math.min(index, count - 1));
+
+  if (count === 1) return { x: 0.04, y: 0.14, width: 0.92, height: 0.48 };
+  if (count === 2) return { x: 0.04, y: 0.08 + safeIndex * 0.44, width: 0.92, height: 0.4 };
+  if (count === 3) return { x: 0.04, y: 0.06 + safeIndex * 0.3, width: 0.92, height: 0.28 };
+
+  const height = 0.92 / count;
+  return { x: 0.04, y: 0.04 + safeIndex * height, width: 0.92, height };
+}
+
 export function standardSupportingPlacement(index: number, count: number): SupportingPlacement {
-  const n = Math.max(1, Math.min(count || 1, 12));
-  const safeIndex = Math.max(0, Math.min(index, n - 1));
-
-  /*
-    Count-specific evidence slot policy:
-    - 1 image: compact centered frame, not a large square container
-    - 2 images: readable stacked frames, but no oversized vertical boxes
-    - 3 images: keep existing good layout unchanged
-    - 4+ images: proportional fallback
-  */
-  let width: number;
-  let height: number;
-  let startY: number;
-
-  if (n === 1) {
-    width = 0.66;
-    height = 0.34;
-    startY = 0.33;
-  } else if (n === 2) {
-    width = 0.68;
-    height = 0.315;
-    startY = 0.185;
-  } else if (n === 3) {
-    width = 0.72;
-    height = 0.305;
-    startY = 0.045;
-  } else {
-    width = 0.72;
-    height = 0.90 / n;
-    startY = 0.05;
-  }
-
-  const x = (1 - width) / 2;
-
+  const slot = supportSlot(index, count);
   return {
-    x,
-    y: startY + safeIndex * height,
-    width,
-    height,
+    ...slot,
     cropX: 0,
     cropY: 0,
     cropWidth: 1,
