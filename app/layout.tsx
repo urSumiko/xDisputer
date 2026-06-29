@@ -39,6 +39,7 @@ import './supporting-documents-wide-stage.css';
 import './supporting-documents-runtime-wide-fix.css';
 import './console-debug-overlay.css';
 import './supporting-documents-center-canvas-contract.css';
+import './console-mode-switch-visibility-fix.css';
 import ControlNavGlobalTelemetry from '../components/control/ControlNavGlobalTelemetry';
 import RenderDebuggerMount from '../components/console/RenderDebuggerMount';
 import OutputActivityRealtimeRefreshMount from '../components/notifications/OutputActivityRealtimeRefreshMount';
