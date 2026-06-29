@@ -41,6 +41,7 @@ import './console-debug-overlay.css';
 import './supporting-documents-center-canvas-contract.css';
 import './console-mode-switch-visibility-fix.css';
 import './review-packet-layout-fix.css';
+import './supporting-documents-review-editor-fix.css';
 import ControlNavGlobalTelemetry from '../components/control/ControlNavGlobalTelemetry';
 import RenderDebuggerMount from '../components/console/RenderDebuggerMount';
 import OutputActivityRealtimeRefreshMount from '../components/notifications/OutputActivityRealtimeRefreshMount';
