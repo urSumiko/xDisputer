@@ -121,16 +121,6 @@ export async function buildFinalMergedPdfPackage(input: {
     packetNames.push(path);
   }
 
-  zip.file('merged-pdf-manifest.json', JSON.stringify({
-    packageType: 'bureau-merged-pdf-zip',
-    clientName: input.clientName,
-    round: input.round,
-    grouping: groupByType ? 'letter-type-folder-then-bureau-pdf' : 'bureau-pdf-at-root',
-    packetCount: packetNames.length,
-    packets: packetNames,
-    generatedAt: new Date().toISOString()
-  }, null, 2));
-
   return {
     name: `${fileBase(input.clientName)}_${fileBase(input.round)}_MERGED_PDF_PACKETS.zip`,
     blob: await zip.generateAsync({ type: 'blob' }),
