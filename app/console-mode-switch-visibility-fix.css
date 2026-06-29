@@ -1,0 +1,52 @@
+/* Console mode switch visibility fix.
+   Loaded after global theme/layout layers so the canonical manager/master mode switch never becomes white text on a white secondary button. */
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page[data-console-shell="true"] .console-sidebar-mode-switch-button[data-console-canonical-switch="true"] {
+  min-height: 48px !important;
+  padding: .75rem .82rem !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  gap: .65rem !important;
+  width: 100% !important;
+  border: 1px solid rgba(37, 99, 235, .35) !important;
+  border-radius: 16px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #061227, #0f2f68 54%, #2563eb) !important;
+  text-decoration: none !important;
+  box-shadow: 0 16px 32px rgba(37, 99, 235, .22), 0 8px 18px rgba(15, 23, 42, .16) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page[data-console-shell="true"] .console-sidebar-mode-switch-button[data-console-canonical-switch="true"] > span {
+  min-width: 0 !important;
+  display: block !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: .82rem !important;
+  font-weight: 950 !important;
+  line-height: 1.1 !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page[data-console-shell="true"] .console-sidebar-mode-switch-button[data-console-canonical-switch="true"] > em {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  color: #081429 !important;
+  background: rgba(255, 255, 255, .96) !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  box-shadow: 0 8px 18px rgba(2, 6, 23, .18) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page[data-console-shell="true"] .console-sidebar-mode-switch-button[data-console-canonical-switch="true"]:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: 0 22px 48px rgba(37, 99, 235, .28), 0 12px 24px rgba(15, 23, 42, .18) !important;
+}
