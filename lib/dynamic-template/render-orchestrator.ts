@@ -9,7 +9,7 @@ import { gradeDynamicTemplateRender, dynamicTemplateQualityManifest, type Dynami
 import { evaluateDynamicTemplateAdvancedZones, dynamicTemplateAdvancedZoneManifest, type DynamicTemplateAdvancedZoneDecision } from './advanced-zone-policy';
 import { resolveDynamicTemplateRendererMode, type DynamicTemplateRendererMode } from './renderer-mode';
 import { managerOwnedGenerationManifest, mergeManagerOwnedWarningsIntoPlan, routeManagerOwnedDocxGeneration, type ManagerOwnedGenerationRoute } from '../manager-template-contract';
-import { dedupeGeneratedClientHeaders } from './generated-header-dedupe';
+import { normalizeGeneratedLetterHeader } from './generated-header-dedupe';
 
 export type DynamicTemplateEngineV2Result = {
   version: 1;
@@ -29,17 +29,17 @@ export function shouldUseDynamicDocxLayoutV2(mode?: DynamicTemplateRendererMode 
   return resolveDynamicTemplateRendererMode({ explicitMode: mode }) === 'DOCX_LAYOUT_V2';
 }
 
-async function normalizeRenderResult(input: { renderResult: DocxLayoutRendererV2Result; kind: TemplateDocumentKind; parsed: ParsedSource }) {
+async function normalizeRenderResult(input: { renderResult: DocxLayoutRendererV2Result; kind: TemplateDocumentKind; parsed: ParsedSource; route?: LetterRoute | null; documentDate: string }) {
   if (input.kind !== 'DISPUTE_LETTER' && input.kind !== 'LATE_PAYMENT_LETTER') return input.renderResult;
-  const deduped = await dedupeGeneratedClientHeaders(input.renderResult.blob, { clientName: input.parsed.name }).catch(() => null);
-  if (!deduped?.changed) return input.renderResult;
+  const normalized = await normalizeGeneratedLetterHeader(input.renderResult.blob, { parsed: input.parsed, route: input.route, documentDate: input.documentDate }).catch(() => null);
+  if (!normalized?.changed) return input.renderResult;
   return {
     ...input.renderResult,
-    blob: deduped.blob,
+    blob: normalized.blob,
     proof: {
       ...input.renderResult.proof,
-      mutatedParts: Array.from(new Set([...input.renderResult.proof.mutatedParts, ...deduped.mutatedParts])),
-      warnings: [...input.renderResult.proof.warnings, deduped.warning || 'Stale generated client header was removed.'].filter(Boolean)
+      mutatedParts: Array.from(new Set([...input.renderResult.proof.mutatedParts, ...normalized.mutatedParts])),
+      warnings: [...input.renderResult.proof.warnings, normalized.warning || 'Generated letter header was normalized from parsed source data.'].filter(Boolean)
     }
   };
 }
@@ -81,7 +81,7 @@ export async function renderDynamicDocxTemplateV2(input: {
     plan: advancedZones.warnings.length ? { ...plan, warnings: [...plan.warnings, ...advancedZones.warnings] } : plan,
     rendererMode
   });
-  const renderResult = await normalizeRenderResult({ renderResult: rawRenderResult, kind: input.kind, parsed: input.parsed });
+  const renderResult = await normalizeRenderResult({ renderResult: rawRenderResult, kind: input.kind, parsed: input.parsed, route: input.route, documentDate: input.documentDate });
   const validation = await validateDynamicTemplateRender({ plan, renderResult });
   const quality = gradeDynamicTemplateRender({ contract, plan, validation });
 
