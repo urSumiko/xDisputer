@@ -66,6 +66,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "console-shell:guard": "node scripts/console-shell-contract-guard.mjs",
+    "contracts:summary": "node scripts/repo-contract-summary.mjs",
+    "repo:verify": "npm run contracts:summary && npm run connections:doctor && npm run template-execution:guard && npm run manager-console:guard && npm run typecheck && npm run build",
     "quality:check": "npm run connections:doctor && npm run ui-source:guard && npm run console-roadmap:guard && npm run template-execution:guard && npm run manager-template:roadmap && npm run manager-template:db-guard && npm run typecheck && npm run build",
     "repo:guard": "npm run connections:doctor && npm run ui-source:guard && npm run console-roadmap:guard && npm run template-execution:guard && npm run manager-template:roadmap && npm run manager-template:db-guard && npm run typecheck && npm run build",
     "codespace:verify": "npm run repo:guard",
