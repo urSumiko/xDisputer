@@ -1,8 +1,9 @@
 'use client';
 
+import JSZip from 'jszip';
 import type { ReviewOutput } from '../components/OutputReviewWorkspace';
-import { assembleFinalPdf, mergePdfBlobs, type PdfPacketPart } from './final-pdf-packet';
-import { type Bureau, type LetterType } from './letter-engine';
+import { assembleFinalPdf, type PdfPacketPart } from './final-pdf-packet';
+import { type LetterType } from './letter-engine';
 import { createSupportingDocumentsPdf } from './packet-renderer';
 import type { Round } from './reference-store';
 import { readTemplateExhibit } from './template-exhibits';
@@ -18,7 +19,7 @@ export type FinalMergedPdfPackage = {
 };
 
 function safe(value: string) {
-  return (value || 'CLIENT').replace(/[\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+  return (value || 'CLIENT').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
 }
 
 function fileBase(value: string) {
@@ -26,10 +27,12 @@ function fileBase(value: string) {
 }
 
 function uniqueRoutes(docs: ReviewOutput[], routeHints: PacketRoute[] = []) {
+  const generated = new Set(docs.filter((doc) => !doc.role || doc.role === 'LETTER').map((doc) => `${doc.type}:${doc.bureau}`));
   const fromDocs = docs
     .filter((doc) => !doc.role || doc.role === 'LETTER')
     .map((doc) => ({ type: doc.type, bureau: doc.bureau }));
-  return Array.from(new Map([...fromDocs, ...routeHints].map((route) => [`${route.type}:${route.bureau}`, route])).values());
+  const fromHints = routeHints.filter((route) => generated.has(`${route.type}:${route.bureau}`));
+  return Array.from(new Map([...fromDocs, ...fromHints].map((route) => [`${route.type}:${route.bureau}`, route])).values());
 }
 
 function findDocument(docs: ReviewOutput[], route: PacketRoute, role: 'LETTER' | 'AFFIDAVIT' | 'FTC') {
@@ -42,6 +45,16 @@ function findDocument(docs: ReviewOutput[], route: PacketRoute, role: 'LETTER' |
 
 function letterLabel(type: LetterType) {
   return type === 'LATE_PAYMENT' ? 'Late Payment Letter' : 'Dispute Letter';
+}
+
+function packetFileName(input: { client: string; route: PacketRoute }) {
+  const packetType = input.route.type === 'DISPUTE' ? 'DISPUTE' : 'LATE PAYMENT';
+  return `${input.client} ${input.route.bureau} ${packetType} PACKET.pdf`;
+}
+
+function packetZipPath(input: { client: string; route: PacketRoute; groupByType: boolean }) {
+  const name = packetFileName(input);
+  return input.groupByType ? `${letterLabel(input.route.type)}/${name}` : name;
 }
 
 async function buildPacketPdf(input: {
@@ -96,17 +109,32 @@ export async function buildFinalMergedPdfPackage(input: {
   if (!routes.length) throw new Error('No generated packet routes are available for final PDF assembly.');
 
   const client = safe(input.clientName);
-  const packets: Array<{ label: string; blob: Blob }> = [];
+  const zip = new JSZip();
+  const hasLatePayment = routes.some((route) => route.type === 'LATE_PAYMENT');
+  const groupByType = hasLatePayment;
+  const packetNames: string[] = [];
+
   for (const route of routes) {
-    const title = `${client} ${route.bureau} ${route.type === 'DISPUTE' ? 'DISPUTE' : 'LATE PAYMENT'} PACKET.pdf`;
-    packets.push({ label: title, blob: await buildPacketPdf({ docs: input.docs, round: input.round, evidenceKey: input.evidenceKey, route }) });
+    const pdf = await buildPacketPdf({ docs: input.docs, round: input.round, evidenceKey: input.evidenceKey, route });
+    const path = packetZipPath({ client, route, groupByType });
+    zip.file(path, pdf);
+    packetNames.push(path);
   }
 
-  const merged = await mergePdfBlobs(packets);
+  zip.file('merged-pdf-manifest.json', JSON.stringify({
+    packageType: 'bureau-merged-pdf-zip',
+    clientName: input.clientName,
+    round: input.round,
+    grouping: groupByType ? 'letter-type-folder-then-bureau-pdf' : 'bureau-pdf-at-root',
+    packetCount: packetNames.length,
+    packets: packetNames,
+    generatedAt: new Date().toISOString()
+  }, null, 2));
+
   return {
-    name: `${fileBase(input.clientName)}_${fileBase(input.round)}_FINAL_MERGED_PACKET.pdf`,
-    blob: merged.blob,
-    packetCount: packets.length,
-    packetNames: packets.map((packet) => packet.label)
+    name: `${fileBase(input.clientName)}_${fileBase(input.round)}_MERGED_PDF_PACKETS.zip`,
+    blob: await zip.generateAsync({ type: 'blob' }),
+    packetCount: packetNames.length,
+    packetNames
   };
 }
