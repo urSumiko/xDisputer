@@ -1,0 +1,145 @@
+body[data-theme-contract="xdisputer-unified"] .global-topbar-actions-mount,
+body[data-theme-contract="xdisputer-unified"] .topbar-action-cluster {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: .55rem;
+  min-width: 0;
+  position: relative;
+  z-index: 6;
+}
+
+body[data-theme-contract="xdisputer-unified"] .global-topbar-actions-mount {
+  position: fixed;
+  top: -999px;
+  right: -999px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .global-topbar-actions-mount > * {
+  pointer-events: none;
+}
+
+body[data-theme-contract="xdisputer-unified"] .topbar-action-cluster > .manager-header-account-dock {
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .account-rail-action-row,
+body[data-theme-contract="xdisputer-unified"] .master-workspace-account-rail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .55rem;
+  width: 100%;
+}
+
+body[data-theme-contract="xdisputer-unified"] .master-workspace-account-rail {
+  padding: .85rem !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .topbar-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .35);
+  background: rgba(255, 255, 255, .92);
+  color: #0f172a;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+}
+
+body[data-theme-contract="xdisputer-unified"] .topbar-icon-button strong {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: .68rem;
+  line-height: 1;
+}
+
+body[data-theme-contract="xdisputer-unified"] .notification-popover,
+body[data-theme-contract="xdisputer-unified"] .client-menu-popover {
+  position: absolute;
+  top: calc(100% + .7rem);
+  right: 0;
+  width: min(360px, 86vw);
+  padding: .85rem;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, .32);
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, .18);
+}
+
+body[data-theme-contract="xdisputer-unified"] .notification-popover-topline,
+body[data-theme-contract="xdisputer-unified"] .client-menu-popover-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .65rem;
+  margin-bottom: .65rem;
+  font-weight: 900;
+}
+
+body[data-theme-contract="xdisputer-unified"] .notification-list,
+body[data-theme-contract="xdisputer-unified"] .client-menu-popover {
+  display: grid;
+  gap: .5rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .notification-item,
+body[data-theme-contract="xdisputer-unified"] .client-menu-popover a {
+  display: grid;
+  gap: .2rem;
+  padding: .72rem;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, .9);
+  background: rgba(248, 250, 252, .86);
+  color: #0f172a;
+  text-decoration: none;
+}
+
+body[data-theme-contract="xdisputer-unified"] .notification-item[data-notification-read="false"] {
+  border-color: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 48%, rgba(226, 232, 240, .9));
+  background: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 7%, #fff);
+}
+
+body[data-theme-contract="xdisputer-unified"] .notification-item span,
+body[data-theme-contract="xdisputer-unified"] .notification-item em,
+body[data-theme-contract="xdisputer-unified"] .notification-empty {
+  color: var(--x-color-text-muted, #64748b);
+  font-size: .78rem;
+  font-style: normal;
+}
+
+body[data-theme-contract="xdisputer-unified"] .client-topbar-action-cluster {
+  width: 100%;
+  justify-content: flex-end;
+  margin: 0 0 .85rem;
+}
+
+@media (max-width: 760px) {
+  body[data-theme-contract="xdisputer-unified"] .global-topbar-actions-mount {
+    top: -999px;
+    right: -999px;
+  }
+}

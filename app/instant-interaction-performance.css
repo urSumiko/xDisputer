@@ -1,0 +1,162 @@
+/* xDisputer Instant Interaction Performance Layer
+   Visual-only performance layer for client, manager, and master surfaces.
+   Layout geometry stays in ui-layout-contracts.css.
+*/
+
+:root {
+  --x-instant-performance: ready;
+  --x-instant-duration: 120ms;
+  --x-instant-surface-duration: 160ms;
+  --x-instant-loading-duration: 980ms;
+  --x-instant-ease: cubic-bezier(.2, .8, .2, 1);
+  --x-float-y: -1px;
+  --x-float-press: .996;
+}
+
+body[data-theme-contract="xdisputer-unified"] * {
+  transition-property: none;
+  transition-duration: 0ms;
+  transition-timing-function: var(--x-instant-ease);
+}
+
+/* Keep interactions compositor-friendly: no box-shadow transition, no layout-property transition. */
+body[data-theme-contract="xdisputer-unified"] :where(button,a,input,select,textarea,.action-button,.primary-action-button,.secondary-button,.admin-action-button,.directory-header-action,.console-sidebar-mode-switch-button,.workspace-account-card,.admin-monitor-sidebar nav a,.sidebar nav button,.panel,.admin-monitor-card,.progressive-dataset-card,.access-workflow-card,.client-template-runtime-card,.source-progressive-stage,.template-selection-stage,.template-workspace-status-card,.account-control-row-trigger,[data-theme-action],[data-theme-surface="card"]) {
+  transition-property: transform, background-color, border-color, color, opacity;
+  transition-duration: var(--x-instant-duration);
+  transition-timing-function: var(--x-instant-ease);
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+body[data-theme-contract="xdisputer-unified"] :where(.panel,.admin-monitor-card,.progressive-dataset-card,.access-workflow-card,.client-template-runtime-card,.source-progressive-stage,.template-selection-stage,.template-workspace-status-card,.workspace-account-card,[data-theme-surface="card"]):hover,
+body[data-theme-contract="xdisputer-unified"] :where(button,a.admin-action-button,a.directory-header-action,.action-button,.secondary-button,.primary-action-button,.console-sidebar-mode-switch-button,.admin-monitor-sidebar nav a,.sidebar nav button,.account-control-row-trigger,[data-theme-action]):hover {
+  transform: translate3d(0, var(--x-float-y), 0);
+}
+
+body[data-theme-contract="xdisputer-unified"] :where(button,a.admin-action-button,a.directory-header-action,.action-button,.secondary-button,.primary-action-button,.console-sidebar-mode-switch-button,.admin-monitor-sidebar nav a,.sidebar nav button,.account-control-row-trigger,[data-theme-action]):active {
+  transform: translate3d(0, 0, 0) scale(var(--x-float-press));
+}
+
+/* Large hero/header cards should not float; moving large surfaces makes manager/master feel sluggish. */
+body[data-theme-contract="xdisputer-unified"] :where(.admin-monitor-header,.console-header-card,.saas-auth-panel,.saas-auth-hero):hover {
+  transform: translate3d(0, 0, 0) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page .admin-monitor-card,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page .progressive-dataset-card,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page .access-workflow-card,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page .manager-monitor-item,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page .master-monitor-item {
+  animation: none !important;
+  contain: paint;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page.native-console,
+body[data-theme-contract="xdisputer-unified"] .app-shell,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-page,
+body[data-theme-contract="xdisputer-unified"] .client-template-runtime,
+body[data-theme-contract="xdisputer-unified"] .console-header-card,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-header,
+.console-loading-hero,
+.console-loading-card {
+  animation: xInstantShellReady var(--x-instant-surface-duration) both;
+}
+
+@keyframes xInstantShellReady {
+  from { opacity: .94; transform: translate3d(0, 4px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-sidebar nav a,
+body[data-theme-contract="xdisputer-unified"] .sidebar nav button,
+body[data-theme-contract="xdisputer-unified"] .console-sidebar-mode-switch-button {
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+body[data-theme-contract="xdisputer-unified"] :where(.directory-header-action,.template-selection-tag,.pill,[class*="badge"]) {
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] :where(.admin-monitor-page,.admin-monitor-main,.native-console-main,.master-access-stack,.manager-template-workspace,.template-workspace-hub,.admin-monitor-card,.native-operation-card,.directory-filter-form,.directory-pager,.admin-power-grid,.admin-monitor-stats,.dashboard-snapshot-list,.account-control-list,.single-header-dataset) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: clip !important;
+}
+
+/* Manager/master instant loading shell. */
+.console-instant-loading {
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+.console-loading-line,
+.console-loading-nav-item {
+  display: block;
+  min-height: 12px;
+  border-radius: 999px;
+  color: transparent !important;
+}
+
+.console-loading-line { width: 46%; }
+.console-loading-line.wide { width: 78%; }
+
+.console-loading-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  width: 100%;
+}
+
+.console-loading-card {
+  display: grid;
+  gap: .85rem;
+  min-height: 172px;
+  padding: 1.1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(203, 213, 225, .82);
+  background: rgba(255, 255, 255, .92);
+}
+
+.console-loading-nav-item {
+  width: 100%;
+  min-height: 38px;
+  margin-bottom: .45rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .console-loading-card [data-theme-loading="skeleton"],
+body[data-theme-contract="xdisputer-unified"] .console-loading-nav-item[data-theme-loading="skeleton"],
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-stats [data-theme-loading="skeleton"] {
+  animation-duration: var(--x-instant-loading-duration) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] :where(.manager-monitor-item,.master-monitor-item,.account-control-trigger-grid,.account-control-identity,.account-control-agreement,.account-control-meta) {
+  min-width: 0 !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] :where(.manager-monitor-item strong,.master-monitor-item strong,.account-control-identity strong,.account-control-identity small) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: none) {
+  body[data-theme-contract="xdisputer-unified"] :where(.panel,.admin-monitor-card,.progressive-dataset-card,.access-workflow-card,.client-template-runtime-card,.source-progressive-stage,.template-selection-stage,.template-workspace-status-card,.workspace-account-card,[data-theme-surface="card"]):hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce), (update: slow) {
+  body[data-theme-contract="xdisputer-unified"] *,
+  body[data-theme-contract="xdisputer-unified"] *::before,
+  body[data-theme-contract="xdisputer-unified"] *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+  }
+}

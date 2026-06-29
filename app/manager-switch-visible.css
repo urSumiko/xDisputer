@@ -1,0 +1,55 @@
+/* Manager switch visibility contract.
+   UI-only hardening for the canonical manager/admin switch. */
+
+.admin-monitor-page.native-console .admin-monitor-sidebar.native-console-sidebar {
+  overflow: visible !important;
+}
+
+.admin-monitor-page.native-console .admin-monitor-sidebar.native-console-sidebar nav[data-manager-shell-nav="true"] {
+  overflow: visible !important;
+  align-content: start !important;
+}
+
+.admin-monitor-page.native-console .admin-monitor-sidebar.native-console-sidebar nav[data-manager-shell-nav="true"] a.manager-workspace-nav-switch[data-manager-canonical-switch="true"] {
+  grid-column: 1 / -1 !important;
+  order: 999 !important;
+  position: relative !important;
+  z-index: 40 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  margin-top: 12px !important;
+  padding: 12px 14px !important;
+  border-radius: 18px !important;
+  color: #eff6ff !important;
+  text-decoration: none !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  overflow: visible !important;
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  box-shadow: 0 16px 36px rgba(37, 99, 235, .28) !important;
+}
+
+.admin-monitor-page.native-console .admin-monitor-sidebar.native-console-sidebar nav[data-manager-shell-nav="true"] a.manager-workspace-nav-switch[data-manager-canonical-switch="true"] .manager-workspace-switch-copy {
+  display: grid !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+@media (max-width: 1180px) {
+  .admin-monitor-page.native-console .admin-monitor-sidebar.native-console-sidebar nav[data-manager-shell-nav="true"] a.manager-workspace-nav-switch[data-manager-canonical-switch="true"] {
+    grid-column: 1 / -1 !important;
+    margin-top: 10px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-monitor-page.native-console .admin-monitor-sidebar.native-console-sidebar nav[data-manager-shell-nav="true"] a.manager-workspace-nav-switch[data-manager-canonical-switch="true"] {
+    min-height: 54px !important;
+  }
+}

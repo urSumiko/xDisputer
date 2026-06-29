@@ -1,0 +1,49 @@
+/* Notification Account Rail FBIS
+   Owns only the notification/avatar row inside AccountMenu. ConsoleShell remains layout-only. */
+
+.manager-header-account-dock[data-console-account-menu="true"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(12px, 1.2vw, 18px) !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .notification-dock[data-notification-dock="true"] {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  order: 1 !important;
+  flex: 0 0 auto !important;
+  z-index: 3 !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .manager-header-account-avatar {
+  order: 2 !important;
+  flex: 0 0 auto !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .notification-dock[data-notification-dock="true"] .notification-dock-button {
+  width: clamp(38px, 3.2vw, 44px) !important;
+  height: clamp(38px, 3.2vw, 44px) !important;
+  border-radius: 14px !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .notification-dock[data-notification-dock="true"] .notification-dock-popover {
+  right: 0 !important;
+  left: auto !important;
+  top: calc(100% + 10px) !important;
+  width: min(340px, calc(100vw - 32px)) !important;
+  max-width: calc(100vw - 32px) !important;
+}
+
+@media (max-width: 760px) {
+  .manager-header-account-dock[data-console-account-menu="true"] {
+    gap: 8px !important;
+  }
+
+  .manager-header-account-dock[data-console-account-menu="true"] > .notification-dock[data-notification-dock="true"] .notification-dock-button {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}

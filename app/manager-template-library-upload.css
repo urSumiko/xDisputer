@@ -1,0 +1,194 @@
+/* Manager Template Library progressive upload layout
+   Final owner for /manager-workspace Template Library upload UX.
+   Contract: same progressive workflow as Disputer template selection, plus manager upload/remove controls. */
+
+.manager-template-progressive-workspace {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: clamp(1rem, 1.5vw, 1.45rem) !important;
+}
+
+.manager-template-stage,
+.manager-template-upload-stage {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.manager-template-stage.panel,
+.template-native-upload-panel.panel,
+.manager-template-upload-stage .template-selected-command {
+  border: 1px solid rgba(15, 23, 42, .09) !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, .065) !important;
+}
+
+.manager-template-native-grid,
+.template-manager-slot-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important;
+  gap: clamp(.85rem, 1.15vw, 1.1rem) !important;
+  min-width: 0 !important;
+}
+
+.manager-template-choice {
+  min-height: 190px !important;
+  text-align: left !important;
+  position: relative !important;
+}
+
+.manager-template-choice.ready {
+  border-color: rgba(16, 185, 129, .42) !important;
+  box-shadow: inset 5px 0 0 #10b981, 0 14px 30px rgba(15, 23, 42, .06) !important;
+}
+
+.manager-template-choice.missing {
+  border-color: rgba(245, 158, 11, .38) !important;
+  box-shadow: inset 5px 0 0 #f59e0b, 0 14px 30px rgba(15, 23, 42, .06) !important;
+}
+
+.template-library-status-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: .55rem !important;
+  align-items: center !important;
+  margin-bottom: clamp(.85rem, 1vw, 1rem) !important;
+}
+
+.template-library-status-row small {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 .75rem !important;
+  border: 1px solid rgba(203, 213, 225, .86) !important;
+  border-radius: 999px !important;
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-size: .76rem !important;
+  font-weight: 850 !important;
+}
+
+.template-native-upload-panel {
+  display: grid !important;
+  gap: clamp(.85rem, 1.1vw, 1rem) !important;
+  padding: clamp(1rem, 1.45vw, 1.35rem) !important;
+}
+
+.template-native-upload-card {
+  display: grid !important;
+  gap: clamp(.85rem, 1.15vw, 1rem) !important;
+  padding: clamp(1rem, 1.4vw, 1.25rem) !important;
+  border: 1px solid rgba(15, 23, 42, .09) !important;
+  border-left-width: 6px !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .06) !important;
+}
+
+.template-native-upload-card.ready {
+  border-left-color: #10b981 !important;
+}
+
+.template-native-upload-card.missing {
+  border-left-color: #f59e0b !important;
+}
+
+.template-upload-active-state {
+  display: grid !important;
+  gap: .35rem !important;
+  min-width: 0 !important;
+  padding: .9rem 1rem !important;
+  border: 1px solid rgba(203, 213, 225, .84) !important;
+  border-radius: 18px !important;
+  background: #f8fafc !important;
+}
+
+.template-upload-active-state strong {
+  color: #081429 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.template-upload-active-state small,
+.template-upload-active-state em {
+  color: #64748b !important;
+  font-size: .84rem !important;
+  font-style: normal !important;
+  line-height: 1.45 !important;
+}
+
+.template-upload-form {
+  display: grid !important;
+  gap: .8rem !important;
+  min-width: 0 !important;
+}
+
+.template-upload-form label {
+  display: grid !important;
+  gap: .38rem !important;
+}
+
+.template-upload-form label span {
+  color: #334155 !important;
+  font-size: .78rem !important;
+  font-weight: 900 !important;
+}
+
+.template-upload-form input[type='file'] {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: .72rem !important;
+  border: 1px dashed rgba(37, 99, 235, .36) !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+}
+
+.template-upload-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: .55rem !important;
+  align-items: center !important;
+}
+
+.template-upload-actions .admin-action-button {
+  min-height: 42px !important;
+  white-space: nowrap !important;
+}
+
+.template-library-notice,
+.template-round-only-error {
+  margin: 0 !important;
+  padding: .82rem .95rem !important;
+  border-radius: 16px !important;
+  font-size: .88rem !important;
+  font-weight: 800 !important;
+  line-height: 1.45 !important;
+}
+
+.template-library-notice.info {
+  color: #1e3a8a !important;
+  border: 1px solid #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+.template-library-notice.success {
+  color: #065f46 !important;
+  border: 1px solid #bbf7d0 !important;
+  background: #ecfdf5 !important;
+}
+
+.template-library-notice.error,
+.template-round-only-error {
+  color: #991b1b !important;
+  border: 1px solid #fecaca !important;
+  background: #fef2f2 !important;
+}
+
+@media (max-width: 880px) {
+  .template-upload-actions {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1,0 +1,434 @@
+/* Final Supporting Documents layout polish.
+   Purpose: clean left-center-right layout, remove visible Evidence wording, and keep selectors/reset controls in the top command row. */
+
+:root {
+  --support-doc-left: 285px;
+  --support-doc-center: minmax(430px, 620px);
+  --support-doc-right: 292px;
+  --support-doc-radius: 20px;
+}
+
+/* Empty/upload state: make the upload card intentional and hide native file clutter. */
+.supporting-upload-disclosure .supporting-documents-panel-v2,
+.evidence-upload-disclosure .supporting-documents-panel-v2 {
+  display: grid !important;
+  gap: .85rem !important;
+  padding: .75rem !important;
+}
+
+.supporting-upload-disclosure .supporting-upload-card-v2,
+.evidence-upload-disclosure .supporting-upload-card-v2,
+.supporting-upload-card-v2 {
+  position: relative !important;
+  min-height: 118px !important;
+  padding: 1rem !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: .45rem !important;
+  border: 1px dashed #bfdbfe !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #ffffff, #f8fbff) !important;
+  cursor: pointer !important;
+}
+
+.supporting-upload-card-v2 input[type='file'],
+.evidence-upload-card-v2 input[type='file'] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  font-size: 0 !important;
+}
+
+.supporting-upload-card-v2 .evidence-upload-title-v2,
+.evidence-upload-title-v2 {
+  color: #0f172a !important;
+  font-weight: 950 !important;
+  font-size: .95rem !important;
+}
+
+.supporting-upload-card-v2 .evidence-upload-copy-v2,
+.evidence-upload-copy-v2 {
+  color: #64748b !important;
+  font-size: .78rem !important;
+}
+
+.supporting-upload-card-v2 .evidence-upload-button-v2,
+.evidence-upload-button-v2 {
+  width: fit-content !important;
+  margin-top: .2rem !important;
+  padding: .45rem .72rem !important;
+  border-radius: 999px !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 950 !important;
+  font-size: .76rem !important;
+}
+
+.supporting-empty-v2,
+.evidence-empty-v2 {
+  margin: 0 !important;
+  padding: .8rem 1rem !important;
+  border-radius: 15px !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: .88rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Main layout: left documents, center page, right controls. */
+.support-layout-editor.word-crop-editor,
+.support-layout-editor.professional-evidence-editor {
+  width: 100% !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.support-layout-grid.word-crop-grid {
+  display: grid !important;
+  grid-template-columns: var(--support-doc-left) var(--support-doc-center) var(--support-doc-right) !important;
+  grid-template-areas: "documents page controls" !important;
+  align-items: start !important;
+  justify-content: center !important;
+  gap: clamp(.85rem, 1.25vw, 1.1rem) !important;
+  width: min(100%, 1240px) !important;
+  margin-inline: auto !important;
+}
+
+.word-left-evidence-manager {
+  grid-area: documents !important;
+  position: sticky !important;
+  top: 1rem !important;
+  max-height: min(72vh, 680px) !important;
+  overflow: auto !important;
+  padding: .85rem !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: var(--support-doc-radius) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .07) !important;
+}
+
+.support-page-frame {
+  grid-area: page !important;
+  width: min(100%, 620px) !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: .75rem !important;
+  justify-self: center !important;
+}
+
+.word-crop-controls,
+.support-layout-controls.word-crop-controls {
+  grid-area: controls !important;
+  position: sticky !important;
+  top: 1rem !important;
+  width: var(--support-doc-right) !important;
+  max-width: var(--support-doc-right) !important;
+  max-height: min(72vh, 680px) !important;
+  overflow: auto !important;
+  border-radius: var(--support-doc-radius) !important;
+}
+
+/* Rename visible labels without requiring a risky component rewrite. */
+.word-side-evidence-heading p,
+.word-side-evidence-heading span,
+.word-crop-controls header .eyebrow,
+.word-crop-actions .crop-command,
+.word-control-section > p:first-child {
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+.word-side-evidence-heading p::after {
+  content: 'Supporting documents';
+  display: block;
+  color: #0f172a;
+  font-size: .98rem;
+  font-weight: 950;
+}
+
+.word-side-evidence-heading span::after {
+  content: 'Position 02';
+  display: block;
+  color: #64748b;
+  font-size: .78rem;
+  font-weight: 760;
+}
+
+.word-crop-controls header .eyebrow::after {
+  content: 'Selected document';
+  color: #0f172a;
+  font-size: .66rem;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.word-crop-actions .crop-command::after {
+  content: 'Crop document';
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 950;
+}
+
+.word-control-section:nth-of-type(2) > p:first-child::after {
+  content: 'Document fit';
+  color: #0f172a;
+  font-size: .94rem;
+  font-weight: 900;
+}
+
+.word-control-section:nth-of-type(3) > p:first-child::after {
+  content: 'Frame size';
+  color: #0f172a;
+  font-size: .94rem;
+  font-weight: 900;
+}
+
+.word-control-section:nth-of-type(4) > p:first-child::after {
+  content: 'Orientation';
+  color: #0f172a;
+  font-size: .94rem;
+  font-weight: 900;
+}
+
+.word-control-section:nth-of-type(5) > p:first-child::after {
+  content: 'Reset';
+  color: #0f172a;
+  font-size: .94rem;
+  font-weight: 900;
+}
+
+/* Top selector toolbar: selection strip + reset page belongs above the page, not squeezed beside it. */
+.support-canvas-caption.evidence-preview-toolbar-header,
+.evidence-preview-toolbar-header {
+  width: 100% !important;
+  min-height: 54px !important;
+  padding: .55rem !important;
+  border: 1px solid #dbeafe !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .045) !important;
+}
+
+.evidence-header-tools {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: .6rem !important;
+  align-items: center !important;
+}
+
+.support-image-strip {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  gap: .45rem !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: .05rem !important;
+}
+
+.support-image-strip button {
+  flex: 0 0 auto !important;
+  min-width: 116px !important;
+  max-width: 150px !important;
+  min-height: 42px !important;
+  padding: .38rem .5rem !important;
+  display: grid !important;
+  grid-template-columns: 28px minmax(0, 1fr) !important;
+  grid-template-areas: "thumb number" "thumb name" !important;
+  gap: .2rem .45rem !important;
+  align-items: center !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 13px !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+}
+
+.support-image-strip button.selected {
+  border-color: #2563eb !important;
+  background: #eff6ff !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .1) !important;
+}
+
+.support-image-strip button > span {
+  grid-area: thumb !important;
+  width: 28px !important;
+  height: 32px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.support-image-strip img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.support-image-strip strong {
+  grid-area: number !important;
+  min-width: 0 !important;
+  color: #1d4ed8 !important;
+  font-size: .7rem !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.support-image-strip small {
+  grid-area: name !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: #334155 !important;
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+}
+
+.evidence-toolbar-separator.controls-divider {
+  display: none !important;
+}
+
+.evidence-auto-align {
+  min-height: 42px !important;
+  padding: .55rem .8rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 13px !important;
+  background: #ffffff !important;
+  color: #1d4ed8 !important;
+  font-size: .78rem !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+.support-page-canvas {
+  width: min(100%, 520px) !important;
+  margin-inline: auto !important;
+  border-radius: 6px !important;
+}
+
+/* Left document cards: compact and readable. */
+.word-left-evidence-manager .supporting-documents-panel-v2,
+.word-left-evidence-manager .evidence-panel-v2 {
+  display: grid !important;
+  gap: .65rem !important;
+}
+
+.word-left-evidence-manager .supporting-document-list-v2,
+.word-left-evidence-manager .evidence-list-v2 {
+  display: grid !important;
+  gap: .5rem !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.word-left-evidence-manager .supporting-document-card-v2,
+.word-left-evidence-manager .evidence-card-v2 {
+  display: grid !important;
+  gap: .45rem !important;
+  padding: .6rem !important;
+  border-radius: 14px !important;
+}
+
+.word-left-evidence-manager .supporting-document-actions-v2,
+.word-left-evidence-manager .evidence-actions-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: .35rem !important;
+}
+
+.word-left-evidence-manager .supporting-document-actions-v2 button,
+.word-left-evidence-manager .evidence-actions-v2 button {
+  min-width: 0 !important;
+  min-height: 31px !important;
+  padding: .35rem .25rem !important;
+  border-radius: 10px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Right controls: dense but legible. */
+.word-crop-controls header {
+  padding-bottom: .7rem !important;
+  margin-bottom: .75rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.word-crop-controls header strong {
+  max-width: 190px !important;
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.word-crop-actions .action-button,
+.word-resize-actions button,
+.word-rotate-actions button,
+.word-position-actions button {
+  min-height: 38px !important;
+  border-radius: 12px !important;
+  font-weight: 900 !important;
+}
+
+.word-resize-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: .4rem !important;
+}
+
+.word-resize-actions button:nth-last-child(1) {
+  grid-column: auto !important;
+}
+
+@media (max-width: 1180px) {
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: minmax(230px, 275px) minmax(420px, 1fr) minmax(260px, 285px) !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "documents"
+      "page"
+      "controls" !important;
+  }
+
+  .word-left-evidence-manager,
+  .word-crop-controls,
+  .support-layout-controls.word-crop-controls,
+  .support-page-frame {
+    position: static !important;
+    width: min(100%, 620px) !important;
+    max-width: 620px !important;
+    justify-self: center !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .evidence-header-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  .evidence-auto-align {
+    width: 100% !important;
+  }
+}

@@ -1,0 +1,284 @@
+/* Report Workbench System — merges filters, metrics, and activity into one stable console surface. */
+
+/* Final account rail patch: this stylesheet loads after the account ratio system. It prevents /admin and other console pages from collapsing the account dock to a narrow strip at zoomed desktop/tablet CSS widths. */
+@media (max-width: 1240px) and (min-width: 861px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: minmax(220px, .9fr) !important;
+    --account-dock-height: clamp(136px, 12vw, 148px) !important;
+    grid-template-columns: minmax(0, 3fr) var(--account-dock-width) !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    min-width: 220px !important;
+    height: var(--account-dock-height) !important;
+    max-height: var(--account-dock-height) !important;
+    justify-self: stretch !important;
+  }
+}
+
+@media (max-width: 860px) and (min-width: 761px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: minmax(190px, .8fr) !important;
+    --account-dock-height: clamp(128px, 14vw, 140px) !important;
+    grid-template-columns: minmax(0, 2.65fr) var(--account-dock-width) !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    min-width: 190px !important;
+    height: var(--account-dock-height) !important;
+    max-height: var(--account-dock-height) !important;
+    justify-self: stretch !important;
+  }
+}
+
+.report-workbench-card {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: clamp(1rem, 1.7vw, 1.35rem);
+  padding: clamp(1rem, 1.8vw, 1.4rem) !important;
+  overflow: hidden;
+}
+
+.report-workbench-ribbon {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, .7fr)) repeat(3, minmax(180px, 1fr));
+  gap: .75rem;
+  align-items: stretch;
+}
+
+.report-workbench-ribbon article {
+  min-width: 0;
+  min-height: 86px;
+  padding: .9rem;
+  display: grid;
+  align-content: center;
+  gap: .28rem;
+  border: 1px solid rgba(203, 213, 225, .9);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
+}
+
+.report-workbench-ribbon article.complete {
+  border-color: rgba(34, 197, 94, .34);
+  background: linear-gradient(180deg, rgba(240,253,244,.98), rgba(220,252,231,.7));
+}
+
+.report-workbench-ribbon article.attention {
+  border-color: rgba(249, 115, 22, .34);
+  background: linear-gradient(180deg, rgba(255,247,237,.98), rgba(254,215,170,.45));
+}
+
+.report-workbench-ribbon span,
+.report-workbench-section-heading p,
+.report-workbench-filter-form label > span {
+  margin: 0;
+  color: #6680aa;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.report-workbench-ribbon strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #081429;
+  font-size: clamp(1.05rem, 1.7vw, 1.45rem);
+  font-weight: 920;
+  line-height: 1.05;
+  letter-spacing: -.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-workbench-ribbon small {
+  min-width: 0;
+  overflow: hidden;
+  color: #64748b;
+  font-size: .72rem;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr);
+  gap: clamp(.85rem, 1.4vw, 1.15rem);
+  align-items: start;
+}
+
+.report-workbench-filter-form,
+.report-workbench-activity {
+  min-width: 0;
+  display: grid;
+  gap: .8rem;
+  padding: clamp(.9rem, 1.3vw, 1.1rem);
+  border: 1px solid rgba(203, 213, 225, .82);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.report-workbench-filter-form {
+  position: sticky;
+  top: 1rem;
+}
+
+.report-workbench-section-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.report-workbench-section-heading h2 {
+  margin: .16rem 0 0;
+  color: #1f2937;
+  font-size: clamp(1.05rem, 1.45vw, 1.3rem);
+  line-height: 1.1;
+  letter-spacing: -.04em;
+}
+
+.report-workbench-section-heading > span {
+  flex: 0 0 auto;
+  padding: .45rem .72rem;
+  border: 1px solid rgba(203, 213, 225, .86);
+  border-radius: 999px;
+  color: #64748b;
+  background: #fff;
+  font-size: .76rem;
+  font-weight: 820;
+}
+
+.report-workbench-filter-form label {
+  min-width: 0;
+  display: grid;
+  gap: .42rem;
+}
+
+.report-workbench-filter-form input,
+.report-workbench-filter-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 .8rem;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  color: #081429;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .04);
+}
+
+.report-workbench-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+  align-items: center;
+}
+
+.report-workbench-actions .admin-action-button {
+  width: 100%;
+  min-height: 42px;
+  justify-content: center;
+}
+
+.report-workbench-event-list {
+  min-height: 270px;
+  max-height: min(58vh, 560px);
+  overflow: auto;
+  display: grid;
+  gap: .6rem;
+  padding-right: .22rem;
+  scrollbar-gutter: stable;
+}
+
+.report-workbench-event {
+  min-width: 0;
+  min-height: 68px;
+  padding: .78rem .85rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, .36fr) auto;
+  gap: .8rem;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .045);
+}
+
+.report-workbench-event div {
+  min-width: 0;
+  display: grid;
+  gap: .22rem;
+}
+
+.report-workbench-event strong,
+.report-workbench-event span,
+.report-workbench-event small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-workbench-event strong {
+  color: #081429;
+  font-size: .9rem;
+  font-weight: 880;
+}
+
+.report-workbench-event span,
+.report-workbench-event small {
+  color: #64748b;
+  font-size: .74rem;
+  font-weight: 640;
+}
+
+.report-workbench-event .admin-status-badge {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+@media (max-width: 1320px) {
+  .report-workbench-ribbon {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1060px) {
+  .report-workbench-grid {
+    grid-template-columns: 1fr;
+  }
+  .report-workbench-filter-form {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .report-workbench-ribbon {
+    grid-template-columns: 1fr 1fr;
+  }
+  .report-workbench-actions {
+    grid-template-columns: 1fr;
+  }
+  .report-workbench-event {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .report-workbench-event .admin-status-badge {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 520px) {
+  .report-workbench-ribbon {
+    grid-template-columns: 1fr;
+  }
+  .report-workbench-card,
+  .report-workbench-filter-form,
+  .report-workbench-activity {
+    border-radius: 18px;
+  }
+}

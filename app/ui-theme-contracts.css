@@ -1,0 +1,340 @@
+/* xDisputer Unified Theme Contracts
+   Visual ownership layer for consistent premium SaaS UI across client, manager, master, auth, templates, source, and outputs.
+   Imported near the end of app/layout.tsx; geometry remains owned by ui-layout-contracts.css.
+
+   Ownership rules:
+   - Global theme tokens live here.
+   - Feature-specific CSS may customize layout or local emphasis, but should consume these tokens.
+   - Heavy geometry belongs in ui-layout-contracts.css.
+   - Database/auth/business logic never belongs in CSS.
+*/
+
+:root {
+  --x-theme-contract: ready;
+  --x-theme-version: "2026-06-ui-governance";
+
+  /* Color tokens */
+  --x-color-bg: #eef3fa;
+  --x-color-bg-soft: #f6f9fd;
+  --x-color-surface: #ffffff;
+  --x-color-surface-soft: #f8fafc;
+  --x-color-surface-raised: rgba(255, 255, 255, .94);
+  --x-color-text: #071327;
+  --x-color-text-soft: #334155;
+  --x-color-text-muted: #64748b;
+  --x-color-line: #dbe5f1;
+  --x-color-line-strong: #cbd5e1;
+  --x-color-primary: #2563eb;
+  --x-color-primary-strong: #1d4ed8;
+  --x-color-primary-soft: #eff6ff;
+  --x-color-success: #087443;
+  --x-color-success-soft: #e8f8f0;
+  --x-color-warning: #a16207;
+  --x-color-warning-soft: #fff7df;
+  --x-color-danger: #b42318;
+  --x-color-danger-soft: #fff1f1;
+
+  /* Shape + depth tokens */
+  --x-radius-xs: 10px;
+  --x-radius-sm: 14px;
+  --x-radius-md: 18px;
+  --x-radius-lg: 24px;
+  --x-radius-xl: 32px;
+  --x-shadow-card: 0 18px 46px rgba(15, 23, 42, .06);
+  --x-shadow-card-hover: 0 22px 58px rgba(15, 23, 42, .10);
+  --x-shadow-control: 0 1px 2px rgba(15, 23, 42, .08);
+
+  /* Spacing + typography tokens */
+  --x-space-1: .25rem;
+  --x-space-2: .5rem;
+  --x-space-3: .75rem;
+  --x-space-4: 1rem;
+  --x-space-5: 1.25rem;
+  --x-space-6: 1.5rem;
+  --x-space-8: 2rem;
+  --x-space-10: 2.5rem;
+  --x-font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --x-letter-tight: -.055em;
+  --x-letter-label: .16em;
+
+  /* Motion tokens. Keep transitions targeted; do not animate every CSS property. */
+  --x-transition-fast: 160ms ease;
+  --x-transition-base: 220ms ease;
+  --x-transition-slow: 320ms cubic-bezier(.2, .8, .2, 1);
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, .08), transparent 34rem),
+    linear-gradient(180deg, var(--x-color-bg), #f8fbff 58%, var(--x-color-bg-soft));
+  color: var(--x-color-text);
+  font-family: var(--x-font-ui);
+}
+
+body[data-theme-contract="xdisputer-unified"] {
+  --bg: var(--x-color-bg);
+  --surface: var(--x-color-surface);
+  --surface-subtle: var(--x-color-surface-soft);
+  --surface-raised: var(--x-color-surface-raised);
+  --surface-hover: #f1f6fd;
+  --text: var(--x-color-text);
+  --text-soft: var(--x-color-text-soft);
+  --text-muted: var(--x-color-text-muted);
+  --line: var(--x-color-line);
+  --line-strong: var(--x-color-line-strong);
+  --primary: var(--x-color-primary);
+  --primary-strong: var(--x-color-primary-strong);
+  --primary-soft: var(--x-color-primary-soft);
+  --success: var(--x-color-success);
+  --success-soft: var(--x-color-success-soft);
+  --warning: var(--x-color-warning);
+  --warning-soft: var(--x-color-warning-soft);
+  --danger: var(--x-color-danger);
+  --danger-soft: var(--x-color-danger-soft);
+  --radius-lg: var(--x-radius-lg);
+  --shadow-card: var(--x-shadow-card);
+  --shadow-hover: var(--x-shadow-card-hover);
+  --shadow-control: var(--x-shadow-control);
+  --duration: var(--x-transition-base);
+  --duration-fast: var(--x-transition-fast);
+}
+
+/* Scope markers make debugging simple: Global theme is default; feature CSS customizes through tokens, not unrelated colors. */
+body[data-ui-scope="global"][data-ui-quality="production"] {
+  accent-color: var(--x-color-primary);
+}
+
+body[data-theme-contract="xdisputer-unified"] *,
+body[data-theme-contract="xdisputer-unified"] *::before,
+body[data-theme-contract="xdisputer-unified"] *::after {
+  transition-property: background-color, border-color, box-shadow, color, opacity, transform;
+  transition-duration: var(--x-transition-fast);
+  transition-timing-function: ease;
+}
+
+body[data-theme-contract="xdisputer-unified"] :focus-visible {
+  outline: 3px solid rgba(37, 99, 235, .28);
+  outline-offset: 3px;
+}
+
+body[data-theme-contract="xdisputer-unified"] ::selection {
+  background: rgba(37, 99, 235, .18);
+  color: var(--x-color-text);
+}
+
+/* Shared surface contract: all roles and features should feel like the same product. */
+body[data-theme-contract="xdisputer-unified"] .panel,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-header,
+body[data-theme-contract="xdisputer-unified"] .console-header-card,
+body[data-theme-contract="xdisputer-unified"] .client-template-runtime,
+body[data-theme-contract="xdisputer-unified"] .client-template-runtime-card,
+body[data-theme-contract="xdisputer-unified"] .template-workspace-status-card,
+body[data-theme-contract="xdisputer-unified"] .progressive-dataset-card,
+body[data-theme-contract="xdisputer-unified"] .access-workflow-card,
+body[data-theme-contract="xdisputer-unified"] .source-progressive-stage,
+body[data-theme-contract="xdisputer-unified"] .template-selection-stage,
+body[data-theme-contract="xdisputer-unified"] .template-selected-command,
+body[data-theme-contract="xdisputer-unified"] .supporting-disclosure,
+body[data-theme-contract="xdisputer-unified"] .layout-disclosure,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-card,
+body[data-theme-contract="xdisputer-unified"] .workspace-account-card,
+body[data-theme-contract="xdisputer-unified"] [data-theme-surface="card"] {
+  background: var(--x-color-surface-raised) !important;
+  border: 1px solid rgba(203, 213, 225, .86) !important;
+  border-radius: var(--x-radius-lg) !important;
+  box-shadow: var(--x-shadow-card) !important;
+  color: var(--x-color-text) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .panel:hover,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card:hover,
+body[data-theme-contract="xdisputer-unified"] .progressive-dataset-card:hover,
+body[data-theme-contract="xdisputer-unified"] .access-workflow-card:hover,
+body[data-theme-contract="xdisputer-unified"] [data-theme-surface="card"]:hover {
+  border-color: rgba(148, 163, 184, .95) !important;
+  box-shadow: var(--x-shadow-card-hover) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] h1,
+body[data-theme-contract="xdisputer-unified"] h2,
+body[data-theme-contract="xdisputer-unified"] h3 {
+  color: var(--x-color-text) !important;
+  letter-spacing: var(--x-letter-tight);
+}
+
+body[data-theme-contract="xdisputer-unified"] p,
+body[data-theme-contract="xdisputer-unified"] small,
+body[data-theme-contract="xdisputer-unified"] span {
+  color: inherit;
+}
+
+body[data-theme-contract="xdisputer-unified"] .eyebrow,
+body[data-theme-contract="xdisputer-unified"] .admin-sidebar-section-title,
+body[data-theme-contract="xdisputer-unified"] .template-selection-tag,
+body[data-theme-contract="xdisputer-unified"] .pill,
+body[data-theme-contract="xdisputer-unified"] [class*="badge"] {
+  letter-spacing: var(--x-letter-label) !important;
+  text-transform: uppercase !important;
+}
+
+/* Primary actions: one visual language for client, manager, master, auth, and AI panels. */
+body[data-theme-contract="xdisputer-unified"] .action-button,
+body[data-theme-contract="xdisputer-unified"] .primary-action-button,
+body[data-theme-contract="xdisputer-unified"] .admin-action-button.primary,
+body[data-theme-contract="xdisputer-unified"] button[type="submit"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-action="primary"] {
+  background: linear-gradient(135deg, var(--x-color-primary), #4f46e5) !important;
+  border: 1px solid rgba(37, 99, 235, .72) !important;
+  border-radius: var(--x-radius-md) !important;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, .18) !important;
+  color: #fff !important;
+  font-weight: 850 !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .secondary-button,
+body[data-theme-contract="xdisputer-unified"] .admin-action-button,
+body[data-theme-contract="xdisputer-unified"] .directory-header-action,
+body[data-theme-contract="xdisputer-unified"] .console-sidebar-mode-switch-button,
+body[data-theme-contract="xdisputer-unified"] .workspace-account-card button,
+body[data-theme-contract="xdisputer-unified"] .workspace-account-card a,
+body[data-theme-contract="xdisputer-unified"] [data-theme-action="secondary"] {
+  background: rgba(255, 255, 255, .9) !important;
+  border: 1px solid var(--x-color-line-strong) !important;
+  border-radius: var(--x-radius-md) !important;
+  box-shadow: var(--x-shadow-control) !important;
+  color: var(--x-color-text) !important;
+  font-weight: 820 !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] button:hover,
+body[data-theme-contract="xdisputer-unified"] a.admin-action-button:hover,
+body[data-theme-contract="xdisputer-unified"] a.directory-header-action:hover,
+body[data-theme-contract="xdisputer-unified"] [data-theme-action]:hover {
+  transform: translateY(-1px);
+}
+
+body[data-theme-contract="xdisputer-unified"] button:disabled,
+body[data-theme-contract="xdisputer-unified"] [aria-disabled="true"] {
+  cursor: not-allowed !important;
+  filter: grayscale(.18) saturate(.72) !important;
+  opacity: .68 !important;
+  transform: none !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] input,
+body[data-theme-contract="xdisputer-unified"] textarea,
+body[data-theme-contract="xdisputer-unified"] select,
+body[data-theme-contract="xdisputer-unified"] [data-theme-control="input"] {
+  background: #fff !important;
+  border: 1px solid var(--x-color-line-strong) !important;
+  border-radius: var(--x-radius-sm) !important;
+  color: var(--x-color-text) !important;
+  box-shadow: inset 0 1px 1px rgba(15, 23, 42, .03) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] input:focus,
+body[data-theme-contract="xdisputer-unified"] textarea:focus,
+body[data-theme-contract="xdisputer-unified"] select:focus,
+body[data-theme-contract="xdisputer-unified"] [data-theme-control="input"]:focus {
+  border-color: rgba(37, 99, 235, .65) !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .12) !important;
+  outline: none !important;
+}
+
+/* Status semantics: logic determines state; the theme only standardizes visual tone. */
+body[data-theme-contract="xdisputer-unified"] .pill.success,
+body[data-theme-contract="xdisputer-unified"] .ready,
+body[data-theme-contract="xdisputer-unified"] [class*="success"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-status="success"] {
+  --x-local-accent: var(--x-color-success);
+}
+
+body[data-theme-contract="xdisputer-unified"] .required,
+body[data-theme-contract="xdisputer-unified"] [class*="warning"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-status="warning"] {
+  --x-local-accent: var(--x-color-warning);
+}
+
+body[data-theme-contract="xdisputer-unified"] .generation-blocked-reasons,
+body[data-theme-contract="xdisputer-unified"] [role="alert"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-status="danger"] {
+  border-color: rgba(180, 35, 24, .26) !important;
+  background: linear-gradient(135deg, var(--x-color-danger-soft), #fff) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .ai-insight-panel,
+body[data-theme-contract="xdisputer-unified"] .source-review,
+body[data-theme-contract="xdisputer-unified"] .workflow-validation-message,
+body[data-theme-contract="xdisputer-unified"] [data-theme-surface="assistive"] {
+  background: rgba(248, 250, 252, .92) !important;
+  border: 1px solid var(--x-color-line) !important;
+  border-radius: var(--x-radius-md) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-sidebar,
+body[data-theme-contract="xdisputer-unified"] .sidebar {
+  background: rgba(255, 255, 255, .94) !important;
+  border-color: rgba(203, 213, 225, .86) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-sidebar nav a,
+body[data-theme-contract="xdisputer-unified"] .sidebar nav button {
+  border-radius: var(--x-radius-md) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-sidebar nav a.active,
+body[data-theme-contract="xdisputer-unified"] .sidebar nav button.active {
+  background: #0f172a !important;
+  color: #fff !important;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, .18) !important;
+}
+
+/* Instant perceived feedback: safe skeleton shimmer for async UI surfaces. */
+body[data-theme-contract="xdisputer-unified"] .skeleton,
+body[data-theme-contract="xdisputer-unified"] [data-loading="true"],
+body[data-theme-contract="xdisputer-unified"] .loading-shell,
+body[data-theme-contract="xdisputer-unified"] [data-theme-loading="skeleton"] {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #eef2f7, #f8fafc, #eef2f7) !important;
+  background-size: 240% 100% !important;
+  animation: xdisputerThemeSkeleton 1.15s linear infinite;
+}
+
+@keyframes xdisputerThemeSkeleton {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+/* Future customization entry points: use these attributes instead of inventing new global themes. */
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="client"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="manager"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="master"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="auth"] {
+  color: var(--x-color-text);
+}
+
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="manager"] {
+  --x-local-accent: var(--x-color-primary);
+}
+
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="master"] {
+  --x-local-accent: #4f46e5;
+}
+
+body[data-theme-contract="xdisputer-unified"] [data-theme-custom="auth"] {
+  --x-local-accent: var(--x-color-primary-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme-contract="xdisputer-unified"] *,
+  body[data-theme-contract="xdisputer-unified"] *::before,
+  body[data-theme-contract="xdisputer-unified"] *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

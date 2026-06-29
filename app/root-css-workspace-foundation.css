@@ -1,0 +1,13 @@
+/* Phase 7 root CSS bundle: workspace foundation */
+@import './globals.css';
+@import './workspace-light.css';
+@import './workspace-dashboard.css';
+@import './workspace-polish.css';
+@import './sidebar-visible.css';
+@import './output-review.css';
+@import './live-editor.css';
+@import './ordered-packet-content.css';
+@import './editor-pagination.css';
+@import './final-packets.css';
+@import './experience-upgrade.css';
+@import './attention-states.css';

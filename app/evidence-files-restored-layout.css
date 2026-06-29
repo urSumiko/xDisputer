@@ -1,0 +1,223 @@
+/* Supporting Documents layout compatibility layer.
+   Keeps the old Evidence class names alive, but no longer caps the center preview. */
+
+.support-layout-editor.professional-evidence-editor,
+.support-layout-editor.word-crop-editor {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.support-layout-grid.word-crop-grid {
+  display: grid !important;
+  grid-template-columns: minmax(180px, clamp(188px, 13vw, 250px)) minmax(0, 1fr) minmax(186px, clamp(194px, 13vw, 258px)) !important;
+  grid-template-areas: "documents page controls" !important;
+  justify-content: stretch !important;
+  align-items: start !important;
+  gap: clamp(6px, .55vw, 10px) !important;
+  width: 100% !important;
+  max-width: 1920px !important;
+  margin-inline: auto !important;
+}
+
+.word-left-evidence-manager {
+  grid-area: documents !important;
+  display: grid !important;
+  align-self: start !important;
+  position: sticky !important;
+  top: 1rem !important;
+  max-height: calc(100vh - 145px) !important;
+  overflow: hidden !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  padding: 0.65rem !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.support-page-frame {
+  grid-area: page !important;
+  justify-self: stretch !important;
+  justify-items: center !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  display: grid !important;
+}
+
+.word-crop-controls,
+.support-layout-controls.word-crop-controls {
+  grid-area: controls !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.support-page-canvas {
+  width: min(100%, clamp(720px, 58vw, 1180px)) !important;
+  max-width: 1180px !important;
+  min-width: min(100%, 640px) !important;
+  margin-inline: auto !important;
+}
+
+.word-left-evidence-manager .evidence-panel-v2 {
+  display: grid !important;
+  gap: 0.7rem !important;
+  min-width: 0 !important;
+}
+
+.word-left-evidence-manager .evidence-list-v2 {
+  display: grid !important;
+  gap: 0.52rem !important;
+  max-height: 420px !important;
+  overflow: auto !important;
+  padding: 0.05rem 0.15rem 0.05rem 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.word-left-evidence-manager .evidence-card-v2 {
+  display: grid !important;
+  gap: 0.5rem !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  padding: 0.62rem !important;
+}
+
+.word-left-evidence-manager .evidence-card-v2.selected {
+  border-color: #475569 !important;
+  background: #f1f5f9 !important;
+}
+
+.word-left-evidence-manager .evidence-card-select-v2 {
+  all: unset !important;
+  cursor: pointer !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0.52rem !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.word-left-evidence-manager .evidence-number-v2 {
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 10px !important;
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+  font-weight: 900 !important;
+  font-size: 0.78rem !important;
+}
+
+.word-left-evidence-manager .evidence-card-v2.selected .evidence-number-v2 {
+  background: #475569 !important;
+  color: #ffffff !important;
+}
+
+.word-left-evidence-manager .evidence-meta-v2 {
+  min-width: 0 !important;
+}
+
+.word-left-evidence-manager .evidence-meta-v2 strong {
+  display: block !important;
+  max-width: 165px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 0.8rem !important;
+}
+
+.word-left-evidence-manager .evidence-meta-v2 small {
+  display: block !important;
+  margin-top: 0.2rem !important;
+  color: #64748b !important;
+  font-size: 0.68rem !important;
+  line-height: 1.25 !important;
+}
+
+.word-left-evidence-manager .evidence-actions-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.35rem !important;
+}
+
+.word-left-evidence-manager .evidence-actions-v2 button {
+  min-height: 30px !important;
+  padding: 0.35rem 0.38rem !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 0.66rem !important;
+  font-weight: 850 !important;
+}
+
+.word-left-evidence-manager .evidence-remove-v2 {
+  color: #991b1b !important;
+  border-color: #fecaca !important;
+  background: #fff1f2 !important;
+}
+
+.word-left-evidence-manager .evidence-upload-card-v2 {
+  display: grid !important;
+  gap: 0.35rem !important;
+  border: 1px dashed #cbd5e1 !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  padding: 0.72rem !important;
+  cursor: pointer !important;
+}
+
+.word-left-evidence-manager .evidence-upload-card-v2 input {
+  display: none !important;
+}
+
+.word-left-evidence-manager .evidence-upload-title-v2 {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  font-size: 0.82rem !important;
+}
+
+.word-left-evidence-manager .evidence-upload-copy-v2 {
+  color: #64748b !important;
+  font-size: 0.68rem !important;
+  line-height: 1.25 !important;
+}
+
+.word-left-evidence-manager .evidence-upload-button-v2 {
+  width: fit-content !important;
+  border-radius: 999px !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  padding: 0.35rem 0.58rem !important;
+  font-weight: 900 !important;
+  font-size: 0.68rem !important;
+}
+
+.support-canvas-item {
+  overflow: hidden !important;
+}
+
+.support-canvas-item canvas,
+.support-canvas-item img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 1180px) {
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) minmax(180px, 228px) !important;
+    width: 100% !important;
+  }
+
+  .support-page-canvas {
+    width: min(100%, clamp(620px, 56vw, 920px)) !important;
+    max-width: 920px !important;
+  }
+}

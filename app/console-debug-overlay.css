@@ -1,0 +1,92 @@
+/* data-owner: render-debug-overlay | contract: debug-overlay-fixed */
+.xdisputer-render-debugger {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147483000;
+  display: grid;
+  justify-items: end;
+  gap: .55rem;
+  pointer-events: none;
+  max-width: calc(100vw - 36px);
+}
+
+.xdisputer-render-debugger > * { pointer-events: auto; }
+
+.xdisputer-render-debugger-toggle {
+  min-height: 38px;
+  max-width: min(210px, calc(100vw - 36px));
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 999px;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, .9);
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  cursor: pointer;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, .24);
+  backdrop-filter: blur(12px);
+}
+
+.xdisputer-render-debugger-toggle span { white-space: nowrap; }
+.xdisputer-render-debugger-toggle small {
+  max-width: 86px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.xdisputer-render-debugger-panel {
+  width: min(360px, calc(100vw - 36px));
+  max-height: min(58vh, calc(100dvh - 84px));
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 18px;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, .94);
+  box-shadow: 0 22px 60px rgba(2, 6, 23, .36);
+  backdrop-filter: blur(14px);
+}
+
+.xdisputer-render-debugger-heading,
+.xdisputer-render-debugger-execution { display: grid; gap: 6px; }
+.xdisputer-render-debugger-heading strong,
+.xdisputer-render-debugger-execution strong { font-size: 13px; }
+.xdisputer-render-debugger-heading small { color: #94a3b8; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+
+.xdisputer-render-debugger-panel dl {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
+  gap: 6px 10px;
+  margin: 0;
+}
+
+.xdisputer-render-debugger-panel dt { color: #94a3b8; font-size: 11px; font-weight: 800; }
+.xdisputer-render-debugger-panel dd { margin: 0; color: #f8fafc; font-size: 11px; line-height: 1.4; word-break: break-word; }
+.xdisputer-render-debugger-execution { padding: 10px; border: 1px solid rgba(34, 197, 94, .24); border-radius: 14px; background: rgba(15, 118, 110, .13); }
+.xdisputer-render-debugger-css { display: grid; gap: 8px; }
+.xdisputer-render-debugger-css summary { cursor: pointer; color: #cbd5e1; font-size: 11px; font-weight: 800; }
+.xdisputer-render-debugger-css ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.xdisputer-render-debugger-css li { color: #cbd5e1; font-size: 10px; line-height: 1.35; word-break: break-all; }
+
+@media (max-width: 760px) {
+  .xdisputer-render-debugger { right: 12px; bottom: 12px; left: auto; max-width: calc(100vw - 24px); }
+  .xdisputer-render-debugger-panel { width: min(340px, calc(100vw - 24px)); max-height: min(56vh, calc(100dvh - 76px)); }
+}
+
+@media (max-width: 480px) {
+  .xdisputer-render-debugger { right: 8px; bottom: 8px; }
+  .xdisputer-render-debugger-panel { width: calc(100vw - 16px); max-height: 52vh; }
+  .xdisputer-render-debugger-toggle { max-width: calc(100vw - 16px); }
+}

@@ -1,0 +1,253 @@
+/* xDisputer Responsive Layout Stability System
+   Global implementation of docs/responsive-layout-stability-canvas.md.
+   Contract: one safe responsive baseline, feature-specific runtime layers still own final feature details. */
+
+:root {
+  --responsive-layout-stability-system: coded;
+  --rls-page-pad: clamp(12px, 2vw, 28px);
+  --rls-card-pad: clamp(14px, 1.7vw, 24px);
+  --rls-gap: clamp(10px, 1.25vw, 18px);
+  --rls-radius: clamp(16px, 1.4vw, 24px);
+  --rls-readable-max: 1440px;
+  --rls-wide-max: 1920px;
+  --rls-min-touch: 42px;
+}
+
+html,
+body,
+#__next,
+[data-ui-scope='global'] {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: clip !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+canvas,
+video,
+iframe,
+object,
+embed {
+  max-width: 100%;
+}
+
+img,
+canvas,
+video {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+:where(main, section, article, aside, header, footer, nav, form, fieldset, label, div) {
+  min-width: 0;
+}
+
+:where(.admin-monitor-page, .admin-monitor-main, .admin-monitor-card, .admin-monitor-header, .console-header-card, .client-template-runtime, .client-template-runtime-card, .template-workspace-hub, .template-workspace-status-card, .workspace-shell, .workspace-main, .workspace-content, .app-shell, .main-area, .panel, .source-area, .progressive-supporting, .progressive-content) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+:where(.admin-monitor-main, .workspace-main, .workspace-content, .main-area, .client-template-runtime, .template-workspace-hub, .support-layout-editor) {
+  overflow-x: clip !important;
+}
+
+:where(.admin-monitor-card, .admin-monitor-header, .console-header-card, .client-template-runtime-card, .template-workspace-status-card, .dashboard-card, .panel, .metric-tile, .access-workflow-card, .manager-console-user-card, .master-account-row-v3) {
+  overflow-wrap: anywhere;
+  border-radius: var(--rls-radius);
+}
+
+:where(.admin-monitor-header, .console-header-card, .client-template-runtime-header, .template-workspace-hub-header, .workflow-header, .supporting-header) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--rls-gap);
+}
+
+:where(.admin-monitor-header h1, .console-header-card h1, .client-template-runtime-header h1, .client-template-runtime-header h2, .template-workspace-hub h1, .template-workspace-hub h2, .workflow-header h1, .workflow-header h2) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.02;
+}
+
+:where(.admin-monitor-stats, .admin-power-grid, .template-workspace-hub-grid, .client-template-runtime-grid, .dashboard-grid, .manager-console-kpi-grid, .manager-report-kpis, .manager-console-report-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)) !important;
+  gap: var(--rls-gap) !important;
+  min-width: 0 !important;
+}
+
+:where(.template-workspace-two-column, .manager-console-two-column, .dynamic-template-rule-layout, .client-template-runtime-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)) !important;
+  gap: var(--rls-gap) !important;
+  min-width: 0 !important;
+}
+
+:where(.admin-monitor-table-wrap, .table-scroll, .table-responsive, .manager-report-table-scroll, [data-table-scroll='true']) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+:where(table) {
+  max-width: 100%;
+  border-collapse: collapse;
+}
+
+:where(th, td) {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+:where(form, .manager-user-settings-form, .manager-report-controls, .saas-auth-form, .boss-assignment-form, .limit-editor-form) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+:where(input, select, textarea) {
+  min-width: 0 !important;
+}
+
+:where(button, .action-button, .admin-action-button, .dashboard-card-link) {
+  min-height: var(--rls-min-touch);
+  max-width: 100%;
+}
+
+:where(.admin-action-button, .action-button, .dashboard-card-link, .manager-report-export-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+}
+
+:where(.admin-role-badge, .admin-status-badge, .admin-relation-badge, .packet-status, .supporting-count, .supporting-ready-badge) {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.manager-console-user-header-v2, .manager-console-status-actions, .manager-console-top-actions, .account-control-trigger-grid, .master-account-status-cluster, .account-control-meta, .account-control-agreement) {
+  min-width: 0 !important;
+}
+
+:where(.manager-console-user-header-v2 strong, .manager-console-user-header-v2 span, .account-control-identity strong, .account-control-identity small, .account-control-meta strong, .account-control-meta small) {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.client-output-limit-checking, .client-output-limit-pause) {
+  min-height: 100dvh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--rls-page-pad);
+  overflow-x: clip;
+}
+
+:where(.client-output-limit-checking .stable-card, .client-output-limit-pause-card) {
+  width: min(100%, 760px) !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+}
+
+:where(.stable-card, .stable-empty-state) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where([role='dialog'], .modal, .manager-user-settings-modal, .table-flyout-panel, .notification-dock-detail) {
+  max-width: min(100vw - 24px, 760px) !important;
+  max-height: min(100dvh - 24px, 860px) !important;
+  overflow: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  :root { --responsive-layout-stability-system: tablet; }
+
+  :where(.admin-monitor-main[data-console-header-grid='true'], .console-header-grid, .template-workspace-two-column, .manager-console-two-column, .dynamic-template-rule-layout) {
+    grid-template-columns: 1fr !important;
+  }
+
+  :where(.admin-monitor-header, .console-header-card, .client-template-runtime-header, .template-workspace-hub-header, .workflow-header, .supporting-header) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --responsive-layout-stability-system: mobile;
+    --rls-page-pad: 10px;
+    --rls-card-pad: 12px;
+    --rls-gap: 10px;
+  }
+
+  html,
+  body,
+  [data-ui-scope='global'] {
+    overflow-x: hidden !important;
+  }
+
+  :where(.admin-monitor-main.native-console-main, .main-area, .workspace-main, .workspace-content, .client-template-runtime, .template-workspace-hub) {
+    padding-inline: var(--rls-page-pad) !important;
+  }
+
+  :where(.admin-monitor-card, .admin-monitor-header, .console-header-card, .client-template-runtime-card, .template-workspace-status-card, .panel) {
+    padding: var(--rls-card-pad) !important;
+    border-radius: 18px !important;
+  }
+
+  :where(.admin-monitor-sidebar nav, .app-shell .sidebar nav) {
+    grid-template-columns: 1fr !important;
+  }
+
+  :where(.admin-action-button, .action-button, .dashboard-card-link, .manager-report-export-button) {
+    width: 100%;
+  }
+
+  :where(.manager-report-controls, .manager-user-settings-form, .client-template-action-bar) {
+    grid-template-columns: 1fr !important;
+  }
+}

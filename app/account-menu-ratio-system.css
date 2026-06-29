@@ -1,0 +1,254 @@
+@import './console-shell-system.css';
+
+/* Account menu ratio override — source-level 75/25 rail contract for manager/master console header split.
+   IMPORTANT: do not reduce the account rail below 220px above mobile widths. Previous tablet rules collapsed it to 96-128px and caused the /admin header to render as 92/8 instead of 75/25. */
+
+.admin-monitor-main[data-console-header-grid="true"] {
+  --account-dock-width: minmax(260px, 1fr);
+  --account-dock-height: clamp(140px, 10vw, 152px);
+  --account-dock-radius: 24px;
+  --account-dock-border: rgba(203, 213, 225, .82);
+  --account-dock-shadow: 0 18px 45px rgba(15, 23, 42, .085), 0 2px 8px rgba(15, 23, 42, .045);
+  --account-dock-shadow-hover: 0 26px 68px rgba(15, 23, 42, .13), 0 8px 18px rgba(15, 23, 42, .06);
+  --account-dock-gap: clamp(.8rem, 1.35vw, 1.05rem);
+  --account-popover-width: min(420px, calc(100vw - 32px));
+  --account-popover-top: 0;
+  display: grid !important;
+  grid-template-columns: minmax(0, 3fr) var(--account-dock-width) !important;
+  grid-template-rows: var(--account-dock-height) auto !important;
+  column-gap: var(--account-dock-gap) !important;
+  row-gap: clamp(1rem, 1.8vw, 1.45rem) !important;
+  align-items: start !important;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+.admin-monitor-main[data-console-header-grid="true"] > .native-command-hero:first-of-type,
+.admin-monitor-main[data-console-header-grid="true"] > [data-console-header-primary="true"] {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: var(--account-dock-height) !important;
+  height: var(--account-dock-height) !important;
+  max-height: var(--account-dock-height) !important;
+  margin: 0 !important;
+  display: grid !important;
+  align-items: center !important;
+  align-self: start !important;
+  border-radius: var(--account-dock-radius) !important;
+  box-shadow: var(--account-dock-shadow) !important;
+  animation: none !important;
+  transform: none !important;
+  z-index: 1;
+}
+
+.admin-monitor-main[data-console-header-grid="true"]:not([data-console-has-header="true"]) > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: var(--account-dock-height) !important;
+  height: var(--account-dock-height) !important;
+  max-height: var(--account-dock-height) !important;
+  margin: 0 !important;
+  display: grid !important;
+  align-items: center !important;
+  align-self: start !important;
+  border-radius: var(--account-dock-radius) !important;
+  box-shadow: var(--account-dock-shadow) !important;
+  animation: none !important;
+  transform: none !important;
+  z-index: 1;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  min-width: 260px !important;
+  min-height: var(--account-dock-height) !important;
+  height: var(--account-dock-height) !important;
+  max-height: var(--account-dock-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  align-self: start !important;
+  justify-self: stretch !important;
+  justify-content: stretch !important;
+  overflow: visible !important;
+  isolation: isolate;
+  border: 1px solid var(--account-dock-border) !important;
+  border-left: 1px solid rgba(129, 140, 154, .36) !important;
+  border-radius: var(--account-dock-radius) !important;
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: var(--account-dock-shadow) !important;
+  backdrop-filter: blur(18px);
+  animation: none !important;
+  transform: none !important;
+  z-index: 2;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > :not(.manager-header-account-dock):not(.admin-monitor-header):not(.native-command-hero):not([data-console-header-primary="true"]) {
+  grid-column: 1 / -1;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > .manager-template-client-flow:first-of-type {
+  display: contents !important;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > .manager-template-client-flow:first-of-type > :not(.admin-monitor-card:first-of-type),
+.admin-monitor-main[data-console-header-grid="true"][data-console-has-header="true"] > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type {
+  grid-column: 1 / -1 !important;
+  grid-row: auto !important;
+  margin-top: 0 !important;
+}
+
+.manager-header-account-dock[data-manager-account-state="open"] {
+  z-index: 2147482000 !important;
+  box-shadow: var(--account-dock-shadow-hover) !important;
+}
+
+.manager-header-account-dock::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--account-dock-gap) / 2);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(129, 140, 154, .26);
+}
+
+.manager-header-account-avatar {
+  width: var(--console-account-avatar-size, clamp(54px, 4.8vw, 68px)) !important;
+  height: var(--console-account-avatar-size, clamp(54px, 4.8vw, 68px)) !important;
+  flex: 0 0 auto;
+}
+
+.manager-account-popover[data-manager-account-popover-align="same-rail"],
+.manager-account-popover[data-manager-account-popover-align="below-right"],
+.manager-account-popover {
+  position: absolute !important;
+  top: var(--account-popover-top) !important;
+  right: 0 !important;
+  left: auto !important;
+  width: var(--account-popover-width) !important;
+  max-width: calc(100vw - 32px) !important;
+  max-height: min(680px, calc(100dvh - 32px)) !important;
+  overflow: auto !important;
+  transform-origin: top right !important;
+  z-index: 2147483000 !important;
+  border: 1px solid rgba(129, 140, 154, .24) !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: 0 34px 90px rgba(15, 23, 42, .24) !important;
+}
+
+@media (max-width: 1240px) and (min-width: 761px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: minmax(220px, .9fr);
+    --account-dock-height: clamp(132px, 12vw, 148px);
+    grid-template-columns: minmax(0, 3fr) var(--account-dock-width) !important;
+    grid-template-rows: var(--account-dock-height) auto !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    min-width: 220px !important;
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: minmax(220px, .86fr);
+    --account-dock-height: clamp(128px, 12vw, 144px);
+    --account-popover-width: min(390px, calc(100vw - 28px));
+    grid-template-columns: minmax(0, 2.8fr) var(--account-dock-width) !important;
+    grid-template-rows: var(--account-dock-height) auto !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    min-width: 220px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: clamp(58px, 14vw, 74px);
+    --account-dock-height: clamp(58px, 14vw, 74px);
+    --account-dock-radius: 18px;
+    --account-popover-width: calc(100vw - 24px);
+    --account-popover-top: 0;
+    grid-template-columns: minmax(0, 1fr) var(--account-dock-width) !important;
+    grid-template-rows: minmax(112px, auto) auto !important;
+    column-gap: .65rem !important;
+    row-gap: 1rem !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+  .admin-monitor-main[data-console-header-grid="true"] > .native-command-hero:first-of-type,
+  .admin-monitor-main[data-console-header-grid="true"] > [data-console-header-primary="true"],
+  .admin-monitor-main[data-console-header-grid="true"]:not([data-console-has-header="true"]) > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    padding-right: calc(var(--account-dock-width) + 1rem) !important;
+    min-height: clamp(112px, 26vw, 136px) !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: var(--account-dock-width) !important;
+    min-width: var(--account-dock-width) !important;
+    min-height: var(--account-dock-height) !important;
+    height: var(--account-dock-height) !important;
+    max-height: var(--account-dock-height) !important;
+    padding: .35rem !important;
+    align-self: start !important;
+    justify-self: end !important;
+    border-radius: var(--account-dock-radius) !important;
+  }
+
+  .manager-header-account-dock::before { display: none !important; }
+
+  .manager-account-popover[data-manager-account-popover-align="same-rail"],
+  .manager-account-popover[data-manager-account-popover-align="below-right"],
+  .manager-account-popover {
+    position: absolute !important;
+    top: var(--account-popover-top) !important;
+    right: 0 !important;
+    width: var(--account-popover-width) !important;
+    max-width: var(--account-popover-width) !important;
+    max-height: calc(100dvh - 24px) !important;
+    border-radius: 24px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: 56px;
+    --account-dock-height: 56px;
+    --account-popover-width: calc(100vw - 16px);
+    column-gap: .5rem !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+  .admin-monitor-main[data-console-header-grid="true"] > .native-command-hero:first-of-type,
+  .admin-monitor-main[data-console-header-grid="true"] > [data-console-header-primary="true"],
+  .admin-monitor-main[data-console-header-grid="true"]:not([data-console-has-header="true"]) > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type {
+    padding-right: 4.5rem !important;
+  }
+
+  .manager-account-popover[data-manager-account-popover-align="same-rail"],
+  .manager-account-popover[data-manager-account-popover-align="below-right"],
+  .manager-account-popover { right: -8px !important; }
+}

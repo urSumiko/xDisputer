@@ -1,0 +1,22 @@
+:root { --manager-report-workflow-contract: monday-ph-auto-submit-merged-salary-output-export; }
+
+.manager-report-workspace { display: grid !important; gap: 16px !important; padding: clamp(18px, 2vw, 26px) !important; }
+.manager-report-header { align-items: flex-start !important; margin-bottom: 0 !important; }
+.manager-report-header span { color: #64748b !important; font-weight: 750 !important; }
+.manager-report-controls { display: grid !important; grid-template-columns: repeat(3, minmax(160px, 1fr)) auto !important; align-items: end !important; gap: 10px !important; padding: 14px !important; border: 1px solid rgba(191, 219, 254, .9) !important; border-radius: 20px !important; background: linear-gradient(180deg, #fff, #f8fbff) !important; }
+.manager-report-controls label { display: grid !important; gap: 6px !important; min-width: 0 !important; }
+.manager-report-controls span, .manager-report-table th { font-size: 11px !important; font-weight: 950 !important; letter-spacing: .08em !important; text-transform: uppercase !important; }
+.manager-report-controls input, .manager-report-controls select { min-height: 42px !important; border: 1px solid rgba(203, 213, 225, .95) !important; border-radius: 14px !important; padding: 0 12px !important; background: #fff !important; color: #0f172a !important; font-weight: 800 !important; }
+.manager-report-export-button { min-height: 42px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; border-radius: 14px !important; white-space: nowrap !important; text-decoration: none !important; }
+.manager-report-kpis { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)) !important; gap: 10px !important; margin-bottom: 0 !important; }
+.manager-report-kpis span { display: grid !important; gap: 6px !important; border: 1px solid rgba(226, 232, 240, .92) !important; border-radius: 16px !important; background: #f8fafc !important; padding: 12px 14px !important; }
+.manager-report-kpis small { color: #64748b !important; font-size: 11px !important; font-weight: 950 !important; letter-spacing: .08em !important; text-transform: uppercase !important; }
+.manager-report-kpis strong { color: #0f172a !important; font-size: clamp(18px, 2vw, 24px) !important; overflow-wrap: anywhere !important; }
+.manager-report-table-scroll { overflow: auto !important; border: 1px solid rgba(203, 213, 225, .92) !important; border-radius: 18px !important; background: #fff !important; }
+.manager-report-table { width: 100% !important; min-width: 880px !important; border-collapse: collapse !important; }
+.manager-report-table th, .manager-report-table td { padding: 12px 14px !important; border-bottom: 1px solid rgba(226, 232, 240, .92) !important; text-align: left !important; vertical-align: top !important; }
+.manager-report-table th { background: #eff6ff !important; color: #1d4ed8 !important; }
+.manager-report-table td { color: #0f172a !important; font-weight: 760 !important; }
+.manager-report-table td small { display: block !important; margin-top: 3px !important; color: #64748b !important; font-weight: 700 !important; }
+@media (max-width: 1120px) { .manager-report-kpis, .manager-report-controls { grid-template-columns: 1fr 1fr !important; } }
+@media (max-width: 720px) { .manager-report-controls, .manager-report-kpis { grid-template-columns: 1fr !important; } .manager-report-header { align-items: flex-start !important; flex-direction: column !important; } }

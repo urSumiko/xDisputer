@@ -1,0 +1,232 @@
+/* xDisputer Triad Theme System
+   Three professional surfaces:
+   - Client/Auth Aurora
+   - Manager Graphite
+   - Master Executive
+   Visual only. Layout geometry stays in ui-layout-contracts.css.
+*/
+
+:root {
+  --x-triad-theme: ready;
+  --x-triad-client-accent: #2563eb;
+  --x-triad-client-accent-2: #06b6d4;
+  --x-triad-manager-accent: #0f766e;
+  --x-triad-manager-accent-2: #334155;
+  --x-triad-master-accent: #4f46e5;
+  --x-triad-master-accent-2: #7c3aed;
+  --x-triad-ink: #071327;
+  --x-triad-muted: #64748b;
+  --x-triad-line: rgba(203, 213, 225, .82);
+  --x-triad-enter: 360ms cubic-bezier(.2, .8, .2, 1);
+}
+
+body[data-theme-contract="xdisputer-unified"] .app-shell,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-page,
+body[data-theme-contract="xdisputer-unified"] .client-template-runtime {
+  --x-surface-theme: client-aurora;
+  --x-surface-accent: var(--x-triad-client-accent);
+  --x-surface-accent-2: var(--x-triad-client-accent-2);
+  --x-surface-bg-a: #eef6ff;
+  --x-surface-bg-b: #f8fbff;
+  --x-surface-bg-c: #ecfeff;
+}
+
+body[data-theme-contract="xdisputer-unified"] .manager-ops-console,
+body[data-theme-contract="xdisputer-unified"] .manager-template-workspace,
+body[data-theme-contract="xdisputer-unified"] .template-workspace-hub {
+  --x-surface-theme: manager-graphite;
+  --x-surface-accent: var(--x-triad-manager-accent);
+  --x-surface-accent-2: var(--x-triad-manager-accent-2);
+  --x-surface-bg-a: #edfdfa;
+  --x-surface-bg-b: #f8fafc;
+  --x-surface-bg-c: #f1f5f9;
+}
+
+body[data-theme-contract="xdisputer-unified"] .master-ops-console,
+body[data-theme-contract="xdisputer-unified"] .master-access-stack,
+body[data-theme-contract="xdisputer-unified"] .master-compact-hero {
+  --x-surface-theme: master-executive;
+  --x-surface-accent: var(--x-triad-master-accent);
+  --x-surface-accent-2: var(--x-triad-master-accent-2);
+  --x-surface-bg-a: #f2f0ff;
+  --x-surface-bg-b: #f8f7ff;
+  --x-surface-bg-c: #eef2ff;
+}
+
+body[data-theme-contract="xdisputer-unified"] .app-shell,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-page,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page.native-console,
+body[data-theme-contract="xdisputer-unified"] .client-template-runtime {
+  background:
+    radial-gradient(circle at 10% -10%, color-mix(in srgb, var(--x-surface-accent, #2563eb) 17%, transparent), transparent 32rem),
+    radial-gradient(circle at 88% 6%, color-mix(in srgb, var(--x-surface-accent-2, #06b6d4) 15%, transparent), transparent 26rem),
+    linear-gradient(135deg, var(--x-surface-bg-a, #eef6ff), var(--x-surface-bg-b, #f8fbff) 48%, var(--x-surface-bg-c, #ecfeff)) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-header,
+body[data-theme-contract="xdisputer-unified"] .console-header-card,
+body[data-theme-contract="xdisputer-unified"] .panel,
+body[data-theme-contract="xdisputer-unified"] .source-progressive-stage,
+body[data-theme-contract="xdisputer-unified"] .template-selection-stage,
+body[data-theme-contract="xdisputer-unified"] .template-selected-command,
+body[data-theme-contract="xdisputer-unified"] .supporting-disclosure,
+body[data-theme-contract="xdisputer-unified"] .layout-disclosure,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card,
+body[data-theme-contract="xdisputer-unified"] .progressive-dataset-card,
+body[data-theme-contract="xdisputer-unified"] .access-workflow-card,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-panel,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-hero {
+  position: relative;
+  overflow: clip !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92)) !important;
+  border: 1px solid color-mix(in srgb, var(--x-surface-accent, #2563eb) 18%, var(--x-triad-line)) !important;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, .08), inset 0 1px 0 rgba(255, 255, 255, .78) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-header::before,
+body[data-theme-contract="xdisputer-unified"] .console-header-card::before,
+body[data-theme-contract="xdisputer-unified"] .panel::before,
+body[data-theme-contract="xdisputer-unified"] .source-progressive-stage::before,
+body[data-theme-contract="xdisputer-unified"] .template-selection-stage::before,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card::before,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-panel::before,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--x-surface-accent, #2563eb), var(--x-surface-accent-2, #06b6d4));
+  opacity: .9;
+  pointer-events: none;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-header h1,
+body[data-theme-contract="xdisputer-unified"] .console-header-card h1,
+body[data-theme-contract="xdisputer-unified"] .header h1,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-panel h1,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-hero h2 {
+  max-width: 14ch;
+  color: var(--x-triad-ink) !important;
+  letter-spacing: -.065em !important;
+  line-height: .92 !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .directory-header-action,
+body[data-theme-contract="xdisputer-unified"] .template-selection-tag,
+body[data-theme-contract="xdisputer-unified"] .pill,
+body[data-theme-contract="xdisputer-unified"] [class*="badge"] {
+  min-height: 34px !important;
+  padding: .45rem .8rem !important;
+  border-radius: 999px !important;
+  font-size: clamp(.68rem, .7vw, .76rem) !important;
+  letter-spacing: .1em !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .directory-header-action {
+  background: color-mix(in srgb, var(--x-surface-accent) 12%, #fff) !important;
+  color: color-mix(in srgb, var(--x-surface-accent) 72%, #0f172a) !important;
+  border-color: color-mix(in srgb, var(--x-surface-accent) 28%, var(--x-triad-line)) !important;
+  box-shadow: none !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .action-button,
+body[data-theme-contract="xdisputer-unified"] .primary-action-button,
+body[data-theme-contract="xdisputer-unified"] .admin-action-button.primary,
+body[data-theme-contract="xdisputer-unified"] button[type="submit"],
+body[data-theme-contract="xdisputer-unified"] [data-theme-action="primary"] {
+  background: linear-gradient(135deg, var(--x-surface-accent, #2563eb), var(--x-surface-accent-2, #4f46e5)) !important;
+  border-color: color-mix(in srgb, var(--x-surface-accent, #2563eb) 74%, #fff) !important;
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--x-surface-accent, #2563eb) 24%, transparent) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-sidebar.native-console-sidebar,
+body[data-theme-contract="xdisputer-unified"] .app-shell > .sidebar {
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.94)) !important;
+  border-right: 1px solid color-mix(in srgb, var(--x-surface-accent, #2563eb) 14%, var(--x-triad-line)) !important;
+  box-shadow: 18px 0 42px rgba(15, 23, 42, .05) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-brand span,
+body[data-theme-contract="xdisputer-unified"] .brand span,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-logo {
+  background: linear-gradient(135deg, #0f172a, color-mix(in srgb, var(--x-surface-accent, #2563eb) 42%, #0f172a)) !important;
+  color: #fff !important;
+  box-shadow: 0 14px 28px rgba(15,23,42,.18) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-sidebar nav a.active,
+body[data-theme-contract="xdisputer-unified"] .sidebar nav button.active,
+body[data-theme-contract="xdisputer-unified"] .console-sidebar-mode-switch-button {
+  background: linear-gradient(135deg, #0f172a, color-mix(in srgb, var(--x-surface-accent, #2563eb) 52%, #0f172a)) !important;
+  color: #fff !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .directory-filter-form,
+body[data-theme-contract="xdisputer-unified"] .directory-pager {
+  background: color-mix(in srgb, var(--x-surface-accent, #2563eb) 5%, #fff) !important;
+  border: 1px solid color-mix(in srgb, var(--x-surface-accent, #2563eb) 16%, var(--x-triad-line)) !important;
+  border-radius: 20px !important;
+  padding: 1rem !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-header,
+body[data-theme-contract="xdisputer-unified"] .console-header-card,
+body[data-theme-contract="xdisputer-unified"] .panel,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card,
+body[data-theme-contract="xdisputer-unified"] .source-progressive-stage,
+body[data-theme-contract="xdisputer-unified"] .template-selection-stage,
+body[data-theme-contract="xdisputer-unified"] .progressive-dataset-card,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-panel,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-hero {
+  animation: xTriadSurfaceEnter var(--x-triad-enter) both;
+}
+
+body[data-theme-contract="xdisputer-unified"] .panel:hover,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card:hover,
+body[data-theme-contract="xdisputer-unified"] .progressive-dataset-card:hover,
+body[data-theme-contract="xdisputer-unified"] .access-workflow-card:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes xTriadSurfaceEnter {
+  from { opacity: 0; transform: translateY(10px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+body[data-theme-contract="xdisputer-unified"] .app-shell,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-page,
+body[data-theme-contract="xdisputer-unified"] .saas-auth-page,
+body[data-theme-contract="xdisputer-unified"] .client-template-runtime,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-main,
+body[data-theme-contract="xdisputer-unified"] .main-area,
+body[data-theme-contract="xdisputer-unified"] .panel,
+body[data-theme-contract="xdisputer-unified"] .admin-monitor-card,
+body[data-theme-contract="xdisputer-unified"] .source-progressive-stage,
+body[data-theme-contract="xdisputer-unified"] .template-selection-stage {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+@media (max-width: 920px) {
+  body[data-theme-contract="xdisputer-unified"] .admin-monitor-header h1,
+  body[data-theme-contract="xdisputer-unified"] .console-header-card h1,
+  body[data-theme-contract="xdisputer-unified"] .header h1,
+  body[data-theme-contract="xdisputer-unified"] .saas-auth-panel h1,
+  body[data-theme-contract="xdisputer-unified"] .saas-auth-hero h2 {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme-contract="xdisputer-unified"] .admin-monitor-header,
+  body[data-theme-contract="xdisputer-unified"] .console-header-card,
+  body[data-theme-contract="xdisputer-unified"] .panel,
+  body[data-theme-contract="xdisputer-unified"] .admin-monitor-card,
+  body[data-theme-contract="xdisputer-unified"] .source-progressive-stage,
+  body[data-theme-contract="xdisputer-unified"] .template-selection-stage,
+  body[data-theme-contract="xdisputer-unified"] .progressive-dataset-card,
+  body[data-theme-contract="xdisputer-unified"] .saas-auth-panel,
+  body[data-theme-contract="xdisputer-unified"] .saas-auth-hero {
+    animation: none !important;
+  }
+}

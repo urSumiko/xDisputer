@@ -1,0 +1,58 @@
+/* Manager account header action placement contract.
+   Keeps Pause and Unlink in the upper-right action cluster before the Active/Paused status badge. */
+
+.manager-console-user-header-v2 {
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  align-items: start !important;
+}
+
+.manager-console-status-actions {
+  justify-self: end !important;
+  align-self: start !important;
+  display: inline-flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: .45rem !important;
+  max-width: min(100%, 560px) !important;
+}
+
+.manager-console-status-actions .manager-console-top-actions {
+  order: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: .4rem !important;
+  margin: 0 !important;
+}
+
+.manager-console-status-actions > .admin-status-badge {
+  order: 2 !important;
+  align-self: center !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+.manager-console-top-actions form {
+  margin: 0 !important;
+}
+
+.manager-console-top-actions .admin-action-button {
+  min-height: 34px !important;
+  padding: .42rem .72rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 720px) {
+  .manager-console-user-header-v2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manager-console-status-actions {
+    justify-self: stretch !important;
+    justify-content: flex-start !important;
+    max-width: 100% !important;
+  }
+}

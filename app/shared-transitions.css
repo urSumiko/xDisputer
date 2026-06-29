@@ -1,0 +1,98 @@
+/* Shared motion system: animate lightweight workflow context only, never the document editor or rendered pages. */
+:root {
+  --motion-fast: 180ms;
+  --motion-stage: 360ms;
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Smooth local feedback for lightweight cards and tools. */
+.shared-stage-surface,
+.packet-card,
+.template-studio-operational .studio-component-card,
+.progressive-disclosure,
+.support-layout-controls,
+.support-image-strip button {
+  transition:
+    border-color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease,
+    box-shadow var(--motion-stage) var(--motion-ease),
+    transform var(--motion-stage) var(--motion-ease),
+    opacity var(--motion-fast) ease;
+}
+.packet-card:hover,
+.template-studio-operational .studio-component-card:hover {
+  transform: translateY(-2px);
+}
+.packet-card:active,
+.template-studio-operational .studio-component-card:active {
+  transform: translateY(0) scale(.992);
+}
+
+/* Native View Transition timing for staged Source Data and Outputs surfaces only. */
+html[data-transition-kind='stage']::view-transition-old(root),
+html[data-transition-kind='stage']::view-transition-new(root) {
+  animation: none;
+}
+html[data-transition-kind='stage']::view-transition-group(source-work-stage),
+html[data-transition-kind='stage']::view-transition-group(output-work-stage) {
+  animation-duration: var(--motion-stage);
+  animation-timing-function: var(--motion-ease);
+}
+html[data-transition-kind='stage']::view-transition-old(source-work-stage),
+html[data-transition-kind='stage']::view-transition-old(output-work-stage) {
+  animation: shared-surface-out var(--motion-stage) var(--motion-ease) both;
+}
+html[data-transition-kind='stage']::view-transition-new(source-work-stage),
+html[data-transition-kind='stage']::view-transition-new(output-work-stage) {
+  animation: shared-surface-in var(--motion-stage) var(--motion-ease) both;
+}
+@keyframes shared-surface-out {
+  to { opacity: .12; transform: translateY(-4px) scale(.992); }
+}
+@keyframes shared-surface-in {
+  from { opacity: .14; transform: translateY(8px) scale(.988); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Stable precision zones: never animate rendered document/editor content. */
+.simple-editor-backdrop,
+.premium-document-editor,
+.premium-document-editor *,
+.packet-inline-docx-host,
+.packet-inline-docx-host .docx,
+.packet-static-docx-host,
+.packet-static-docx-host .docx,
+.packet-static-file-view iframe,
+.support-page-canvas,
+.support-canvas-item img {
+  view-transition-name: none !important;
+  animation: none !important;
+}
+
+/* Local progressive reveals remain controlled and inexpensive. */
+.progressive-region,
+.contextual-action-region,
+.support-precision-controls > div {
+  transition-timing-function: var(--motion-ease) !important;
+}
+.support-precision-controls[open] .support-control-group {
+  animation: precision-reveal 220ms var(--motion-ease) both;
+}
+@keyframes precision-reveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 1ms !important;
+  }
+}

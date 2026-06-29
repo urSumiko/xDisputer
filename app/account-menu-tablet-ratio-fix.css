@@ -1,0 +1,36 @@
+/* Final account rail patch: keep the 75/25 avatar card from collapsing into a narrow strip on tablet/zoomed desktop widths. */
+
+@media (max-width: 1240px) and (min-width: 861px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: minmax(220px, .9fr) !important;
+    --account-dock-height: clamp(136px, 12vw, 148px) !important;
+    grid-template-columns: minmax(0, 3fr) var(--account-dock-width) !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    width: 100% !important;
+    min-width: 220px !important;
+    height: var(--account-dock-height) !important;
+    max-height: var(--account-dock-height) !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+  }
+}
+
+@media (max-width: 860px) and (min-width: 761px) {
+  .admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: minmax(190px, .8fr) !important;
+    --account-dock-height: clamp(128px, 14vw, 140px) !important;
+    grid-template-columns: minmax(0, 2.65fr) var(--account-dock-width) !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock {
+    min-width: 190px !important;
+    height: var(--account-dock-height) !important;
+    max-height: var(--account-dock-height) !important;
+    align-self: start !important;
+    justify-self: stretch !important;
+  }
+}

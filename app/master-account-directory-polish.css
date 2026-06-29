@@ -1,0 +1,325 @@
+/* Master account directory polish.
+   Simple search toolbar + stable non-overlapping account rows. Owns /master/accounts dataset UI only. */
+
+.native-operation-card[data-layout-contract='dataset-card'] {
+  display: grid !important;
+  gap: 1rem !important;
+  padding: clamp(1rem, 1.5vw, 1.35rem) !important;
+  border-radius: 26px !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, .08) !important;
+}
+
+.native-operation-card .directory-filter-form {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 520px) auto auto !important;
+  align-items: end !important;
+  justify-content: start !important;
+  gap: .65rem !important;
+  padding: .9rem !important;
+  border: 1px solid rgba(191, 219, 254, .9) !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, #ffffff, #f8fbff) !important;
+}
+
+.native-operation-card .directory-filter-form label {
+  display: grid !important;
+  gap: .38rem !important;
+  min-width: 0 !important;
+}
+
+.native-operation-card .directory-filter-form label span {
+  color: #334155 !important;
+  font-size: .85rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .01em !important;
+}
+
+.native-operation-card .directory-filter-form input[type='search'] {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  border-radius: 16px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-size: .92rem !important;
+  padding: .7rem .9rem !important;
+}
+
+.native-operation-card .directory-filter-form .admin-action-button,
+.native-operation-card .directory-filter-form button {
+  min-height: 46px !important;
+  border-radius: 16px !important;
+  padding-inline: 1rem !important;
+  white-space: nowrap !important;
+}
+
+.master-account-list-v3 {
+  display: grid !important;
+  gap: .82rem !important;
+}
+
+.master-account-row-v3.table-flyout-summary-card {
+  width: 100% !important;
+  min-height: 116px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(203, 213, 225, .95) !important;
+  border-radius: 22px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .055) !important;
+  overflow: hidden !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease !important;
+}
+
+.master-account-row-v3.table-flyout-summary-card:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(37, 99, 235, .45) !important;
+  box-shadow: 0 18px 42px rgba(37, 99, 235, .12) !important;
+}
+
+.master-account-trigger-v3.account-control-trigger-grid {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 1.3fr) minmax(250px, .9fr) minmax(210px, .72fr) auto !important;
+  grid-template-areas:
+    "identity status limit open"
+    "invite updated limit open" !important;
+  align-items: center !important;
+  gap: .64rem .85rem !important;
+  padding: .95rem 1rem !important;
+}
+
+.master-account-identity {
+  grid-area: identity !important;
+  display: grid !important;
+  gap: .2rem !important;
+  min-width: 0 !important;
+  text-align: left !important;
+}
+
+.master-account-identity strong {
+  color: #0f172a !important;
+  font-size: .98rem !important;
+  font-weight: 950 !important;
+  line-height: 1.12 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.master-account-identity small {
+  color: #334155 !important;
+  font-size: .78rem !important;
+  font-weight: 760 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.master-account-status-cluster {
+  grid-area: status !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: .4rem !important;
+}
+
+.master-account-status-cluster .admin-role-badge,
+.master-account-status-cluster .admin-status-badge,
+.master-account-status-cluster .admin-relation-badge {
+  min-height: 32px !important;
+  padding: .42rem .7rem !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  max-width: 150px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.master-account-limit.account-control-agreement {
+  grid-area: limit !important;
+  align-self: stretch !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: .18rem !important;
+  min-height: 48px !important;
+  padding: .55rem .8rem !important;
+  border-radius: 16px !important;
+  text-align: center !important;
+  background: #eff6ff !important;
+  border: 1px solid rgba(191, 219, 254, .9) !important;
+}
+
+.master-account-limit strong {
+  color: #0f172a !important;
+  font-size: .85rem !important;
+  font-weight: 950 !important;
+  line-height: 1.12 !important;
+  white-space: normal !important;
+}
+
+.master-account-limit small {
+  color: #64748b !important;
+  font-size: .65rem !important;
+  font-weight: 850 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+
+.master-account-open {
+  grid-area: open !important;
+  min-height: 38px !important;
+  padding: .55rem .75rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #2563eb, #4f46e5) !important;
+  color: #ffffff !important;
+  font-size: .78rem !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, .18) !important;
+}
+
+.account-control-meta {
+  min-width: 0 !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: .12rem !important;
+  min-height: 38px !important;
+  padding: .42rem .65rem !important;
+  border: 1px solid rgba(191, 219, 254, .9) !important;
+  border-radius: 14px !important;
+  background: #eff6ff !important;
+  text-align: left !important;
+}
+
+.account-control-meta:nth-of-type(5) {
+  grid-area: invite !important;
+}
+
+.account-control-meta:nth-of-type(6) {
+  grid-area: updated !important;
+}
+
+.account-control-meta small {
+  color: #475569 !important;
+  font-size: .62rem !important;
+  font-weight: 950 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  line-height: 1 !important;
+}
+
+.account-control-meta strong {
+  min-width: 0 !important;
+  color: #0f172a !important;
+  font-size: .76rem !important;
+  font-weight: 900 !important;
+  line-height: 1.05 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.limit-editor-help {
+  margin: -.15rem 0 0 !important;
+  color: #64748b !important;
+  font-size: .76rem !important;
+  font-weight: 760 !important;
+  line-height: 1.35 !important;
+}
+
+.account-control-flyout-content {
+  display: grid !important;
+  gap: .9rem !important;
+}
+
+.table-flyout-header-action-slot {
+  display: inline-flex !important;
+}
+
+.flyout-action-group {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  gap: .45rem !important;
+}
+
+.directory-pager[data-layout-zone='dataset-pagination'] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  padding-top: .35rem !important;
+}
+
+.directory-pager[data-layout-zone='dataset-pagination'] > div {
+  display: flex !important;
+  gap: .55rem !important;
+}
+
+@media (max-width: 1180px) {
+  .master-account-trigger-v3.account-control-trigger-grid {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "identity open"
+      "status limit"
+      "invite updated" !important;
+    align-items: stretch !important;
+  }
+
+  .master-account-open,
+  .master-account-limit.account-control-agreement {
+    align-self: stretch !important;
+  }
+}
+
+@media (max-width: 780px) {
+  .native-operation-card .directory-filter-form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .master-account-trigger-v3.account-control-trigger-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "identity"
+      "status"
+      "limit"
+      "invite"
+      "updated"
+      "open" !important;
+    align-items: stretch !important;
+  }
+
+  .master-account-status-cluster,
+  .master-account-open,
+  .master-account-limit.account-control-agreement,
+  .account-control-meta {
+    justify-self: stretch !important;
+    width: 100% !important;
+  }
+
+  .master-account-status-cluster .admin-role-badge,
+  .master-account-status-cluster .admin-status-badge,
+  .master-account-status-cluster .admin-relation-badge {
+    flex: 1 1 auto !important;
+    max-width: none !important;
+  }
+
+  .directory-pager[data-layout-zone='dataset-pagination'] {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .directory-pager[data-layout-zone='dataset-pagination'] > div {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

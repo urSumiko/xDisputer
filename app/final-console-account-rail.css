@@ -1,0 +1,143 @@
+/* Final console account rail override.
+   This file loads last. It owns: 75/25 header/account rail, same-rail account settings popover, and highlighted sidebar-bottom Switch Mode. */
+
+.admin-monitor-page[data-console-shell="true"] .admin-monitor-sidebar > .admin-monitor-account,
+.admin-monitor-page[data-console-shell="true"] .admin-monitor-account {
+  display: none !important;
+}
+
+.admin-monitor-page[data-console-shell="true"] [data-console-sidebar="true"] {
+  min-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+.admin-monitor-page[data-console-shell="true"] [data-console-sidebar-nav="true"] {
+  flex: 0 0 auto !important;
+}
+
+.console-sidebar-mode-switch {
+  margin-top: auto !important;
+  padding: 1rem .1rem .15rem !important;
+  display: grid !important;
+  gap: .72rem !important;
+  border-top: 1px solid rgba(203, 213, 225, .82) !important;
+  position: sticky !important;
+  bottom: .85rem !important;
+  z-index: 10 !important;
+}
+
+.console-sidebar-mode-switch::before {
+  content: '';
+  position: absolute;
+  inset: .5rem -.35rem -.45rem;
+  z-index: -1;
+  border-radius: 22px;
+  background: radial-gradient(circle at 30% 20%, rgba(37, 99, 235, .12), transparent 48%), linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.84));
+  box-shadow: 0 20px 44px rgba(15, 23, 42, .10);
+  opacity: .96;
+}
+
+.console-sidebar-mode-switch > div { display: grid; gap: .24rem; }
+.console-sidebar-mode-switch span, .console-sidebar-mode-switch small { color: #64748b; }
+.console-sidebar-mode-switch > div > span { font-size: .66rem; font-weight: 900; letter-spacing: .11em; text-transform: uppercase; }
+.console-sidebar-mode-switch strong { color: #081429; font-size: .92rem; font-weight: 900; line-height: 1.18; }
+.console-sidebar-mode-switch small { max-width: 17rem; font-size: .72rem; font-weight: 700; line-height: 1.42; }
+.console-sidebar-mode-switch-button { min-height: 48px !important; padding: .75rem .82rem !important; display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; gap: .65rem !important; border: 1px solid rgba(37, 99, 235, .24) !important; border-radius: 16px !important; color: #fff !important; background: linear-gradient(135deg, #061227, #0f2f68 54%, #2563eb) !important; text-decoration: none !important; box-shadow: 0 16px 32px rgba(37, 99, 235, .22), 0 8px 18px rgba(15, 23, 42, .16) !important; transform: translateZ(0); animation: consoleSwitchPulse 2600ms ease-in-out infinite; }
+.console-sidebar-mode-switch-button span { color: #fff !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; font-weight: 900; }
+.console-sidebar-mode-switch-button em { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; color: #081429; background: rgba(255, 255, 255, .94); font-style: normal; font-weight: 950; box-shadow: 0 8px 18px rgba(2, 6, 23, .18); }
+.console-sidebar-mode-switch-button:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 22px 48px rgba(37, 99, 235, .28), 0 12px 24px rgba(15, 23, 42, .18) !important; }
+
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] {
+  --account-dock-width: minmax(260px, 1fr) !important;
+  --account-dock-height: clamp(136px, 10vw, 152px) !important;
+  grid-template-columns: minmax(0, 3fr) var(--account-dock-width) !important;
+  grid-template-rows: var(--account-dock-height) auto !important;
+  column-gap: clamp(.8rem, 1.35vw, 1.05rem) !important;
+  align-items: start !important;
+}
+
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > [data-console-header-primary="true"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .native-command-hero:first-of-type {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  min-height: var(--account-dock-height) !important;
+  height: var(--account-dock-height) !important;
+  max-height: var(--account-dock-height) !important;
+  margin: 0 !important;
+  align-self: start !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 260px !important;
+  min-height: var(--account-dock-height) !important;
+  height: var(--account-dock-height) !important;
+  max-height: var(--account-dock-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: start !important;
+  justify-self: stretch !important;
+  border-radius: 24px !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.manager-account-popover[data-manager-account-popover-align="same-rail"],
+.manager-account-popover {
+  top: 0 !important;
+  right: 0 !important;
+  left: auto !important;
+  width: min(420px, calc(100vw - 32px)) !important;
+  max-width: calc(100vw - 32px) !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+  transform-origin: top right !important;
+}
+
+.manager-account-popover::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+.manager-account-function-panel { display: grid; gap: 8px; }
+.manager-account-function-panel > div { min-width: 0; display: grid; grid-template-columns: minmax(96px, .45fr) minmax(0, 1fr); gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid rgba(129, 140, 154, .22); border-radius: 14px; background: #f8fafc; }
+.manager-account-function-panel strong, .manager-account-function-panel span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.manager-account-function-panel strong { color: #475569; font-size: 11px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+.manager-account-function-panel span { color: #081429; font-size: 13px; font-weight: 760; }
+.manager-account-settings-form { display: grid; gap: 10px; padding: 12px; border: 1px solid rgba(129, 140, 154, .22); border-radius: 18px; background: #fff; }
+.manager-account-settings-form label { display: grid; gap: 6px; }
+.manager-account-settings-form label > span { color: #64748b; font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.manager-account-settings-form input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid #dbe3ef; border-radius: 12px; color: #081429; background: #f8fafc; font-size: 14px; font-weight: 720; }
+.manager-account-settings-form button, .manager-account-session-panel .manager-account-signout button { width: 100%; min-height: 44px; border: 0; border-radius: 13px; color: #fff; background: #081429; font-size: 13px; font-weight: 850; cursor: pointer; }
+.manager-account-session-panel { display: grid; gap: 10px; padding: 12px; border: 1px solid rgba(129, 140, 154, .22); border-radius: 18px; background: linear-gradient(180deg, #ffffff, #f8fafc); }
+.manager-account-session-panel > div { display: grid; gap: 3px; }
+.manager-account-session-panel strong { color: #081429; font-size: 14px; font-weight: 860; }
+.manager-account-session-panel span { color: #64748b; font-size: 12px; font-weight: 650; line-height: 1.45; }
+.manager-account-session-panel .manager-account-signout { margin: 0; padding: 0; border: 0; }
+
+@keyframes consoleSwitchPulse {
+  0%, 100% { filter: saturate(1); box-shadow: 0 16px 32px rgba(37, 99, 235, .22), 0 8px 18px rgba(15, 23, 42, .16); }
+  50% { filter: saturate(1.18); box-shadow: 0 18px 42px rgba(37, 99, 235, .32), 0 10px 22px rgba(15, 23, 42, .18); }
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] { --account-dock-width: minmax(220px, .86fr) !important; --account-dock-height: clamp(128px, 12vw, 144px) !important; grid-template-columns: minmax(0, 2.8fr) var(--account-dock-width) !important; }
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"], .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock { min-width: 220px !important; }
+}
+
+@media (max-width: 760px) {
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] { --account-dock-width: clamp(56px, 14vw, 74px) !important; --account-dock-height: clamp(56px, 14vw, 74px) !important; grid-template-columns: minmax(0, 1fr) var(--account-dock-width) !important; grid-template-rows: minmax(112px, auto) auto !important; }
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"], .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock { width: var(--account-dock-width) !important; min-width: var(--account-dock-width) !important; height: var(--account-dock-height) !important; min-height: var(--account-dock-height) !important; padding: .4rem !important; justify-self: end !important; }
+  .manager-account-popover[data-manager-account-popover-align="same-rail"], .manager-account-popover { top: 0 !important; right: 0 !important; width: min(360px, calc(100vw - 20px)) !important; max-height: none !important; overflow: visible !important; scrollbar-width: none !important; }
+  .console-sidebar-mode-switch { margin-top: 1rem !important; position: relative !important; bottom: auto !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .console-sidebar-mode-switch-button { animation: none !important; }
+}

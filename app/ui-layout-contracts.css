@@ -1,0 +1,454 @@
+/* xDisputer UI Layout Contracts
+   Final layout ownership layer. This file is imported last and owns component geometry only.
+   It does not change data, generation, auth, or template business logic. */
+
+:root {
+  --x-layout-contracts: ready;
+  --x-layout-page-max: 1320px;
+  --x-layout-gap: clamp(14px, 1.4vw, 22px);
+  --x-layout-card-radius: 24px;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* ============================================================
+   1) Supporting Documents editor contract
+   Desktop: Evidence | Preview | Controls
+   Tablet: Preview | Controls, Evidence below
+   Mobile: Preview, Controls, Evidence
+   ============================================================ */
+
+[data-layout-contract="supporting-documents-editor"],
+.support-layout-grid.word-crop-grid {
+  display: grid !important;
+  grid-template-columns:
+    minmax(220px, 280px)
+    minmax(460px, 680px)
+    minmax(280px, 320px) !important;
+  grid-template-areas: "evidence preview controls" !important;
+  align-items: start !important;
+  justify-content: center !important;
+  gap: var(--x-layout-gap) !important;
+  width: min(100%, var(--x-layout-page-max)) !important;
+  margin-inline: auto !important;
+  overflow: visible !important;
+}
+
+[data-layout-zone="evidence"],
+.word-left-evidence-manager {
+  grid-area: evidence !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 280px !important;
+  align-self: start !important;
+  justify-self: stretch !important;
+  position: sticky !important;
+  top: 1rem !important;
+  overflow: visible !important;
+}
+
+[data-layout-zone="preview"],
+.support-page-frame {
+  grid-area: preview !important;
+  width: min(100%, 680px) !important;
+  min-width: 0 !important;
+  max-width: 680px !important;
+  justify-self: center !important;
+}
+
+[data-layout-zone="controls"],
+.word-crop-controls,
+.support-layout-controls.word-crop-controls {
+  grid-area: controls !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 320px !important;
+  justify-self: stretch !important;
+}
+
+.support-page-canvas {
+  width: min(100%, 540px) !important;
+  margin-inline: auto !important;
+}
+
+.word-left-evidence-manager .evidence-panel-v2,
+.word-left-evidence-manager .evidence-list-v2,
+.word-left-evidence-manager .evidence-card-v2,
+.word-left-evidence-manager .evidence-card-select-v2,
+.word-left-evidence-manager .evidence-meta-v2,
+.word-left-evidence-manager .evidence-actions-v2 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.word-left-evidence-manager .evidence-list-v2 {
+  display: grid !important;
+  gap: .55rem !important;
+  max-height: min(48vh, 430px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.word-left-evidence-manager .evidence-card-v2,
+.word-left-evidence-manager .evidence-upload-card-v2 {
+  overflow: hidden !important;
+}
+
+.word-left-evidence-manager .evidence-meta-v2 strong,
+.word-left-evidence-manager .evidence-meta-v2 small {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.word-left-evidence-manager .evidence-actions-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: .35rem !important;
+}
+
+.word-left-evidence-manager .evidence-actions-v2 button,
+.word-left-evidence-manager .evidence-upload-button-v2 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding-inline: .35rem !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* ============================================================
+   2) Command header contract
+   Title copy never competes with actions. Actions wrap instead of clipping.
+   ============================================================ */
+
+[data-layout-contract="command-header"],
+.source-progressive-command,
+.simplified-source-command,
+.template-stage-command,
+.template-selected-command,
+.supporting-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: var(--x-layout-gap) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+[data-layout-zone="copy"],
+.source-progressive-heading,
+.template-stage-heading,
+.template-selected-identity {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+[data-layout-zone="copy"] h1,
+[data-layout-zone="copy"] h2,
+.source-progressive-heading h1,
+.source-progressive-heading h2,
+.template-stage-heading h1,
+.template-stage-heading h2,
+.template-selected-identity h1,
+.template-selected-identity h2 {
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  line-height: .98 !important;
+}
+
+[data-layout-zone="actions"],
+.source-command-actions,
+.source-stage-actions,
+.template-selected-actions {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: .65rem !important;
+}
+
+[data-layout-zone="actions"] button,
+[data-layout-zone="actions"] a,
+.source-stage-actions .action-button,
+.source-stage-actions .secondary-button,
+.source-command-actions .action-button,
+.source-command-actions .secondary-button,
+.template-selected-actions button,
+.template-selected-actions a {
+  max-width: min(100%, 300px) !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+  text-align: center !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.15 !important;
+}
+
+/* ============================================================
+   3) Master account dataset contract
+   Dataset owns filter toolbar, rows, and pager as one surface.
+   ============================================================ */
+
+[data-layout-contract="dataset-card"],
+.access-workflow-grid,
+.single-header-dataset .admin-monitor-card,
+.native-operation-card {
+  display: grid !important;
+  gap: clamp(14px, 1.4vw, 22px) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: min(100%, var(--x-layout-page-max)) !important;
+  margin-inline: auto !important;
+  overflow: hidden !important;
+}
+
+.directory-hero-with-action {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: var(--x-layout-gap) !important;
+}
+
+.directory-hero-with-action > div {
+  min-width: 0 !important;
+}
+
+.directory-header-action {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 220px !important;
+  min-height: 44px !important;
+  padding: .65rem 1rem !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-self: end !important;
+  background: #0f172a !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  white-space: normal !important;
+  text-align: center !important;
+  text-decoration: none !important;
+}
+
+.directory-filter-form {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(240px, 360px) auto auto minmax(0, 1fr) !important;
+  align-items: end !important;
+  gap: .75rem !important;
+  margin: 0 !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid rgba(203, 213, 225, .75) !important;
+}
+
+.directory-filter-form label {
+  display: grid !important;
+  gap: .35rem !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.directory-filter-form input {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.directory-filter-form .admin-action-button,
+.directory-pager .admin-action-button {
+  white-space: nowrap !important;
+}
+
+.directory-pager {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: .75rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.directory-pager > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: .5rem !important;
+  justify-content: flex-end !important;
+}
+
+/* ============================================================
+   4) Sidebar stability contract
+   Brand/nav/mode-switch compress predictably, never overlap.
+   ============================================================ */
+
+[data-layout-contract="console-sidebar"],
+.admin-monitor-sidebar.native-console-sidebar,
+.app-shell > .sidebar {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.admin-monitor-brand,
+.app-shell .brand {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: .75rem !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-monitor-brand div,
+.app-shell .brand div,
+.admin-monitor-brand strong,
+.admin-monitor-brand small,
+.app-shell .brand strong,
+.app-shell .brand small {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.admin-monitor-sidebar nav a,
+.admin-monitor-sidebar nav button,
+.app-shell .sidebar nav button,
+.console-sidebar-mode-switch,
+.workspace-account-card {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.console-sidebar-mode-switch {
+  display: grid !important;
+  gap: .75rem !important;
+}
+
+.console-sidebar-mode-switch div,
+.console-sidebar-mode-switch strong,
+.console-sidebar-mode-switch small,
+.console-sidebar-mode-switch span {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* ============================================================
+   Responsive contract order
+   ============================================================ */
+
+@media (max-width: 1240px) {
+  [data-layout-contract="supporting-documents-editor"],
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px) !important;
+    grid-template-areas:
+      "preview controls"
+      "evidence evidence" !important;
+    width: 100% !important;
+  }
+
+  [data-layout-zone="evidence"],
+  .word-left-evidence-manager {
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .word-left-evidence-manager .evidence-panel-v2 {
+    display: grid !important;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: .85rem !important;
+  }
+}
+
+@media (max-width: 980px) {
+  [data-layout-contract="command-header"],
+  .source-progressive-command,
+  .simplified-source-command,
+  .template-stage-command,
+  .template-selected-command,
+  .directory-hero-with-action {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-layout-zone="actions"],
+  .source-command-actions,
+  .source-stage-actions,
+  .template-selected-actions,
+  .directory-header-action {
+    justify-self: stretch !important;
+    justify-content: stretch !important;
+  }
+
+  [data-layout-zone="actions"] button,
+  [data-layout-zone="actions"] a,
+  .source-stage-actions .action-button,
+  .source-stage-actions .secondary-button,
+  .source-command-actions .action-button,
+  .source-command-actions .secondary-button,
+  .template-selected-actions button,
+  .template-selected-actions a,
+  .directory-header-action {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .directory-filter-form {
+    grid-template-columns: 1fr auto auto !important;
+  }
+}
+
+@media (max-width: 920px) {
+  [data-layout-contract="supporting-documents-editor"],
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "preview"
+      "controls"
+      "evidence" !important;
+  }
+
+  [data-layout-zone="preview"],
+  [data-layout-zone="controls"],
+  [data-layout-zone="evidence"],
+  .support-page-frame,
+  .word-crop-controls,
+  .support-layout-controls.word-crop-controls,
+  .word-left-evidence-manager {
+    justify-self: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .word-left-evidence-manager .evidence-panel-v2,
+  .directory-filter-form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .directory-filter-form .admin-action-button,
+  .directory-pager .admin-action-button {
+    width: 100% !important;
+  }
+
+  .directory-pager,
+  .directory-pager > div {
+    justify-content: stretch !important;
+  }
+}

@@ -1,0 +1,16 @@
+export { scopeRules, scopeMatches } from './account-scope';
+export type { AccountScope, ScopeRule } from './account-scope';
+export { actionRegistry, getActionContract } from './action-registry';
+export type { ActionContract, ActionId, ActionOwner } from './action-registry';
+export { contentRegistry, getContent } from './content-registry';
+export type { ContentKey } from './content-registry';
+export { identityRegistry, getIdentityContract } from './identity-registry';
+export type { ComponentIdentity, IdentityContract } from './identity-registry';
+export { layoutRegistry, getLayoutContract } from './layout-registry';
+export type { LayoutContract, LayoutId } from './layout-registry';
+export { navigationMap, findNavigationByHref, findNavigationById } from './navigation-map';
+export type { NavigationEntry } from './navigation-map';
+export { performanceProfiles, getPerformanceProfile } from './performance-profile';
+export type { PerformanceProfile, PerformanceProfileId } from './performance-profile';
+export { frontendNavigation, resolveAction, resolveFrontendControl } from './resolve-control';
+export type { FrontendControlSnapshot } from './resolve-control';

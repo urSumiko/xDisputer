@@ -1,0 +1,14 @@
+/* Client account CSS contract. */
+:root {
+  --client-account-popover-contract: canonical-console-account-dock;
+}
+
+main.app-shell[data-client-console-shell="true"] section.main-area[data-console-role="client"] {
+  --account-dock-width: minmax(280px, 1fr);
+}
+
+@media (min-width: 761px) {
+  main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] {
+    grid-template-columns: minmax(0, 3fr) var(--account-dock-width) !important;
+  }
+}

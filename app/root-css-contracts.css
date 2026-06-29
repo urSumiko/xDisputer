@@ -1,0 +1,8 @@
+/* Root CSS bundle: contracts and recovery layers */
+@import './client-workspace-layout-lock.css';
+@import './ui-collapse-recovery.css';
+@import './ui-theme-contracts.css';
+@import './unified-surface-contracts.css';
+@import './topbar-action-cluster.css';
+@import './instant-interaction-performance.css';
+@import './ui-layout-contracts.css';

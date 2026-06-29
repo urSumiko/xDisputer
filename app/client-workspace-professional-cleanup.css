@@ -1,0 +1,134 @@
+/* Client workspace professional cleanup layer.
+   Loaded after older client layout locks to remove duplicate-feeling header surfaces,
+   prevent account/output overlap, and keep the client dashboard visually stable. */
+
+:root {
+  --client-clean-content-max: 1320px;
+  --client-clean-gutter: clamp(20px, 2vw, 34px);
+  --client-clean-card-radius: 24px;
+  --client-clean-line: rgba(148, 163, 184, .24);
+  --client-clean-shadow: 0 22px 64px rgba(15, 23, 42, .08);
+}
+
+@media (min-width: 1100px) {
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) > .main-area {
+    padding: var(--client-clean-gutter) !important;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(37, 99, 235, .08), transparent 32%),
+      linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%) !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .header {
+    width: min(100%, var(--client-clean-content-max)) !important;
+    min-height: 118px !important;
+    margin: 0 auto clamp(18px, 1.6vw, 24px) !important;
+    padding: 22px clamp(340px, 28vw, 440px) 22px 28px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px) !important;
+    align-items: center !important;
+    gap: 20px !important;
+    border: 1px solid var(--client-clean-line) !important;
+    border-radius: var(--client-clean-card-radius) !important;
+    background: rgba(255, 255, 255, .94) !important;
+    box-shadow: var(--client-clean-shadow) !important;
+    overflow: visible !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .header h1 {
+    margin: 0 !important;
+    font-size: clamp(30px, 2.4vw, 44px) !important;
+    line-height: .96 !important;
+    letter-spacing: -.06em !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .header .eyebrow {
+    margin-bottom: 7px !important;
+    letter-spacing: .18em !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .workspace-header-actions {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+    align-self: center !important;
+    justify-self: stretch !important;
+    padding-top: 0 !important;
+    display: grid !important;
+    gap: 10px !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell .sidebar .workspace-account-card {
+    top: clamp(116px, 8vw, 142px) !important;
+    right: clamp(36px, 3vw, 60px) !important;
+    width: clamp(270px, 22vw, 350px) !important;
+    z-index: 90 !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .saas-dashboard-workspace,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .operations-workspace,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .client-center-workspace,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .settings-workspace,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .template-progressive-workspace,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .source-progressive-workspace,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .output-review-workspace {
+    width: min(100%, var(--client-clean-content-max)) !important;
+    max-width: var(--client-clean-content-max) !important;
+    margin-inline: auto !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .dashboard-command-card {
+    min-height: 210px !important;
+    padding: clamp(24px, 2.6vw, 34px) !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(37, 99, 235, .22) !important;
+    box-shadow: 0 24px 70px rgba(37, 99, 235, .08) !important;
+    overflow: hidden !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .dashboard-command-header-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: clamp(18px, 2.2vw, 30px) !important;
+    align-items: center !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .dashboard-command-card h2 {
+    font-size: clamp(38px, 3.8vw, 58px) !important;
+    line-height: .92 !important;
+    letter-spacing: -.08em !important;
+    max-width: 760px !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .dashboard-operational-metrics {
+    margin-top: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: clamp(14px, 1.35vw, 20px) !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .dashboard-operational-metrics article,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .dashboard-case-portfolio,
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .panel {
+    border-radius: 24px !important;
+    border: 1px solid rgba(148, 163, 184, .24) !important;
+    background: rgba(255, 255, 255, .94) !important;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, .055) !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .compact-case-row {
+    min-height: 68px !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(128px, 176px) !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, .92) !important;
+  }
+}
+
+@media (max-width: 1099px) {
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .header {
+    padding: 18px !important;
+    min-height: auto !important;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .app-shell:has(> .sidebar + .main-area) .workspace-header-actions {
+    padding-top: 0 !important;
+  }
+}

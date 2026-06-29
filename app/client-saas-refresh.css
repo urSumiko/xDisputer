@@ -1,0 +1,183 @@
+/* Client SaaS refresh: Client Center and local account settings. */
+.client-center-workspace {
+  gap: 16px;
+}
+.client-center-hero {
+  min-height: 190px;
+  padding: clamp(20px, 3vw, 30px) !important;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr);
+  gap: 20px;
+  align-items: center;
+}
+.client-center-hero h2 {
+  max-width: 760px;
+  margin: 0;
+  color: var(--ui-black);
+  font-size: clamp(28px, 3.4vw, 46px);
+  line-height: .98;
+  letter-spacing: -.065em;
+}
+.client-center-hero p:not(.eyebrow) {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: var(--ui-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.client-center-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.client-center-readiness {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.client-center-readiness span,
+.client-account-summary-grid article {
+  min-height: 92px;
+  padding: 16px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  border: 1px solid var(--ui-gray-200);
+  border-radius: 18px;
+  background: var(--ui-gray-50);
+}
+.client-center-readiness strong,
+.client-account-summary-grid strong {
+  overflow: hidden;
+  color: var(--ui-black);
+  font-size: 22px;
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+.client-center-readiness small,
+.client-account-summary-grid span {
+  color: var(--ui-muted);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.client-center-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.client-center-card {
+  min-height: 300px;
+  padding: 19px !important;
+}
+.client-center-card header {
+  margin-bottom: 14px;
+}
+.client-center-card h3 {
+  margin: 0;
+  color: var(--ui-black);
+  font-size: 20px;
+  letter-spacing: -.045em;
+}
+.client-case-summary {
+  display: grid;
+  gap: 12px;
+}
+.client-case-summary > strong {
+  overflow: hidden;
+  color: var(--ui-black);
+  font-size: 22px;
+  letter-spacing: -.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.client-case-summary > span {
+  color: var(--ui-muted);
+  font-size: 13px;
+}
+.client-case-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.client-case-progress small {
+  min-height: 32px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ui-gray-200);
+  border-radius: 999px;
+  color: var(--ui-muted);
+  background: var(--ui-white);
+  font-size: 10px;
+  font-weight: 760;
+}
+.client-delivery-list {
+  display: grid;
+  gap: 8px;
+}
+.client-delivery-row {
+  min-height: 64px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--ui-gray-200);
+  border-radius: 15px;
+  background: var(--ui-white);
+}
+.client-delivery-row div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.client-delivery-row strong,
+.client-delivery-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.client-delivery-row strong {
+  color: var(--ui-black);
+  font-size: 14px;
+}
+.client-delivery-row span {
+  color: var(--ui-muted);
+  font-size: 11px;
+}
+.client-account-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.client-account-summary-grid strong {
+  font-size: 15px;
+  line-height: 1.25;
+}
+@media (max-width: 1120px) {
+  .client-center-hero,
+  .client-center-grid,
+  .client-account-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .client-center-hero,
+  .client-center-card {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+  .client-center-readiness {
+    grid-template-columns: 1fr;
+  }
+  .client-center-actions button,
+  .client-delivery-row button {
+    width: 100%;
+  }
+  .client-delivery-row {
+    grid-template-columns: 1fr;
+  }
+}

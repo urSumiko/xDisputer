@@ -1,0 +1,440 @@
+/* xDisputer Master Hologram Workspace
+   MS Word-style UI/UX control layer for master users.
+   Visual-control only: data/auth/publish persistence remain server-owned.
+*/
+
+:root {
+  --x-hologram-ready: ready;
+  --x-hologram-version: "2.0-dnd-kit-editor";
+  --x-hologram-panel-radius: 28px;
+  --x-hologram-gap: clamp(.85rem, 1.4vw, 1.35rem);
+  --x-hologram-edge: 1px solid color-mix(in srgb, var(--x-surface-accent, #4f46e5) 18%, rgba(203, 213, 225, .86));
+  --x-hologram-fast: 140ms cubic-bezier(.2, .8, .2, 1);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-workspace {
+  display: grid;
+  gap: var(--x-hologram-gap);
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-command-panel,
+body[data-theme-contract="xdisputer-unified"] .hologram-canvas,
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector,
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid > article,
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel {
+  border: var(--x-hologram-edge) !important;
+  border-radius: var(--x-hologram-panel-radius) !important;
+  background:
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--x-surface-accent, #4f46e5) 9%, transparent), transparent 21rem),
+    linear-gradient(180deg, rgba(255,255,255,.97), rgba(255,255,255,.91)) !important;
+  box-shadow: 0 22px 58px rgba(15, 23, 42, .07) !important;
+  overflow: clip !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-command-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(min(100%, 420px), auto);
+  gap: var(--x-hologram-gap);
+  align-items: start;
+  padding: clamp(1.15rem, 2vw, 1.65rem);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-command-copy p,
+body[data-theme-contract="xdisputer-unified"] .hologram-section-header p,
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid p,
+body[data-theme-contract="xdisputer-unified"] .hologram-block p,
+body[data-theme-contract="xdisputer-unified"] .hologram-block-meta dt {
+  margin: 0 0 .42rem;
+  color: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 72%, #0f172a) !important;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-command-copy h2,
+body[data-theme-contract="xdisputer-unified"] .hologram-section-header h3,
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid h3,
+body[data-theme-contract="xdisputer-unified"] .hologram-block h4 {
+  margin: 0;
+  color: #071327 !important;
+  letter-spacing: -.055em;
+  line-height: .95;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-command-copy h2 {
+  font-size: clamp(2.15rem, 5vw, 4.4rem);
+  max-width: 12ch;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-command-copy span,
+body[data-theme-contract="xdisputer-unified"] .hologram-block span,
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid span,
+body[data-theme-contract="xdisputer-unified"] .hologram-block-meta dd {
+  color: var(--x-color-text-muted) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-toolbar,
+body[data-theme-contract="xdisputer-unified"] .hologram-role-switch,
+body[data-theme-contract="xdisputer-unified"] .hologram-mode-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  min-width: 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-toolbar {
+  justify-content: flex-end;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-role-switch {
+  justify-content: flex-end;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-role-switch button,
+body[data-theme-contract="xdisputer-unified"] .hologram-mode-strip button,
+body[data-theme-contract="xdisputer-unified"] .hologram-add-button,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card button,
+body[data-theme-contract="xdisputer-unified"] .hologram-drag-handle {
+  border: var(--x-hologram-edge) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.9) !important;
+  color: var(--x-color-text-soft) !important;
+  min-height: 42px;
+  padding: .68rem .9rem;
+  text-align: left;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-mode-strip button {
+  flex: 1 1 min(100%, 175px);
+  display: grid;
+  gap: .22rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-mode-strip button span {
+  font-size: .78rem;
+  color: var(--x-color-text-muted) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-role-switch button.active,
+body[data-theme-contract="xdisputer-unified"] .hologram-mode-strip button.active,
+body[data-theme-contract="xdisputer-unified"] .hologram-add-button:hover,
+body[data-theme-contract="xdisputer-unified"] .hologram-drag-handle:not(:disabled):hover {
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--x-surface-accent, #4f46e5), var(--x-surface-accent-2, #7c3aed)) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(min(100%, 340px), .65fr);
+  gap: var(--x-hologram-gap);
+  min-width: 0;
+  max-width: 100%;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-canvas,
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector,
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel {
+  padding: clamp(1rem, 1.8vw, 1.4rem);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-section-header,
+body[data-theme-contract="xdisputer-unified"] .hologram-block,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card,
+body[data-theme-contract="xdisputer-unified"] .hologram-token-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .85rem;
+  align-items: start;
+  min-width: 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-section-header {
+  margin-bottom: 1rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-ruler {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: .35rem;
+  margin-bottom: .75rem;
+  color: var(--x-color-text-muted);
+  font-size: .68rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-ruler span {
+  border-top: 1px solid rgba(148, 163, 184, .35);
+  padding-top: .25rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-viewport-frame {
+  width: 100%;
+  margin-inline: auto;
+  min-width: 0;
+  border: var(--x-hologram-edge);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 4%, #fff);
+  padding: .75rem;
+  overflow: clip;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-viewport-frame.tablet { max-width: 760px; }
+body[data-theme-contract="xdisputer-unified"] .hologram-viewport-frame.mobile { max-width: 390px; }
+
+body[data-theme-contract="xdisputer-unified"] .hologram-viewport-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: .55rem .7rem;
+  margin-bottom: .75rem;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, .92);
+  color: #fff;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-viewport-topbar span,
+body[data-theme-contract="xdisputer-unified"] .hologram-viewport-topbar em {
+  color: rgba(255,255,255,.72) !important;
+  font-style: normal;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block-stack,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-preview,
+body[data-theme-contract="xdisputer-unified"] .hologram-token-grid,
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector-stack {
+  display: grid;
+  gap: .75rem;
+  min-width: 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card,
+body[data-theme-contract="xdisputer-unified"] .hologram-token-card {
+  border: var(--x-hologram-edge) !important;
+  border-radius: 22px !important;
+  padding: 1rem !important;
+  background: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 5%, #fff) !important;
+  cursor: pointer;
+  overflow: clip;
+  touch-action: manipulation;
+  transition-property: transform, border-color, background-color, opacity;
+  transition-duration: var(--x-hologram-fast);
+  transition-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block.dragging {
+  opacity: .72;
+  transform: translate3d(0, -2px, 0) scale(.996);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block.selected,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card:hover,
+body[data-theme-contract="xdisputer-unified"] .hologram-token-card:hover {
+  border-color: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 45%, rgba(148, 163, 184, .9)) !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block aside {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .4rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: .5rem;
+  margin: .8rem 0 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block-meta div {
+  min-width: 0;
+  border: 1px solid rgba(226, 232, 240, .88);
+  border-radius: 14px;
+  padding: .48rem;
+  background: rgba(255,255,255,.7);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-block-meta dt,
+body[data-theme-contract="xdisputer-unified"] .hologram-block-meta dd {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  max-width: 100%;
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  border: var(--x-hologram-edge);
+  background: rgba(255,255,255,.82);
+  color: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 70%, #0f172a) !important;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-chip.locked {
+  color: #92400e !important;
+  background: #fffbeb;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-drag-handle {
+  cursor: grab;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-drag-handle:disabled {
+  cursor: not-allowed;
+  opacity: .52;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-drag-overlay {
+  display: grid;
+  gap: .25rem;
+  min-width: min(340px, 84vw);
+  padding: 1rem;
+  border-radius: 20px;
+  border: var(--x-hologram-edge);
+  background: #fff;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, .18);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector label,
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel label,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card label {
+  display: grid;
+  gap: .38rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector label span,
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel label span,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card small {
+  color: var(--x-color-text-muted) !important;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector input,
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector textarea,
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector select,
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel textarea,
+body[data-theme-contract="xdisputer-unified"] .hologram-nav-card input,
+body[data-theme-contract="xdisputer-unified"] .hologram-token-card input {
+  width: 100%;
+  min-width: 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-inspector textarea,
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-check-row {
+  display: flex !important;
+  grid-template-columns: none !important;
+  flex-direction: row;
+  align-items: center;
+  gap: .55rem !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-check-row input {
+  width: auto !important;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-ai-panel pre {
+  max-width: 100%;
+  overflow: auto;
+  border-radius: 18px;
+  padding: 1rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: .78rem;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--x-hologram-gap);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid > article {
+  padding: clamp(1rem, 1.6vw, 1.35rem);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid ul,
+body[data-theme-contract="xdisputer-unified"] .hologram-guard-list {
+  display: grid;
+  gap: .42rem;
+  margin: .75rem 0 0;
+  padding: 0;
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid li {
+  list-style: none;
+  min-width: 0;
+  padding: .55rem .65rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--x-surface-accent, #4f46e5) 5%, #fff);
+}
+
+body[data-theme-contract="xdisputer-unified"] .hologram-guard-list code,
+body[data-theme-contract="xdisputer-unified"] .hologram-token-card code {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+@media (max-width: 1100px) {
+  body[data-theme-contract="xdisputer-unified"] .hologram-grid,
+  body[data-theme-contract="xdisputer-unified"] .hologram-bottom-grid,
+  body[data-theme-contract="xdisputer-unified"] .hologram-command-panel {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .hologram-toolbar,
+  body[data-theme-contract="xdisputer-unified"] .hologram-role-switch {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  body[data-theme-contract="xdisputer-unified"] .hologram-section-header,
+  body[data-theme-contract="xdisputer-unified"] .hologram-block,
+  body[data-theme-contract="xdisputer-unified"] .hologram-nav-card,
+  body[data-theme-contract="xdisputer-unified"] .hologram-token-card {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-theme-contract="xdisputer-unified"] .hologram-block aside {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme-contract="xdisputer-unified"] .hologram-block,
+  body[data-theme-contract="xdisputer-unified"] .hologram-token-card,
+  body[data-theme-contract="xdisputer-unified"] .hologram-nav-card {
+    transition-duration: .01ms !important;
+  }
+}

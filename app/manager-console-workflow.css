@@ -1,0 +1,198 @@
+.manager-console-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 22px);
+}
+
+.manager-console-kpi-grid article,
+.manager-console-user-card,
+.manager-console-report {
+  border: 1px solid rgba(203, 213, 225, .86);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, .08);
+}
+
+.manager-console-kpi-grid article {
+  padding: 18px;
+}
+
+.manager-console-kpi-grid span,
+.manager-console-card-header p,
+.manager-console-user-card small,
+.manager-console-user-card span,
+.manager-console-compact-list span {
+  color: #64748b;
+}
+
+.manager-console-kpi-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: #020617;
+  font-size: clamp(28px, 3vw, 42px);
+  letter-spacing: -.04em;
+}
+
+.manager-console-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+
+.manager-console-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.manager-console-card-header,
+.manager-console-user-card header,
+.manager-console-actions-row,
+.manager-console-user-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manager-console-card-header {
+  margin-bottom: 16px;
+}
+
+.manager-console-card-header h2 {
+  margin: 4px 0 0;
+}
+
+.manager-console-compact-list {
+  display: grid;
+  gap: 10px;
+}
+
+.manager-console-compact-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(226, 232, 240, .92);
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.manager-console-user-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.manager-console-user-card header strong {
+  display: block;
+  color: #020617;
+}
+
+.manager-console-user-metrics {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.manager-console-user-metrics span {
+  border: 1px solid rgba(219, 234, 254, .9);
+  border-radius: 999px;
+  background: #eff6ff;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.manager-console-actions-row {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.manager-user-settings-form {
+  display: grid;
+  grid-template-columns: minmax(120px, .8fr) minmax(110px, .7fr) minmax(110px, .7fr) minmax(180px, 1.4fr) auto;
+  gap: 10px;
+  align-items: end;
+  padding-top: 12px;
+  border-top: 1px solid rgba(226, 232, 240, .9);
+}
+
+.manager-user-settings-form label {
+  display: grid;
+  gap: 5px;
+}
+
+.manager-user-settings-form label span {
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.manager-user-settings-form input,
+.manager-user-settings-form select {
+  min-height: 38px;
+  border: 1px solid rgba(203, 213, 225, .95);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 10px;
+  font-weight: 800;
+}
+
+.manager-console-report-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.manager-console-report-grid span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(226, 232, 240, .92);
+  border-radius: 16px;
+  background: #f8fafc;
+  padding: 12px 14px;
+  color: #475569;
+  font-weight: 800;
+}
+
+.manager-console-report code {
+  display: block;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(191, 219, 254, .9);
+  border-radius: 16px;
+  background: #eff6ff;
+  padding: 14px;
+  color: #1e3a8a;
+  font-weight: 900;
+}
+
+@media (max-width: 1120px) {
+  .manager-console-kpi-grid,
+  .manager-console-two-column,
+  .manager-console-report-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manager-user-settings-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .manager-console-kpi-grid,
+  .manager-console-two-column,
+  .manager-console-report-grid,
+  .manager-user-settings-form {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-console-card-header,
+  .manager-console-user-card header,
+  .manager-console-compact-list > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

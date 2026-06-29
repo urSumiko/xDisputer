@@ -1,0 +1,171 @@
+/* Console sticky compact header contract.
+   Applies to manager, master, and client account/header rails.
+   Owns: sticky header row, reduced header height, text overflow safety, and equal bell/avatar control size. */
+
+:root {
+  --console-sticky-compact-header-contract: compact-sticky-account-header;
+  --console-sticky-header-top: clamp(.55rem, 1.2vw, .9rem);
+  --console-compact-header-height: clamp(96px, 7.2vw, 112px);
+  --console-account-control-size: 48px;
+  --console-account-control-radius: 16px;
+}
+
+.admin-monitor-main[data-console-header-grid="true"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"],
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-header-grid="true"] {
+  --account-dock-height: var(--console-compact-header-height) !important;
+  grid-template-rows: var(--console-compact-header-height) auto !important;
+  align-items: start !important;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > [data-console-header-primary="true"],
+.admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+.admin-monitor-main[data-console-header-grid="true"] > .native-command-hero:first-of-type,
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > [data-console-header-primary="true"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .native-command-hero:first-of-type,
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-header-grid="true"] > [data-console-header-primary="true"] {
+  position: sticky !important;
+  top: var(--console-sticky-header-top) !important;
+  z-index: 130 !important;
+  min-height: var(--console-compact-header-height) !important;
+  height: var(--console-compact-header-height) !important;
+  max-height: var(--console-compact-header-height) !important;
+  overflow: hidden !important;
+  display: grid !important;
+  align-items: center !important;
+  padding: clamp(.95rem, 1.6vw, 1.25rem) clamp(1rem, 2vw, 1.75rem) !important;
+  border-radius: 22px !important;
+}
+
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"],
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-anchor="header-ratio-grid"],
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] {
+  position: sticky !important;
+  top: var(--console-sticky-header-top) !important;
+  z-index: 150 !important;
+  min-height: var(--console-compact-header-height) !important;
+  height: var(--console-compact-header-height) !important;
+  max-height: var(--console-compact-header-height) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .65rem !important;
+  padding: .5rem .65rem !important;
+  overflow: visible !important;
+}
+
+.console-header-copy,
+.console-header-copy > *,
+.console-header-secondary,
+.console-header-secondary > * {
+  min-width: 0 !important;
+}
+
+.console-header-copy {
+  display: grid !important;
+  gap: .24rem !important;
+  align-content: center !important;
+  overflow: hidden !important;
+}
+
+.console-header-copy p {
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: clamp(.68rem, .9vw, .78rem) !important;
+  line-height: 1.1 !important;
+}
+
+.console-header-copy h1 {
+  margin: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(1.65rem, 3vw, 2.25rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -.065em !important;
+}
+
+.console-header-copy span {
+  display: block !important;
+  max-width: min(64ch, 100%) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(.76rem, 1vw, .88rem) !important;
+  line-height: 1.35 !important;
+}
+
+.console-header-secondary {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.console-header-secondary * {
+  max-width: 100% !important;
+}
+
+.manager-header-account-dock .notification-dock-button,
+.manager-header-account-dock .manager-header-account-avatar {
+  width: var(--console-account-control-size) !important;
+  height: var(--console-account-control-size) !important;
+  min-width: var(--console-account-control-size) !important;
+  min-height: var(--console-account-control-size) !important;
+  max-width: var(--console-account-control-size) !important;
+  max-height: var(--console-account-control-size) !important;
+  flex: 0 0 var(--console-account-control-size) !important;
+  border-radius: var(--console-account-control-radius) !important;
+  transform: none !important;
+}
+
+.manager-header-account-dock .manager-header-account-avatar {
+  font-size: clamp(1rem, 1.35vw, 1.18rem) !important;
+}
+
+.manager-header-account-dock .notification-dock {
+  flex: 0 0 auto !important;
+}
+
+.manager-header-account-dock .notification-dock-button {
+  display: grid !important;
+  place-items: center !important;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --console-compact-header-height: clamp(76px, 18vw, 88px);
+    --console-account-control-size: 42px;
+    --console-account-control-radius: 14px;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"],
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"],
+  main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-header-grid="true"] {
+    --account-dock-width: clamp(104px, 31vw, 126px) !important;
+    --account-dock-height: var(--console-compact-header-height) !important;
+    grid-template-columns: minmax(0, 1fr) var(--account-dock-width) !important;
+    grid-template-rows: var(--console-compact-header-height) auto !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > [data-console-header-primary="true"],
+  .admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+  .admin-monitor-main[data-console-header-grid="true"] > .native-command-hero:first-of-type,
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > [data-console-header-primary="true"] {
+    padding: .75rem calc(var(--account-dock-width) + .85rem) .75rem .9rem !important;
+  }
+
+  .console-header-copy h1 {
+    font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
+  }
+
+  .console-header-copy span {
+    display: none !important;
+  }
+}

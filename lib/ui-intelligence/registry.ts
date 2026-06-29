@@ -1,0 +1,313 @@
+import type { FeatureContract, UIContract } from './types';
+
+const MANAGER_CONSOLE_ROUTES = ['/admin', '/admin/*', '/admin/clients', '/admin/access', '/admin/capacity', '/admin/outputs', '/admin/exceptions', '/admin/filings', '/admin/reports'];
+const MASTER_CONSOLE_ROUTES = ['/master', '/master/*', '/master/accounts', '/master/accounts?view=managers', '/master/accounts?view=clients', '/master/accounts?view=pending', '/master/accounts?view=blocked', '/master/workspaces', '/master/reports', '/master/audit', '/master/system'];
+const TEMPLATE_WORKSPACE_ROUTES = ['/manager-workspace', '/manager-workspace/studio', '/manager-workspace/engine'];
+const CLIENT_WORKSPACE_ROUTES = ['/workspace', '/dashboard', '/output', '/packets'];
+const AUTH_ROUTES = ['/login', '/signup', '/auth/*'];
+const CONSOLE_ROUTES = [...MANAGER_CONSOLE_ROUTES, ...MASTER_CONSOLE_ROUTES, ...TEMPLATE_WORKSPACE_ROUTES];
+const RESPONSIVE_ROUTES = [...CONSOLE_ROUTES, ...CLIENT_WORKSPACE_ROUTES, ...AUTH_ROUTES];
+
+export const UI_CONTRACTS: UIContract[] = [
+  {
+    id: 'console-shell',
+    kind: 'layout',
+    scope: 'global',
+    owner: 'global',
+    label: 'Console Shell',
+    description: 'Canonical layout wrapper for manager, master, and workspace pages.',
+    sourceFiles: ['components/console/ConsoleShell.tsx', 'app/final-console-account-rail.css'],
+    connectedRoutes: CONSOLE_ROUTES,
+    connectedProcesses: ['navigation', 'account-settings', 'switch-mode', 'runtime-debugger'],
+    requiredMarkers: ['data-console-shell', 'data-console-main', 'data-console-header-grid', 'data-console-layout-ratio'],
+    designTokens: ['--account-dock-width', '--account-dock-height', '--console-header-ratio-left', '--console-header-ratio-right'],
+    dependencies: ['ConsoleHeader', 'AccountMenu', 'navigation-manifest'],
+    allowedCustomizations: ['header eyebrow', 'header title', 'header description', 'nav items', 'role label'],
+    forbiddenPatterns: ['ControlConsoleShell wrapper', 'duplicate account sidebar footer', 'route-owned console shell', 'raw header outside ConsoleHeader', 'switch mode inside account popover'],
+    propagationGroup: 'console-global'
+  },
+  {
+    id: 'console-header',
+    kind: 'component',
+    scope: 'global',
+    owner: 'global',
+    label: 'Console Header',
+    description: 'Shared console page heading and hero card used by operations, workspace, and master routes.',
+    sourceFiles: ['components/console/ConsoleHeader.tsx', 'app/console-shell-system.css'],
+    connectedRoutes: CONSOLE_ROUTES,
+    connectedProcesses: ['layout-ratio', 'runtime-debugger'],
+    requiredMarkers: ['data-console-header', 'data-console-header-primary'],
+    designTokens: ['--account-dock-height', '--account-dock-radius'],
+    dependencies: ['ConsoleShell'],
+    allowedCustomizations: ['eyebrow', 'title', 'description'],
+    forbiddenPatterns: ['custom report hero', 'raw admin-monitor-header in page body'],
+    propagationGroup: 'console-global'
+  },
+  {
+    id: 'account-menu',
+    kind: 'account',
+    scope: 'global',
+    owner: 'global',
+    label: 'Account Settings Rail',
+    description: 'Shared avatar rail and active-account settings panel for all console surfaces.',
+    sourceFiles: ['components/console/AccountMenu.tsx', 'app/api/account/profile/route.ts', 'app/final-console-account-rail.css'],
+    connectedRoutes: CONSOLE_ROUTES,
+    connectedProcesses: ['profile-save', 'session-security', 'account-context'],
+    requiredMarkers: ['data-console-account-menu', 'data-manager-account-anchor', 'data-manager-account-popover-align'],
+    designTokens: ['--account-dock-width', '--account-dock-height'],
+    dependencies: ['profiles', 'Supabase auth metadata', 'ConsoleShell'],
+    allowedCustomizations: ['account label', 'role label', 'display name'],
+    forbiddenPatterns: ['Manage accounts shortcut', 'Reports shortcut', 'System health shortcut', 'switch mode inside account popover'],
+    propagationGroup: 'console-global'
+  },
+  {
+    id: 'sidebar-switch-mode',
+    kind: 'navigation',
+    scope: 'global',
+    owner: 'global',
+    label: 'Sidebar Switch Mode',
+    description: 'Highlighted bottom-left switch between operations and workspace surfaces.',
+    sourceFiles: ['components/console/ConsoleShell.tsx', 'app/final-console-account-rail.css'],
+    connectedRoutes: CONSOLE_ROUTES,
+    connectedProcesses: ['manager-operations-to-workspace', 'workspace-to-operations', 'master-paired-surface'],
+    requiredMarkers: ['data-console-mode-switch', 'data-manager-switch-visible-slot'],
+    designTokens: ['consoleSwitchPulse'],
+    dependencies: ['ConsoleShell', 'ConsoleNavLink'],
+    allowedCustomizations: ['target label', 'helper copy', 'mode icon'],
+    forbiddenPatterns: ['switch shortcut in AccountMenu', 'floating switch outside sidebar'],
+    propagationGroup: 'console-global'
+  },
+  {
+    id: 'master-console-integrity',
+    kind: 'layout',
+    scope: 'domain',
+    owner: 'master',
+    label: 'Master Console Integrity',
+    description: 'Master account, workspace, report, audit, and system routes must render through the canonical shell and directory card system.',
+    sourceFiles: ['app/master/accounts/page.tsx', 'app/master/workspaces/page.tsx', 'app/master/MasterAccountTableV2.tsx', 'app/master-directory-fix.css', 'components/console/ConsoleShell.tsx'],
+    connectedRoutes: MASTER_CONSOLE_ROUTES,
+    connectedProcesses: ['workspace-account-directory', 'manager-client-limit-control', 'account-filtering', 'master-governance-switch'],
+    requiredMarkers: ['ConsoleShell', 'directory-filter-form', 'account-control-list', 'access-workflow-grid', 'directory-pager'],
+    designTokens: ['--account-dock-width', '--console-sidebar', '--xdisputer-responsive-integrity'],
+    dependencies: ['ConsoleShell', 'MasterAccountTableV2', 'master-directory-fix.css'],
+    allowedCustomizations: ['directory filter fields', 'account workflow cards', 'pagination controls'],
+    forbiddenPatterns: ['raw unstyled account links', 'directory filter without card wrapper', 'master page outside ConsoleShell'],
+    propagationGroup: 'master-console'
+  },
+  {
+    id: 'manager-console-integrity',
+    kind: 'layout',
+    scope: 'domain',
+    owner: 'manager',
+    label: 'Manager Console Integrity',
+    description: 'Manager operations routes must stay inside ConsoleShell with a single sidebar switch mode and account rail.',
+    sourceFiles: ['components/ManagerConsoleShell.tsx', 'components/console/ConsoleShell.tsx', 'app/admin/page.tsx', 'app/admin-monitor.css', 'app/final-console-account-rail.css'],
+    connectedRoutes: MANAGER_CONSOLE_ROUTES,
+    connectedProcesses: ['client-monitoring', 'capacity-limits', 'outputs', 'exceptions', 'filings', 'reports'],
+    requiredMarkers: ['ConsoleShell', 'data-console-shell', 'data-console-main', 'data-console-mode-switch'],
+    designTokens: ['--account-dock-width', '--console-sidebar', 'consoleSwitchPulse'],
+    dependencies: ['ManagerConsoleShell', 'ConsoleShell', 'AccountMenu'],
+    allowedCustomizations: ['nav item copy', 'route hero text', 'operations cards'],
+    forbiddenPatterns: ['ControlConsoleShell', 'duplicate account footer', 'account switch inside popover'],
+    propagationGroup: 'manager-console'
+  },
+  {
+    id: 'manager-template-workspace-integrity',
+    kind: 'template',
+    scope: 'domain',
+    owner: 'manager',
+    label: 'Manager Template Workspace Integrity',
+    description: 'Manager authoring routes must remain a three-hub workspace: library, studio, and generation engine.',
+    sourceFiles: ['components/templates/workspace/TemplateWorkspaceShell.tsx', 'components/ManagerTemplateWorkspaceClient.tsx', 'lib/templates/workspace', 'app/template-workspace-hubs.css', 'app/dynamic-template-intelligence.css'],
+    connectedRoutes: TEMPLATE_WORKSPACE_ROUTES,
+    connectedProcesses: ['template-source-of-truth', 'template-authoring-rules', 'template-execution-control'],
+    requiredMarkers: ['Template Library', 'Template Studio', 'Generation Engine', 'TEMPLATE_WORKSPACE_NAV_ITEMS', 'previewGenerationPlan'],
+    designTokens: ['template-workspace-hub', 'templateReadyGlow'],
+    dependencies: ['TemplateWorkspaceShell', 'template-workspace-navigation', 'template-execution'],
+    allowedCustomizations: ['hub label', 'hub description', 'active path'],
+    forbiddenPatterns: ['Contracts static nav', 'Mappings static nav', 'Quality static nav', 'Releases static nav', 'Automation static nav'],
+    propagationGroup: 'template-domain'
+  },
+  {
+    id: 'client-workspace-integrity',
+    kind: 'layout',
+    scope: 'domain',
+    owner: 'client',
+    label: 'Client Workspace Integrity',
+    description: 'Client/disputer workspace must render as one app shell with sidebar, main area, source data, templates, outputs, and client center panels.',
+    sourceFiles: ['components/LetterGeneratorWorkspaceV2.tsx', 'components/TemplateProgressiveWorkspace.tsx', 'components/GuidedSourceDataFlow.tsx', 'components/OutputReviewWorkspace.tsx', 'components/ClientCenterWorkspace.tsx', 'app/workspace-light.css', 'app/final-responsive-integrity.css'],
+    connectedRoutes: CLIENT_WORKSPACE_ROUTES,
+    connectedProcesses: ['client-navigation', 'template-selection', 'source-data', 'output-review', 'client-account-controls'],
+    requiredMarkers: ['app-shell', 'sidebar', 'main-area', 'TemplateProgressiveWorkspace', 'GuidedSourceDataFlow', 'OutputReviewWorkspace', 'ClientCenterWorkspace'],
+    designTokens: ['--client-sidebar-width', '--sidebar-collapsed', '--sidebar-expanded', '--duration-fast'],
+    dependencies: ['LetterGeneratorWorkspaceV2', 'TemplateProgressiveWorkspace', 'ClientTemplateRuntimeDashboard', 'OutputReviewWorkspace'],
+    allowedCustomizations: ['sidebar width', 'panel grid columns', 'workflow rail behavior', 'auth form spacing'],
+    forbiddenPatterns: ['ClientTemplateRuntimeDashboard mounted above LetterGeneratorWorkspaceV2', 'duplicate client shell', 'sidebar overlaying main-area', 'source data without template handoff'],
+    propagationGroup: 'client-workspace'
+  },
+  {
+    id: 'client-template-handoff',
+    kind: 'template',
+    scope: 'domain',
+    owner: 'client',
+    label: 'Client Template Handoff',
+    description: 'Visible bridge from manager-approved reusable template selection to Source Data and final generation.',
+    sourceFiles: ['components/LetterGeneratorWorkspaceV2.tsx', 'components/TemplateProgressiveWorkspace.tsx', 'lib/client-template-runtime', 'lib/template-execution/template-execution-orchestrator.ts'],
+    connectedRoutes: ['/workspace', '/api/template-assets', '/api/client-template-runtime/context', '/api/client-template-runtime/generate'],
+    connectedProcesses: ['manager-template-fetch', 'registry-assets-merge', 'source-data-transition', 'template-execution'],
+    requiredMarkers: ['onUseRoundForSourceData', 'client-template-source-handoff', 'registryAssets', 'effectiveRefs', 'effectiveTemplates', 'executeTemplateGeneration'],
+    designTokens: ['primary-action-button', 'template-selected-actions'],
+    dependencies: ['TemplateProgressiveWorkspace', 'LetterGeneratorWorkspaceV2', 'template_assets', 'executeTemplateGeneration'],
+    allowedCustomizations: ['handoff button label', 'source transition copy', 'packet choice order'],
+    forbiddenPatterns: ['onUseRoundForSourceData declared but not rendered', 'template selection without Source Data transition', 'client generation bypassing manager template assets'],
+    propagationGroup: 'client-template-runtime'
+  },
+  {
+    id: 'auth-interface-integrity',
+    kind: 'layout',
+    scope: 'domain',
+    owner: 'global',
+    label: 'Auth Interface Integrity',
+    description: 'Login and signup forms must remain vertically stacked and responsive after global CSS changes.',
+    sourceFiles: ['app/login/page.tsx', 'app/saas-auth-center.css', 'app/final-responsive-integrity.css'],
+    connectedRoutes: AUTH_ROUTES,
+    connectedProcesses: ['login', 'signup', 'signout-return'],
+    requiredMarkers: ['saas-auth-form', 'Welcome back', 'Sign in'],
+    designTokens: ['--bg', '--surface', '--text'],
+    dependencies: ['saas-auth-center.css', 'final-responsive-integrity.css'],
+    allowedCustomizations: ['auth copy', 'form spacing', 'card width'],
+    forbiddenPatterns: ['inline email password collapse', 'unstyled auth button', 'raw form layout'],
+    propagationGroup: 'auth-interface'
+  },
+  {
+    id: 'render-debugger',
+    kind: 'runtime-debug',
+    scope: 'global',
+    owner: 'system',
+    label: 'Render Debugger',
+    description: 'Runtime proof panel for shell, header, account, ratio, grid, CSS bundle, and responsive overflow detection.',
+    sourceFiles: ['components/console/RenderDebugger.tsx', 'app/console-debug-overlay.css'],
+    connectedRoutes: RESPONSIVE_ROUTES,
+    connectedProcesses: ['runtime-inspection', 'root-cause-trace', 'responsive-overflow-diagnostics', 'client-shell-detection'],
+    requiredMarkers: ['window.__xdisputerDebug', 'headerAccountWidthRatio', 'detectionMode', 'largestOverflowSelector', 'ClientWorkspaceShell'],
+    designTokens: ['--xdisputer-responsive-integrity'],
+    dependencies: ['ConsoleShell', 'document.styleSheets', 'final-responsive-integrity', 'LetterGeneratorWorkspaceV2'],
+    allowedCustomizations: ['debug output labels', 'overflow labels'],
+    forbiddenPatterns: ['debugger mutates layout', 'debugger blocks route rendering'],
+    propagationGroup: 'diagnostics-global'
+  },
+  {
+    id: 'responsive-integrity',
+    kind: 'layout',
+    scope: 'global',
+    owner: 'global',
+    label: 'Responsive Integrity Layer',
+    description: 'Final cross-device layout safety system for console, client workspace, client runtime, template studio, auth, and account rail.',
+    sourceFiles: ['app/final-responsive-integrity.css', 'app/globals.css', 'components/console/RenderDebugger.tsx', 'components/LetterGeneratorWorkspaceV2.tsx'],
+    connectedRoutes: RESPONSIVE_ROUTES,
+    connectedProcesses: ['viewport-reflow', 'overflow-control', 'sidebar-collapse', 'account-rail-stack', 'table-scroll', 'card-grid-collapse', 'client-workspace-integrity', 'auth-interface-integrity'],
+    requiredMarkers: ['final-responsive-integrity.css', 'overflow-x:clip', 'data-client-template-runtime', 'app-shell', 'main-area', 'window.__xdisputerDebug'],
+    designTokens: ['--console-sidebar', '--console-main-pad-x', '--account-dock-width', '--xdisputer-responsive-integrity', '--client-sidebar-width', '--sidebar-collapsed', '--sidebar-expanded'],
+    dependencies: ['ConsoleShell', 'AccountMenu', 'LetterGeneratorWorkspaceV2', 'TemplateWorkspaceShell'],
+    allowedCustomizations: ['breakpoint thresholds', 'grid minmax values', 'typography clamps', 'client sidebar width'],
+    forbiddenPatterns: ['page-level min-width larger than viewport', 'horizontal body scroll', 'fixed desktop-only grid on mobile', 'account rail crushing header', 'raw default link clusters', 'client app shell collision'],
+    propagationGroup: 'responsive-global'
+  },
+  {
+    id: 'template-workspace-navigation',
+    kind: 'navigation',
+    scope: 'domain',
+    owner: 'manager',
+    label: 'Manager Workspace Three-Hub Navigation',
+    description: 'Manager template workspace navigation reduced to Template Library, Template Studio, and Generation Engine.',
+    sourceFiles: ['lib/templates/workspace/template-workspace-navigation.ts', 'components/templates/workspace/TemplateWorkspaceShell.tsx'],
+    connectedRoutes: TEMPLATE_WORKSPACE_ROUTES,
+    connectedProcesses: ['template-source-of-truth', 'template-authoring-rules', 'template-execution-control'],
+    requiredMarkers: ['TEMPLATE_WORKSPACE_NAV_ITEMS', 'templateWorkspaceNavForPath'],
+    designTokens: ['template-workspace-hub'],
+    dependencies: ['ConsoleShell', 'TemplateWorkspaceContract'],
+    allowedCustomizations: ['hub label', 'hub description', 'active path'],
+    forbiddenPatterns: ['Contracts static nav', 'Mappings static nav', 'Quality static nav', 'Releases static nav', 'Automation static nav'],
+    propagationGroup: 'template-domain'
+  },
+  {
+    id: 'template-execution',
+    kind: 'template',
+    scope: 'domain',
+    owner: 'manager',
+    label: 'Template Execution Contract',
+    description: 'Manager-owned dynamic template pipeline from library to studio to generation engine.',
+    sourceFiles: ['lib/templates/workspace', 'components/templates/workspace', 'scripts/template-workspace-contract-guard.mjs'],
+    connectedRoutes: TEMPLATE_WORKSPACE_ROUTES,
+    connectedProcesses: ['parser', 'canonical-fields', 'mapping', 'renderer', 'generation-engine', 'output-review'],
+    requiredMarkers: ['decideTemplateTokenBehavior', 'computeTemplateReadiness', 'previewGenerationPlan'],
+    designTokens: ['template-round-selection-grid', 'templateReadyGlow'],
+    dependencies: ['canonical-field-registry', 'template-workspace-navigation', 'template-workspace-contract'],
+    allowedCustomizations: ['template copy', 'round label', 'mapping alias', 'generation preview state'],
+    forbiddenPatterns: ['template-specific field outside canonical registry', 'duplicate renderer mapping', 'unregistered parser output'],
+    propagationGroup: 'template-domain'
+  }
+];
+
+export const FEATURE_CONTRACTS: FeatureContract[] = [
+  {
+    id: 'account-profile-settings',
+    label: 'Active Account Profile Settings',
+    owner: 'global',
+    status: 'active',
+    entryRoutes: CONSOLE_ROUTES,
+    sourceFiles: ['components/console/AccountMenu.tsx', 'app/api/account/profile/route.ts'],
+    apiRoutes: ['/api/account/profile'],
+    databaseObjects: ['profiles', 'auth.users.user_metadata'],
+    uiContracts: ['account-menu', 'console-shell'],
+    dependencies: ['Supabase auth session', 'profile row', 'Next revalidatePath'],
+    fallbackBehavior: 'Use email local-part when profile display name is unavailable.'
+  },
+  {
+    id: 'manager-template-authoring',
+    label: 'Manager Template Workspace Pipeline',
+    owner: 'manager',
+    status: 'active',
+    entryRoutes: TEMPLATE_WORKSPACE_ROUTES,
+    sourceFiles: ['components/templates/workspace', 'lib/templates/workspace', 'components/ManagerTemplateWorkspaceClient.tsx'],
+    apiRoutes: ['/api/template-assets'],
+    databaseObjects: ['template_assets', 'template storage'],
+    uiContracts: ['manager-template-workspace-integrity', 'template-workspace-navigation', 'template-execution', 'console-shell', 'responsive-integrity'],
+    dependencies: ['template library service', 'template studio service', 'generation engine service'],
+    fallbackBehavior: 'Route missing templates to Library, mapping issues to Studio, and release checks to Generation Engine.'
+  },
+  {
+    id: 'client-template-runtime',
+    label: 'Client Template Runtime',
+    owner: 'client',
+    status: 'active',
+    entryRoutes: CLIENT_WORKSPACE_ROUTES,
+    sourceFiles: ['components/LetterGeneratorWorkspaceV2.tsx', 'components/TemplateProgressiveWorkspace.tsx', 'lib/client-template-runtime'],
+    apiRoutes: ['/api/template-assets', '/api/client-template-runtime/context', '/api/client-template-runtime/source-data', '/api/client-template-runtime/generate'],
+    databaseObjects: ['template_assets', 'client_template_assignments', 'client_canonical_source_data', 'client_output_limits', 'client_review_packet_scopes', 'client_generation_events'],
+    uiContracts: ['client-workspace-integrity', 'client-template-handoff', 'responsive-integrity'],
+    dependencies: ['manager template assets', 'registryAssets', 'effectiveRefs', 'effectiveTemplates', 'executeTemplateGeneration'],
+    fallbackBehavior: 'Client can continue local source work while generation blocks until manager-approved templates and source data are ready.'
+  },
+  {
+    id: 'role-ui-contract-matrix',
+    label: 'Role UI Contract Matrix',
+    owner: 'system',
+    status: 'active',
+    entryRoutes: RESPONSIVE_ROUTES,
+    sourceFiles: ['lib/ui-intelligence/registry.ts', 'scripts/responsive-integrity-guard.mjs', 'scripts/client-template-runtime-guard.mjs'],
+    apiRoutes: ['/api/internal/ui-intelligence/report', '/api/internal/ui-intelligence/trace', '/api/internal/ui-intelligence/propagation-plan'],
+    databaseObjects: [],
+    uiContracts: ['master-console-integrity', 'manager-console-integrity', 'manager-template-workspace-integrity', 'client-workspace-integrity', 'client-template-handoff', 'auth-interface-integrity'],
+    dependencies: ['UI_CONTRACTS', 'FEATURE_CONTRACTS', 'RenderDebugger'],
+    fallbackBehavior: 'Any new role surface must register a UI contract before it is treated as production-ready.'
+  }
+];
+
+export function getUIContract(id: string) {
+  return UI_CONTRACTS.find((contract) => contract.id === id) || null;
+}
+
+export function contractsByPropagationGroup(group: string) {
+  return UI_CONTRACTS.filter((contract) => contract.propagationGroup === group);
+}

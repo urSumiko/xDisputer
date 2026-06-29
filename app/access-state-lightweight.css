@@ -1,0 +1,217 @@
+/* Lightweight account-access and output-limit pause states.
+   Purpose: keep blocked/ready states centered, minimal, readable, and visually consistent with xDisputer. */
+
+:root {
+  --access-state-lightweight-contract: centered-minimal-card;
+  --daily-allowance-lightweight-contract: centered-reset-card;
+}
+
+.saas-auth-page:has(.saas-auth-hero) {
+  min-height: 100svh !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 680px) !important;
+  place-content: center !important;
+  place-items: center !important;
+  padding: clamp(1rem, 4vw, 2rem) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, .14), transparent 26rem),
+    linear-gradient(135deg, #f8fafc 0%, #eef4ff 100%) !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-hero {
+  display: none !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-panel {
+  width: min(100%, 680px) !important;
+  min-height: auto !important;
+  align-content: start !important;
+  gap: 1rem !important;
+  padding: clamp(1.25rem, 4vw, 2rem) !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(191, 219, 254, .88) !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .12), inset 0 1px 0 rgba(255,255,255,.88) !important;
+  backdrop-filter: none !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-brand {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: .95rem !important;
+  text-align: left !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-logo {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 18px !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-panel h1 {
+  font-size: clamp(2rem, 6vw, 3.35rem) !important;
+  letter-spacing: -.06em !important;
+  line-height: .98 !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-copy {
+  max-width: none !important;
+  padding: .9rem 1rem !important;
+  border: 1px solid rgba(226, 232, 240, .95) !important;
+  border-radius: 18px !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  line-height: 1.55 !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-alert {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: .45rem !important;
+  padding: .78rem .9rem !important;
+  border-radius: 16px !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-alert::before {
+  content: '✓';
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, .14);
+  color: #15803d;
+  font-size: .78rem;
+  font-weight: 950;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-alert.error::before {
+  content: '!';
+  background: rgba(248, 113, 113, .16);
+  color: #b91c1c;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-form {
+  margin-top: 0 !important;
+}
+
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-form > a,
+.saas-auth-page:has(.saas-auth-hero) .saas-auth-form button,
+.saas-auth-page:has(.saas-auth-hero) .admin-action-button.primary {
+  min-height: 48px !important;
+  border-radius: 16px !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  text-decoration: none !important;
+}
+
+.client-output-limit-pause {
+  min-height: 100svh;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(1rem, 4vw, 2rem) !important;
+  color: #0f172a;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, .14), transparent 26rem),
+    linear-gradient(135deg, #f8fafc 0%, #eef4ff 100%) !important;
+}
+
+.client-output-limit-pause-card {
+  width: min(100%, 680px);
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid rgba(191, 219, 254, .88);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .12), inset 0 1px 0 rgba(255,255,255,.88);
+}
+
+.client-output-limit-pause-card .eyebrow {
+  margin: 0;
+  color: #2563eb;
+  font-size: .76rem;
+  font-weight: 950;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.client-output-limit-pause-card h1 {
+  margin: 0;
+  color: #081429;
+  font-size: clamp(2rem, 6vw, 3.35rem);
+  line-height: .98;
+  letter-spacing: -.06em;
+}
+
+.client-output-limit-pause-card > p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.client-output-limit-pause-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.client-output-limit-pause-grid article {
+  display: grid;
+  gap: .25rem;
+  padding: .95rem 1rem;
+  border: 1px solid rgba(191, 219, 254, .88);
+  border-radius: 18px;
+  background: #eff6ff;
+}
+
+.client-output-limit-pause-grid span {
+  color: #475569;
+  font-size: .72rem;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.client-output-limit-pause-grid strong {
+  color: #081429;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.client-output-limit-pause-grid small {
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.client-output-limit-pause-card .action-button {
+  width: fit-content;
+  min-height: 46px;
+  padding: 0 1.1rem;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  box-shadow: 0 14px 34px rgba(37, 99, 235, .22);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .client-output-limit-pause-grid,
+  .saas-auth-page:has(.saas-auth-hero) .saas-auth-brand {
+    grid-template-columns: 1fr !important;
+  }
+
+  .saas-auth-page:has(.saas-auth-hero) .saas-auth-brand {
+    justify-items: center !important;
+    text-align: center !important;
+  }
+
+  .client-output-limit-pause-card .action-button {
+    width: 100%;
+  }
+}

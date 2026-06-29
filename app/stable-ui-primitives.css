@@ -1,0 +1,189 @@
+/* Stable UI primitives.
+   Shared low-flicker shells for loading, empty, saving, ready, and error states. */
+
+.stable-card {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(203, 213, 225, .94);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, .07);
+  padding: clamp(1rem, 1.5vw, 1.35rem);
+}
+
+.stable-card-info { border-color: rgba(147, 197, 253, .9); background: linear-gradient(180deg, #ffffff, #eff6ff); }
+.stable-card-success { border-color: rgba(134, 239, 172, .9); background: linear-gradient(180deg, #ffffff, #f0fdf4); }
+.stable-card-warning { border-color: rgba(251, 191, 36, .75); background: linear-gradient(180deg, #ffffff, #fffbeb); }
+.stable-card-error { border-color: rgba(252, 165, 165, .9); background: linear-gradient(180deg, #ffffff, #fff1f2); }
+
+.stable-card-header,
+.stable-command-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .85rem;
+  min-width: 0;
+}
+
+.stable-card-copy,
+.stable-command-copy {
+  display: grid;
+  gap: .3rem;
+  min-width: 0;
+}
+
+.stable-card-eyebrow,
+.stable-command-eyebrow {
+  margin: 0;
+  color: #2563eb;
+  font-size: .72rem;
+  font-weight: 950;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.stable-card h2,
+.stable-command-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(1.25rem, 2vw, 1.85rem);
+  line-height: 1.05;
+  letter-spacing: -.045em;
+}
+
+.stable-card-description,
+.stable-command-description {
+  margin: 0;
+  max-width: 72ch;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: #475569;
+  font-size: .88rem;
+  line-height: 1.4;
+}
+
+.stable-card-actions,
+.stable-command-actions,
+.stable-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.stable-action-end,
+.stable-card-actions,
+.stable-command-actions { justify-content: flex-end; }
+.stable-action-start { justify-content: flex-start; }
+.stable-action-between { justify-content: space-between; }
+
+.stable-card-body {
+  min-width: 0;
+}
+
+.page-state-boundary {
+  min-width: 0;
+  width: 100%;
+}
+
+.stable-empty-state {
+  display: grid;
+  gap: .35rem;
+  min-height: 96px;
+  align-content: center;
+  border: 1px dashed rgba(203, 213, 225, .95);
+  border-radius: 18px;
+  background: #f8fafc;
+  padding: 1rem;
+}
+
+.stable-empty-state strong {
+  color: #0f172a;
+  font-size: .98rem;
+}
+
+.stable-empty-state p {
+  margin: 0;
+  color: #64748b;
+  font-size: .86rem;
+  line-height: 1.4;
+}
+
+.stable-empty-error { border-color: rgba(252, 165, 165, .9); background: #fff1f2; }
+.stable-empty-warning { border-color: rgba(251, 191, 36, .85); background: #fffbeb; }
+.stable-empty-success { border-color: rgba(134, 239, 172, .9); background: #f0fdf4; }
+.stable-empty-info { border-color: rgba(147, 197, 253, .9); background: #eff6ff; }
+
+.stable-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .35rem;
+}
+
+.stable-skeleton-card {
+  display: grid;
+  gap: .7rem;
+  min-height: 150px;
+  border: 1px solid rgba(203, 213, 225, .9);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  padding: 1.1rem;
+}
+
+.stable-skeleton-card span {
+  display: block;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 45%, #e2e8f0 100%);
+  background-size: 220% 100%;
+  animation: stableSkeleton 1.4s ease-in-out infinite;
+}
+
+.stable-skeleton-card span:nth-child(1) { width: 42%; }
+.stable-skeleton-card span:nth-child(2) { width: 78%; }
+.stable-skeleton-card span:nth-child(3) { width: 58%; }
+
+.client-output-limit-checking {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: #f8fafc;
+}
+
+.client-output-limit-checking .stable-card {
+  max-width: 720px;
+}
+
+@keyframes stableSkeleton {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stable-skeleton-card span { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .stable-card-header,
+  .stable-command-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .stable-card-actions,
+  .stable-command-actions {
+    justify-content: stretch;
+  }
+
+  .stable-card-actions > *,
+  .stable-command-actions > * {
+    width: 100%;
+  }
+}

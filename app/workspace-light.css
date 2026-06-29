@@ -1,0 +1,201 @@
+/* data-owner: workspace-light-shell | contract: fixed-sidebar-shell */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-subtle: #f8f9fb;
+  --surface-hover: #ffffff;
+  --surface-active: #edf4fb;
+  --text: #111827;
+  --text-soft: #374151;
+  --text-muted: #667085;
+  --line: #e4e7ec;
+  --line-strong: #cfd5dd;
+  --line-hover: #b8c5d5;
+  --nav: #ffffff;
+  --nav-hover: #ffffff;
+  --primary: #374151;
+  --primary-strong: #111827;
+  --primary-soft: #f3f4f6;
+  --accent: #557ca7;
+  --accent-strong: #385d84;
+  --accent-soft: #edf4fb;
+  --accent-line: #cdddec;
+  --accent-focus: rgba(85, 124, 167, .16);
+  --success: #087443;
+  --success-soft: #e9f7ef;
+  --warning: #936100;
+  --warning-soft: #fff7e2;
+  --danger: #b42318;
+  --danger-soft: #fff2f1;
+  --shadow-card: 0 1px 2px rgba(17, 24, 39, .03), 0 8px 24px rgba(17, 24, 39, .04);
+  --shadow-hover: 0 2px 5px rgba(17, 24, 39, .05), 0 18px 40px rgba(17, 24, 39, .075);
+  --shadow-control: 0 1px 2px rgba(17, 24, 39, .05);
+}
+
+body {
+  background: linear-gradient(180deg, #fbfcfd 0, var(--bg) 180px);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline-color: var(--accent-focus);
+}
+
+/* Navigation reserves its width and pushes the workspace when intentionally opened. */
+.app-shell {
+  display: block;
+  padding-left: var(--sidebar-collapsed);
+  transition: padding-left var(--duration) var(--ease);
+}
+.app-shell:has(.sidebar:hover) { padding-left: var(--sidebar-expanded); }
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-collapsed);
+  height: 100vh;
+  color: var(--text);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  box-shadow: none;
+  transition: width var(--duration) var(--ease), box-shadow var(--duration) var(--ease), border-color var(--duration) ease;
+}
+.sidebar:hover {
+  width: var(--sidebar-expanded);
+  border-right-color: var(--line-strong);
+  box-shadow: 16px 0 36px rgba(17, 24, 39, .065);
+}
+.sidebar:focus-within:not(:hover) {
+  width: var(--sidebar-collapsed);
+  box-shadow: none;
+}
+.sidebar:focus-within:not(:hover) .brand > div,
+.sidebar:focus-within:not(:hover) nav button strong {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+.brand > span {
+  background: linear-gradient(145deg, #253243, #667085);
+  box-shadow: 0 10px 22px rgba(17, 24, 39, .12);
+  transition: transform var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+.sidebar:hover .brand > span {
+  transform: scale(1.035);
+  box-shadow: 0 13px 28px rgba(17, 24, 39, .17);
+}
+.brand strong { color: var(--text); }
+.brand small { color: var(--text-muted); }
+.sidebar nav button {
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, transform var(--duration-fast) var(--ease), box-shadow var(--duration-fast) ease;
+}
+.sidebar nav button::before {
+  color: var(--text-muted);
+  background: #f3f4f6;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, transform var(--duration-fast) var(--ease);
+}
+.sidebar nav button:hover {
+  color: var(--accent-strong);
+  background: transparent;
+  border-color: var(--accent-line);
+  transform: translateX(2px);
+  box-shadow: 0 8px 18px rgba(17, 24, 39, .045);
+}
+.sidebar nav button:hover::before {
+  color: var(--accent-strong);
+  background: #f3f4f6;
+}
+.sidebar nav button.active {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.sidebar nav button.active::after { background: var(--accent); }
+.sidebar nav button.active::before {
+  color: #ffffff;
+  background: var(--accent);
+}
+/* Source Data is the first operational step; Templates remains directly below it. */
+.sidebar nav button:nth-child(1) { order: 2; }
+.sidebar nav button:nth-child(2) { order: 1; }
+.sidebar nav button:nth-child(3) { order: 3; }
+.sidebar nav button:nth-child(4) { order: 4; }
+.sidebar nav button:nth-child(5) { order: 5; }
+
+.main-area {
+  width: 100%;
+  min-width: 0;
+  transition: opacity var(--duration-fast) ease;
+}
+.eyebrow { color: var(--accent-strong); }
+
+/* Primary controls stay strong; hover uses lift and border emphasis rather than a fill swap. */
+.header-action,
+.action-button {
+  position: relative;
+  overflow: hidden;
+  background: #111827;
+  border: 1px solid #111827;
+}
+.header-action:hover,
+.action-button:hover {
+  color: #ffffff;
+  background: #111827;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(17, 24, 39, .18), 0 0 0 1px var(--accent-line);
+}
+.header-action:active,
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-control);
+}
+
+/* Active selections receive the single light-blue sub color; hover remains clean and transparent. */
+.stepper {
+  border: 1px solid #e6e9ef;
+  background: #f0f2f5;
+}
+.stepper button {
+  border: 1px solid transparent;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, transform var(--duration-fast) var(--ease), box-shadow var(--duration-fast) ease;
+}
+.stepper button:hover {
+  color: var(--accent-strong);
+  background: transparent;
+  border-color: var(--accent-line);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 14px rgba(17, 24, 39, .04);
+}
+.stepper button:hover i {
+  color: var(--accent-strong);
+  background: rgba(255,255,255,.72);
+}
+.stepper button.current {
+  color: var(--accent-strong);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.stepper button.current i { color: #ffffff; background: var(--accent); }
+.stepper button.current:hover {
+  background: var(--accent-soft);
+}
+.stepper button.current:hover i { color: #ffffff; background: var(--accent); }
+.stepper button.complete i { color: var(--accent-strong); background: var(--accent-soft); }
+
+/* Modules use balanced elevation and visible borders without hover color wash. */
+.panel {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.panel:hover {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+.panel-heading h2 { transition: color var(--duration-fast) ease; }
+.panel:hover .panel-heading h2 { color: #0b1220; }

@@ -1,0 +1,317 @@
+/* Account record density contract.
+   Applies to manager, master, and client account/data records.
+   Goal: compact rows by default, full metadata only on user intent, no overflow-heavy cards. */
+
+:root {
+  --account-record-density-contract: compact-records-click-for-details;
+  --xdisputer-currency-contract: php-peso;
+  --account-popover-close-contract: x-close-when-open;
+  --account-metadata-layout-contract: status-note-salary-rate;
+  --account-record-radius: clamp(18px, 1.8vw, 26px);
+  --account-record-gap: clamp(.55rem, 1vw, .85rem);
+  --account-record-chip-bg: #eff6ff;
+}
+
+.account-record-compact-stack,
+.manager-console-stack,
+.account-control-list,
+.master-access-stack,
+.single-header-dataset {
+  display: grid !important;
+  gap: var(--account-record-gap) !important;
+  min-width: 0 !important;
+}
+
+.manager-console-user-card,
+.master-monitor-item,
+.account-control-row-trigger,
+.progressive-dataset-card,
+.access-workflow-card,
+.dashboard-snapshot-card {
+  min-width: 0 !important;
+  overflow: visible !important;
+  border-radius: var(--account-record-radius) !important;
+}
+
+.manager-console-user-card[data-compact-account-record="true"],
+.manager-console-user-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: .7rem !important;
+  padding: clamp(.9rem, 1.3vw, 1.1rem) !important;
+}
+
+.manager-console-user-card > header,
+.manager-console-user-header-v2 {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: .8rem !important;
+  min-width: 0 !important;
+}
+
+.manager-console-status-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: .5rem !important;
+  min-width: 0 !important;
+}
+
+.manager-console-status-actions .admin-status-badge {
+  order: 2 !important;
+}
+
+.manager-console-top-actions {
+  order: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: .45rem !important;
+}
+
+.manager-console-top-actions .admin-action-button {
+  min-height: 36px !important;
+  border-radius: 999px !important;
+  padding: .48rem .8rem !important;
+  white-space: nowrap !important;
+}
+
+.manager-console-user-card > header div,
+.manager-console-user-card > header strong,
+.manager-console-user-card > header span,
+.master-monitor-item div,
+.master-monitor-item strong,
+.master-monitor-item span,
+.account-control-identity,
+.account-control-identity strong,
+.account-control-identity small {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.manager-console-user-metrics {
+  grid-column: 1 / -1 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: .45rem !important;
+  min-width: 0 !important;
+}
+
+.manager-console-user-metrics span,
+.manager-console-report-grid span,
+.minimal-report-summary article,
+.account-control-agreement,
+.account-control-meta {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border-radius: 999px !important;
+  background: var(--account-record-chip-bg) !important;
+  border: 1px solid rgba(191, 219, 254, .88) !important;
+  color: #0f1f3d !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.manager-console-actions-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: .5rem !important;
+}
+
+.manager-user-settings-details {
+  grid-column: 2 !important;
+  justify-self: end !important;
+  align-self: center !important;
+  width: min(220px, 100%) !important;
+  border: 1px solid rgba(203, 213, 225, .82) !important;
+  border-radius: 999px !important;
+  background: rgba(248, 250, 252, .92) !important;
+  overflow: visible !important;
+}
+
+.manager-user-settings-details > summary {
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: .75rem !important;
+  padding: .55rem .65rem .55rem .9rem !important;
+  cursor: pointer !important;
+  color: #1e293b !important;
+  font-size: .88rem !important;
+  font-weight: 950 !important;
+  list-style: none !important;
+}
+
+.manager-user-settings-details > summary::-webkit-details-marker { display: none !important; }
+
+.manager-user-settings-details > summary::after {
+  content: "+";
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+
+.manager-user-settings-details[open]::before {
+  content: "";
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147482500 !important;
+  background: rgba(15, 23, 42, .24) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.manager-user-settings-details[open] > summary {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  z-index: 2147482602 !important;
+  width: 38px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  transform: translate(325px, -132px) !important;
+  border: 1px solid #fca5a5 !important;
+  border-radius: 999px !important;
+  background: #fee2e2 !important;
+  box-shadow: 0 14px 34px rgba(185, 28, 28, .18) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  overflow: hidden !important;
+}
+
+.manager-user-settings-details[open] > summary::after {
+  content: "×";
+  width: 38px !important;
+  height: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+  color: #b91c1c !important;
+  font: 950 1.25rem/1 Arial, sans-serif !important;
+  text-indent: 0 !important;
+}
+
+.manager-user-settings-details[open] .manager-user-settings-form {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 2147482600 !important;
+  width: min(760px, calc(100vw - 2rem)) !important;
+  max-height: min(720px, calc(100vh - 2rem)) !important;
+  overflow: auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  gap: .85rem !important;
+  padding: 3.35rem clamp(1rem, 2vw, 1.4rem) clamp(1rem, 2vw, 1.4rem) !important;
+  border: 1px solid rgba(203, 213, 225, .95) !important;
+  border-radius: 28px !important;
+  background: #ffffff !important;
+  box-shadow: 0 32px 90px rgba(15, 23, 42, .24) !important;
+}
+
+.manager-user-settings-details[open] .manager-user-settings-form label {
+  display: grid !important;
+  align-self: start !important;
+  gap: .45rem !important;
+  min-width: 0 !important;
+}
+
+.manager-user-settings-details[open] .manager-user-settings-form label span {
+  letter-spacing: .16em !important;
+  text-transform: uppercase !important;
+  font-size: .68rem !important;
+  font-weight: 950 !important;
+  color: #0f172a !important;
+}
+
+.manager-user-settings-details[open] .manager-user-settings-form input,
+.manager-user-settings-details[open] .manager-user-settings-form select {
+  width: 100% !important;
+  min-height: 46px !important;
+  border-radius: 16px !important;
+}
+
+.manager-user-settings-details[open] .metadata-salary-field.is-locked input,
+.manager-user-settings-details[open] .metadata-salary-field input:disabled {
+  cursor: not-allowed !important;
+  color: #64748b !important;
+  background: #f1f5f9 !important;
+  border-style: dashed !important;
+}
+
+.manager-user-settings-details[open] .metadata-salary-field small {
+  color: #64748b !important;
+  font-size: .75rem !important;
+  font-weight: 800 !important;
+}
+
+.manager-user-settings-details[open] .client-status-job-field,
+.manager-user-settings-details[open] .manager-user-settings-notes,
+.manager-user-settings-details[open] .metadata-salary-field,
+.manager-user-settings-details[open] .metadata-output-rate-field {
+  grid-column: span 1 !important;
+}
+
+.manager-user-settings-details[open] .metadata-rule-hint {
+  grid-column: 1 / -1 !important;
+  margin: -.35rem 0 0 !important;
+  padding: .65rem .8rem !important;
+  border: 1px solid rgba(191, 219, 254, .86) !important;
+  border-radius: 16px !important;
+  background: #eff6ff !important;
+  color: #475569 !important;
+  font-size: .78rem !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+}
+
+.manager-user-settings-details[open] .manager-user-settings-form button {
+  grid-column: 1 / -1 !important;
+}
+
+.boss-assignment-form,
+.limit-editor-form,
+.flyout-form {
+  display: grid !important;
+  gap: .8rem !important;
+}
+
+@media (max-width: 720px) {
+  .manager-console-user-card[data-compact-account-record="true"],
+  .manager-console-user-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manager-console-user-card > header,
+  .manager-console-user-header-v2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manager-console-status-actions,
+  .manager-console-top-actions {
+    justify-content: flex-start !important;
+  }
+
+  .manager-user-settings-details {
+    grid-column: 1 !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+  }
+}

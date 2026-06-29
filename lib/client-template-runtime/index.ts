@@ -1,0 +1,10 @@
+export type * from './client-template-types';
+export { resolveClientTemplateAssignment, resolveManagerApprovedTemplate } from './client-template-assignment';
+export { resolveClientOutputLimit, incrementClientOutputUsage } from './client-template-output-limit';
+export { normalizeSourceToCanonicalFields, detectMissingRequiredCanonicalFields, resolveClientCanonicalSourceData, buildClientCanonicalSourceData, readCanonicalValue } from './client-template-source-mapping';
+export { applyManagerRulesToClientData } from './client-template-rule-application';
+export { resolveReviewPacketScope, buildReviewPacketScope } from './client-template-review-packet';
+export { validateSupportingDocuments } from './client-template-supporting-documents';
+export { getClientTemplateRuntimeContext } from './client-template-context';
+export { assertClientCanGenerate } from './client-template-generation-gate';
+export { generateClientLettersFromManagerTemplate } from './client-template-generation-orchestrator';

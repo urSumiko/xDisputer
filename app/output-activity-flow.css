@@ -1,0 +1,348 @@
+/* Output activity confirmation flow.
+   Owns manager filters, per-output confirmation cards, and client per-output intent panel. */
+
+:root {
+  --output-activity-flow-contract: header-actions-no-duplicated-output-field;
+  --output-activity-count-card-contract: all-per-output-fulltime-counts;
+}
+
+.output-activity-filter-tabs,
+.client-per-output-intent-card {
+  display: grid;
+  gap: .75rem;
+}
+
+.output-activity-filter-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.output-activity-filter-tab,
+.client-per-output-intent-card {
+  border: 1px solid rgba(191, 219, 254, .9);
+  border-radius: 24px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 20px 54px rgba(15, 23, 42, .08);
+}
+
+.output-activity-filter-tab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .9rem 1rem;
+  color: #1e293b;
+  text-decoration: none;
+  min-height: 92px;
+}
+
+.output-activity-filter-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, #081429, #2563eb);
+  border-color: rgba(37, 99, 235, .8);
+}
+
+.output-activity-filter-copy {
+  display: grid;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.output-activity-filter-tab small {
+  color: inherit;
+  opacity: .78;
+}
+
+.output-activity-filter-tab b {
+  min-width: 46px;
+  min-height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255,255,255,.78);
+  color: #0f172a;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1;
+}
+
+.output-activity-filter-tab.active b {
+  background: rgba(255,255,255,.18);
+  color: #fff;
+}
+
+.output-activity-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem 1rem;
+  border: 1px solid rgba(191, 219, 254, .9);
+  border-radius: 20px;
+  background: rgba(248, 250, 252, .94);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, .06);
+}
+
+.output-activity-toolbar-copy {
+  display: grid;
+  gap: .15rem;
+}
+
+.output-activity-toolbar-copy span {
+  color: #64748b;
+  font-weight: 750;
+  font-size: .9rem;
+}
+
+.output-activity-clear-form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.output-activity-stack {
+  gap: .65rem !important;
+}
+
+.output-activity-row {
+  display: grid;
+  gap: .65rem;
+  padding: clamp(.8rem, 1vw, 1rem);
+  border: 1px solid rgba(203, 213, 225, .82);
+  border-radius: 22px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 16px 44px rgba(15, 23, 42, .07);
+}
+
+.output-activity-card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .55rem;
+}
+
+.output-activity-card-main {
+  display: grid;
+  gap: .4rem;
+  min-width: 0;
+}
+
+.output-activity-title-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  justify-content: space-between;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.output-activity-title-line strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.output-activity-title-actions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: .5rem;
+  max-width: min(100%, 820px);
+}
+
+.output-activity-title-actions > .admin-status-badge {
+  order: 2;
+  white-space: nowrap;
+}
+
+.output-activity-title-actions > .output-activity-readonly-note,
+.output-activity-title-actions > .output-decision-form-inline {
+  order: 1;
+}
+
+.output-activity-subtitle {
+  color: #475569;
+  font-weight: 760;
+  font-size: .92rem;
+}
+
+.output-activity-meta-line {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr .75fr 1fr;
+  gap: .45rem;
+}
+
+.output-activity-meta-line span {
+  display: grid;
+  gap: .1rem;
+  min-width: 0;
+  padding: .5rem .65rem;
+  border: 1px solid rgba(191, 219, 254, .82);
+  border-radius: 15px;
+  background: #eff6ff;
+  color: #0f172a;
+  font-size: .88rem;
+  line-height: 1.2;
+}
+
+.output-activity-meta-line b {
+  color: #334155;
+  font-size: .68rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.output-activity-meta-line span,
+.output-activity-meta-line b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.output-activity-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.25fr) minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: .55rem;
+}
+
+.output-activity-facts span {
+  display: grid;
+  gap: .2rem;
+  min-width: 0;
+  padding: .65rem .75rem;
+  border: 1px solid rgba(191, 219, 254, .9);
+  border-radius: 18px;
+  background: #eff6ff;
+}
+
+.output-activity-facts small,
+.output-activity-facts strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.output-activity-facts strong {
+  white-space: nowrap;
+}
+
+.output-activity-facts small {
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.output-decision-form {
+  display: grid !important;
+  grid-template-columns: minmax(140px, .55fr) minmax(160px, .45fr) minmax(160px, .45fr) !important;
+  align-items: end !important;
+  gap: .55rem !important;
+  padding-top: .5rem;
+  border-top: 1px solid rgba(226, 232, 240, .92);
+}
+
+.output-decision-form-inline {
+  display: inline-grid !important;
+  grid-template-columns: minmax(94px, 118px) auto auto !important;
+  align-items: end !important;
+  gap: .4rem !important;
+  padding: 0 !important;
+  border-top: 0 !important;
+}
+
+.output-decision-form label {
+  margin: 0 !important;
+}
+
+.output-decision-form-inline label span {
+  font-size: .62rem !important;
+  letter-spacing: .08em !important;
+}
+
+.output-decision-form input {
+  min-height: 38px !important;
+}
+
+.output-decision-form-inline input {
+  min-height: 34px !important;
+  border-radius: 999px !important;
+  padding-inline: .7rem !important;
+}
+
+.output-decision-form .admin-action-button {
+  min-height: 42px;
+}
+
+.output-decision-form-inline .admin-action-button {
+  min-height: 34px !important;
+  padding: .45rem .7rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.output-activity-readonly-note {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: .55rem .75rem;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid rgba(203, 213, 225, .86);
+  color: #475569;
+  font-weight: 800;
+}
+
+.output-activity-title-actions .output-activity-readonly-note {
+  padding: .48rem .72rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.client-per-output-intent-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: clamp(1rem, 1.6vw, 1.25rem);
+}
+
+.client-per-output-intent-card p {
+  margin: 0;
+  color: #64748b;
+}
+
+.client-per-output-intent-card label {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .65rem .85rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid rgba(191, 219, 254, .9);
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .output-activity-filter-tabs,
+  .output-activity-facts,
+  .client-per-output-intent-card,
+  .output-activity-meta-line,
+  .output-activity-toolbar,
+  .output-activity-title-line {
+    grid-template-columns: 1fr;
+  }
+
+  .output-activity-title-actions {
+    justify-self: stretch;
+    justify-content: flex-start;
+  }
+
+  .output-decision-form,
+  .output-decision-form-inline {
+    grid-template-columns: 1fr !important;
+  }
+
+  .output-activity-clear-form {
+    justify-content: stretch;
+  }
+
+  .output-activity-clear-form .admin-action-button {
+    width: 100%;
+  }
+}

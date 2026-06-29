@@ -1,0 +1,162 @@
+/* Global depth system — applies the neutral floating-canvas effect across client, manager, and master surfaces. */
+/* data-owner: global-depth-system | contract: floating-canvas-fixed-background */
+:root {
+  --bg: #dfe5ee;
+  --surface: #ffffff;
+  --surface-subtle: #f1f4f8;
+  --surface-raised: #ffffff;
+  --surface-hover: #e9eef5;
+  --line: #cdd7e5;
+  --line-strong: #b9c5d6;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, .045), 0 18px 46px rgba(15, 23, 42, .085);
+  --shadow-hover: 0 5px 12px rgba(15, 23, 42, .08), 0 28px 64px rgba(15, 23, 42, .13);
+  --shadow-floating: 0 28px 78px rgba(15, 23, 42, .15);
+  --global-canvas-bg: #dfe5ee;
+  --global-canvas-bg-deep: #d2dbe7;
+  --global-float-border: rgba(129, 140, 154, .32);
+  --global-float-highlight: rgba(255, 255, 255, .76);
+}
+
+html {
+  background: var(--global-canvas-bg-deep);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(255, 255, 255, .86) 0, rgba(255, 255, 255, 0) 28rem),
+    radial-gradient(circle at 86% 12%, rgba(203, 213, 225, .78) 0, rgba(203, 213, 225, 0) 26rem),
+    linear-gradient(135deg, #e8edf4 0%, var(--global-canvas-bg) 45%, var(--global-canvas-bg-deep) 100%) !important;
+  background-attachment: fixed;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.28), rgba(255,255,255,0) 28%, rgba(15,23,42,.045) 100%),
+    radial-gradient(circle at 50% -12%, rgba(255,255,255,.56), rgba(255,255,255,0) 38rem);
+}
+
+.app-shell,
+.admin-monitor-page,
+.saas-portal-shell,
+.saas-public-page,
+.obsidian-console,
+.master-console-page,
+.workspace-shell,
+.client-operations-page,
+.dashboard-shell,
+.template-workspace-shell {
+  background: transparent !important;
+}
+
+.main-area,
+.admin-monitor-main,
+.native-console-main,
+.workspace-main,
+.saas-portal-main,
+.client-operations-main,
+.master-console-main {
+  background: transparent !important;
+}
+
+.panel,
+.card,
+.dashboard-card,
+.dashboard-panel,
+.workspace-card,
+.workspace-panel,
+.admin-monitor-card,
+.admin-monitor-header,
+.native-command-hero,
+.progressive-dataset-card,
+.access-workflow-card,
+.template-studio,
+.template-focused-workflow,
+.studio-component-card,
+.manager-template-card,
+.template-config-card,
+.saas-card,
+.auth-card,
+.portal-card,
+.report-card,
+.output-card,
+.evidence-card,
+.source-card,
+.packet-card,
+.final-packet-card,
+.table-flyout-card,
+.account-entitlement-card {
+  background: rgba(255, 255, 255, .90) !important;
+  border-color: var(--global-float-border) !important;
+  box-shadow: var(--shadow-card) !important;
+  backdrop-filter: blur(14px);
+}
+
+.admin-monitor-header,
+.native-command-hero,
+.dashboard-card,
+.workspace-card,
+.admin-monitor-card,
+.progressive-dataset-card,
+.access-workflow-card,
+.studio-component-card,
+.manager-template-card,
+.portal-card,
+.auth-card {
+  position: relative;
+}
+
+.admin-monitor-header::before,
+.native-command-hero::before,
+.dashboard-card::before,
+.workspace-card::before,
+.admin-monitor-card::before,
+.progressive-dataset-card::before,
+.access-workflow-card::before,
+.studio-component-card::before,
+.manager-template-card::before,
+.portal-card::before,
+.auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--global-float-highlight), rgba(255,255,255,0) 34%);
+  opacity: .62;
+}
+
+.admin-monitor-card:hover,
+.dashboard-card:hover,
+.workspace-card:hover,
+.progressive-dataset-card:hover,
+.access-workflow-card:hover,
+.studio-component-card:hover,
+.manager-template-card:hover,
+.portal-card:hover {
+  box-shadow: var(--shadow-hover) !important;
+}
+
+.admin-monitor-sidebar,
+.native-console-sidebar,
+.sidebar,
+.saas-sidebar,
+.workspace-sidebar {
+  box-shadow: 14px 0 42px rgba(15, 23, 42, .085) !important;
+}
+
+input,
+textarea,
+select,
+button,
+.file-input-shell,
+.upload-zone,
+.drop-zone {
+  box-shadow: 0 1px 0 rgba(255,255,255,.72), 0 8px 22px rgba(15,23,42,.045);
+}

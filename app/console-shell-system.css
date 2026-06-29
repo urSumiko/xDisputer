@@ -1,0 +1,50 @@
+/* Global console shell system — single contract for manager and master sidebar pages. */
+:root {
+  --console-shell-page-max: 1480px;
+  --console-shell-sidebar-width: clamp(220px, 18vw, 260px);
+  --console-shell-main-pad-x: clamp(1rem, 2.1vw, 1.8rem);
+  --console-shell-main-pad-y: clamp(1rem, 1.8vw, 1.35rem);
+  --console-header-ratio-left: 3fr;
+  --console-header-ratio-right: minmax(220px, 1fr);
+  --console-header-height: clamp(140px, 10vw, 152px);
+  --console-header-radius: 24px;
+  --console-header-gap: clamp(.8rem, 1.35vw, 1.05rem);
+  --console-account-avatar-size: clamp(54px, 4.8vw, 68px);
+  --console-card-shadow: 0 18px 45px rgba(15, 23, 42, .085), 0 2px 8px rgba(15, 23, 42, .045);
+  --console-card-shadow-hover: 0 26px 68px rgba(15, 23, 42, .13), 0 8px 18px rgba(15, 23, 42, .06);
+}
+
+[data-console-shell="true"] { grid-template-columns: var(--console-shell-sidebar-width) minmax(0, 1fr) !important; min-width: 0; overflow-x: clip; }
+[data-console-sidebar="true"] { width: var(--console-shell-sidebar-width); }
+[data-console-main="true"] { width: min(100%, var(--console-shell-page-max)); margin-inline: auto; padding: var(--console-shell-main-pad-y) var(--console-shell-main-pad-x) 2rem !important; }
+[data-console-header-grid="true"] { display: grid !important; grid-template-columns: var(--console-header-ratio-left) var(--console-header-ratio-right) !important; gap: var(--console-header-gap) !important; align-items: stretch !important; }
+[data-console-header-grid="true"] > .admin-monitor-header:first-of-type,
+[data-console-header-grid="true"] > .native-command-hero:first-of-type,
+[data-console-header-primary="true"] { grid-column: 1 !important; grid-row: 1 !important; min-height: var(--console-header-height) !important; height: 100% !important; margin: 0 0 var(--console-row-gap, 1rem) 0 !important; display: grid !important; align-items: center !important; border-radius: var(--console-header-radius) !important; box-shadow: var(--console-card-shadow) !important; }
+[data-console-header-grid="true"]:not([data-console-has-header="true"]) > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type { grid-column: 1 !important; grid-row: 1 !important; min-height: var(--console-header-height) !important; height: 100% !important; margin: 0 0 var(--console-row-gap, 1rem) 0 !important; display: grid !important; align-items: center !important; border-radius: var(--console-header-radius) !important; box-shadow: var(--console-card-shadow) !important; }
+.console-header-card { min-width: 0; display: flex !important; align-items: center; justify-content: space-between; gap: clamp(.9rem, 1.4vw, 1.15rem); }
+.console-header-copy { min-width: 0; flex: 1 1 auto; display: grid; gap: .45rem; }
+.console-header-copy > p, .console-header-copy > h1, .console-header-copy > span { margin: 0; }
+.console-header-secondary { min-width: 0; flex: 0 1 420px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .75rem; }
+.console-header-secondary > * { min-width: 0; }
+[data-console-header-grid="true"] > .manager-template-client-flow:first-of-type { display: contents !important; }
+[data-console-header-grid="true"] > .manager-template-client-flow:first-of-type > :not(.admin-monitor-card:first-of-type),
+[data-console-header-grid="true"][data-console-has-header="true"] > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type,
+[data-console-header-grid="true"] > :not(.manager-header-account-dock):not(.admin-monitor-header):not(.native-command-hero):not([data-console-header-primary="true"]) { grid-column: 1 / -1; }
+[data-console-header-grid="true"] > .manager-header-account-dock { grid-column: 2 !important; grid-row: 1 !important; }
+.manager-header-account-dock { min-height: var(--console-header-height) !important; height: 100% !important; border-radius: var(--console-header-radius) !important; }
+.manager-header-account-avatar { width: var(--console-account-avatar-size) !important; height: var(--console-account-avatar-size) !important; }
+
+.console-transformation-panel { display: grid; grid-column: 1 / -1; gap: 1rem; }
+.console-transformation-summary { background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(248,250,252,.94)); }
+.console-transformation-summary > p { max-width: 70rem; color: #475569; line-height: 1.7; }
+.console-transformation-block { min-height: 180px; }
+.console-transformation-block .admin-power-list span { align-items: flex-start; line-height: 1.55; }
+.console-transformation-route-map { grid-column: 1 / -1; }
+[data-console-panel-domain="manager-authoring"] .console-transformation-summary { border-color: rgba(14, 165, 233, .22); }
+[data-console-panel-domain="manager-operations"] .console-transformation-summary { border-color: rgba(34, 197, 94, .22); }
+[data-console-panel-domain="master-governance"] .console-transformation-summary { border-color: rgba(168, 85, 247, .22); }
+
+@media (max-width: 1100px) { :root { --console-header-ratio-right: 116px; --console-header-height: clamp(120px, 12vw, 136px); } }
+@media (max-width: 900px) { .console-header-card { flex-direction: column; align-items: flex-start !important; } .console-header-secondary { width: 100%; flex-basis: auto; justify-content: flex-start; } }
+@media (max-width: 760px) { :root { --console-header-ratio-right: auto; --console-header-height: 112px; } [data-console-header-grid="true"] { grid-template-columns: minmax(0, 1fr) auto !important; } [data-console-header-grid="true"] > .admin-monitor-header:first-of-type, [data-console-header-grid="true"] > .native-command-hero:first-of-type, [data-console-header-primary="true"], [data-console-header-grid="true"]:not([data-console-has-header="true"]) > .manager-template-client-flow:first-of-type > .admin-monitor-card:first-of-type { grid-column: 1 / -1 !important; padding-right: 5.25rem !important; } [data-console-header-grid="true"] > .manager-header-account-dock { grid-column: 2 !important; align-self: start !important; } }

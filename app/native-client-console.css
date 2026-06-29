@@ -1,0 +1,130 @@
+/* Native client console alignment
+   Purpose: keep client workspace visually aligned with manager/master native console surfaces
+   without reintroducing triad or obsidian themes.
+*/
+[data-client-console-shell="true"] {
+  min-height: 100vh;
+  background: #f4f7fb;
+  color: #081429;
+  display: grid;
+  grid-template-columns: 272px minmax(0, 1fr);
+}
+
+[data-client-console-shell="true"] > .sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.94);
+  border-right: 1px solid #dbe3ef;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 12px 0 30px rgba(8, 20, 41, 0.04);
+}
+
+[data-client-console-shell="true"] .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e3e9f2;
+  border-radius: 18px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+[data-client-console-shell="true"] .brand span {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: #091322;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 950;
+}
+
+[data-client-console-shell="true"] .brand small {
+  color: #64748b;
+}
+
+[data-client-console-shell="true"] > .sidebar nav {
+  display: grid;
+  gap: 7px;
+}
+
+[data-client-console-shell="true"] > .sidebar nav button {
+  min-height: 48px;
+  border-radius: 14px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  text-align: left;
+  padding: 0 14px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+[data-client-console-shell="true"] > .sidebar nav button:hover {
+  background: #f1f5f9;
+  color: #081429;
+  transform: translateX(2px);
+}
+
+[data-client-console-shell="true"] > .sidebar nav button.active {
+  background: #eef6ff;
+  color: #1d4ed8;
+  box-shadow: inset 0 0 0 1px #bfdbfe;
+}
+
+[data-client-console-shell="true"] .main-area.client-console-main {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+  padding: 22px clamp(20px, 3vw, 42px) 42px;
+}
+
+[data-client-console-shell="true"] .header.native-command-hero {
+  padding: 30px 32px;
+  margin-bottom: 16px;
+  border: 1px solid #e3e9f2;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #fff, #fbfdff);
+  box-shadow: 0 1px 2px rgba(8, 20, 41, 0.03), 0 12px 32px rgba(15, 23, 42, 0.045);
+}
+
+[data-client-console-shell="true"] .header.native-command-hero h1 {
+  margin: 0;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 0.92;
+  letter-spacing: -0.08em;
+}
+
+[data-client-console-shell="true"] .workspace-operation-status {
+  display: block;
+  margin-top: 12px;
+}
+
+[data-client-console-shell="true"] .workspace-operation-status.info {
+  color: #64748b;
+}
+
+[data-client-console-shell="true"] .workspace-operation-status.success {
+  color: #047857;
+}
+
+[data-client-console-shell="true"] .workspace-operation-status.error {
+  color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+  [data-client-console-shell="true"] {
+    grid-template-columns: 1fr;
+  }
+
+  [data-client-console-shell="true"] > .sidebar {
+    position: relative;
+    height: auto;
+  }
+}

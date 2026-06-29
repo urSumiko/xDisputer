@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+.next-quarantine/
+out/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/
+tsconfig.tsbuildinfo
+.local-backups/
+.codespace-sync/
+.xdisputer-cache/
+
+# Accidental root artifacts from malformed terminal commands
+/FETCH_HEAD
+/letter-generator@1.0.0
+/next
+/node
+/tsc

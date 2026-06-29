@@ -1,0 +1,13 @@
+export type * from './types';
+export { UI_CONTRACTS, FEATURE_CONTRACTS, contractsByPropagationGroup, getUIContract } from './registry';
+export { dynamicTemplateAnchorFeatureContract, dynamicTemplateAnchorIntelligenceContract } from './dynamic-template-anchor-contract';
+export { managerOwnedDocxFeatureContract, managerOwnedDocxGenerationContract } from './manager-owned-docx-contract';
+export { classifyChange, classifyContract, isForbiddenGlobalBypass } from './classifiers/global-custom-classifier';
+export { inspectDesignContracts } from './inspectors/design-inspector';
+export { inspectLayoutContracts, expectedHeaderRatio } from './inspectors/layout-inspector';
+export { inspectUXContracts } from './inspectors/ux-inspector';
+export { activeFunctionProof, inspectFeatureFunctions } from './inspectors/function-inspector';
+export { buildDependencyGraph, affectedBySourceFile } from './trace/dependency-graph';
+export { traceRootCause } from './trace/root-cause-tracer';
+export { affectedContractsForRoute, createPropagationPlan } from './propagation/change-propagation-engine';
+export { buildUIIntelligenceReport, formatUIIntelligenceReport } from './reports/ui-intelligence-report';

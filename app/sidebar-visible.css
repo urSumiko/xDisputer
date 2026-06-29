@@ -1,0 +1,159 @@
+/* Persistent professional navigation: visible labels, medium-gray emphasis, controlled movement. */
+:root {
+  --sidebar-panel: #f4f5f7;
+  --sidebar-card: #ffffff;
+  --sidebar-divider: #d6dbe2;
+  --sidebar-ink: #161b23;
+  --sidebar-muted: #626b77;
+  --sidebar-accent: #59636f;
+  --sidebar-accent-strong: #414a55;
+  --sidebar-accent-soft: #eceff2;
+  --sidebar-accent-border: #c9ced5;
+  --sidebar-visible-width: 242px;
+}
+
+/* Desktop navigation remains visible so users never need to discover labels through hover. */
+@media (min-width: 881px) {
+  .app-shell,
+  .app-shell:has(.sidebar:hover) {
+    padding-left: var(--sidebar-visible-width) !important;
+  }
+  .sidebar,
+  .sidebar:hover,
+  .sidebar:focus-within:not(:hover) {
+    width: var(--sidebar-visible-width) !important;
+  }
+  .sidebar .brand > div,
+  .sidebar nav button strong,
+  .sidebar:focus-within:not(:hover) .brand > div,
+  .sidebar:focus-within:not(:hover) nav button strong {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+.sidebar {
+  color: var(--sidebar-ink);
+  padding: 18px 12px !important;
+  background: linear-gradient(180deg, #fbfbfc 0%, var(--sidebar-panel) 100%) !important;
+  border-right: 1px solid var(--sidebar-divider) !important;
+  box-shadow: 6px 0 22px rgba(16,24,40,.045) !important;
+}
+.sidebar:hover {
+  border-right-color: #c8ced6 !important;
+  box-shadow: 13px 0 29px rgba(16,24,40,.07) !important;
+}
+.sidebar .brand {
+  min-height: 58px;
+  margin-bottom: 26px;
+  padding: 7px;
+  border: 1px solid var(--sidebar-divider);
+  border-radius: 18px;
+  background: var(--sidebar-card);
+  box-shadow: 0 1px 2px rgba(16,24,40,.03);
+  transition: border-color 180ms ease, box-shadow 260ms cubic-bezier(.22,1,.36,1);
+}
+.sidebar .brand > span {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #4c5561, #747d88) !important;
+  box-shadow: 0 9px 20px rgba(34,40,48,.16) !important;
+}
+.sidebar .brand strong { color: var(--sidebar-ink); }
+.sidebar .brand small { color: var(--sidebar-muted); }
+.sidebar nav {
+  position: relative;
+  padding-top: 27px;
+  display: grid;
+  gap: 8px;
+}
+.sidebar nav::before {
+  content: "WORKSPACE";
+  position: absolute;
+  top: 3px;
+  left: 12px;
+  color: #727b87;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .14em;
+  opacity: 1;
+}
+.sidebar nav button {
+  position: relative;
+  height: 54px;
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  color: var(--sidebar-muted) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px;
+  transition: color 170ms ease, border-color 170ms ease, background 170ms ease, transform 250ms cubic-bezier(.22,1,.36,1), box-shadow 250ms cubic-bezier(.22,1,.36,1);
+}
+.sidebar nav button::before {
+  width: 36px;
+  height: 36px;
+  color: #626b77 !important;
+  background: #e8ebef !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px;
+  transition: color 170ms ease, background 170ms ease, transform 250ms cubic-bezier(.22,1,.36,1);
+}
+.sidebar nav button strong {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 670;
+}
+.sidebar nav button:hover {
+  color: var(--sidebar-ink) !important;
+  background: var(--sidebar-card) !important;
+  border-color: var(--sidebar-divider) !important;
+  transform: translateX(3px);
+  box-shadow: 0 8px 18px rgba(16,24,40,.05);
+}
+.sidebar nav button:hover::before {
+  color: var(--sidebar-accent-strong) !important;
+  background: var(--sidebar-accent-soft) !important;
+  border-color: var(--sidebar-accent-border) !important;
+}
+.sidebar nav button.active,
+.sidebar:not(:hover) nav button.active {
+  color: var(--sidebar-ink) !important;
+  background: var(--sidebar-card) !important;
+  border-color: var(--sidebar-accent-border) !important;
+  box-shadow: 0 8px 20px rgba(16,24,40,.06) !important;
+  transform: translateX(3px);
+}
+.sidebar nav button.active::after,
+.sidebar:not(:hover) nav button.active::after {
+  content: "";
+  position: absolute;
+  left: -13px !important;
+  top: 13px;
+  width: 4px;
+  height: 28px;
+  border-radius: 0 5px 5px 0;
+  background: var(--sidebar-accent) !important;
+}
+.sidebar nav button.active::before {
+  color: #ffffff !important;
+  background: var(--sidebar-accent) !important;
+  border-color: var(--sidebar-accent) !important;
+}
+.sidebar nav button:disabled {
+  opacity: .42;
+}
+@media (max-width: 880px) {
+  .sidebar {
+    background: #f6f7f8 !important;
+    border-right-color: var(--sidebar-divider) !important;
+  }
+  .sidebar nav::before { display: none; }
+  .sidebar nav button.active::before {
+    color: #fff !important;
+    background: var(--sidebar-accent) !important;
+  }
+}

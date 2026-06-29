@@ -1,0 +1,109 @@
+/* Account bell/avatar row contract.
+   Global account UX rule: notification bell is always before the avatar in one horizontal row.
+   This file loads late from app/layout.tsx and intentionally outranks older account grid rules. */
+
+:root {
+  --account-bell-avatar-row-contract: bell-before-avatar-horizontal;
+}
+
+/* High-specificity override for manager, master, and client account rails.
+   Root cause fixed: older account rail CSS sets the account dock to display:grid/place-items:center,
+   which stacks NotificationDock above the avatar even though the DOM order is already bell -> avatar. */
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] > .manager-header-account-dock[data-manager-account-menu="true"][data-manager-account-anchor="header-ratio-grid"] {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-items: center !important;
+  place-items: center !important;
+  gap: clamp(.55rem, 1vw, .8rem) !important;
+  overflow: visible !important;
+  min-width: max(112px, var(--account-dock-width, 112px)) !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .notification-dock,
+.manager-header-account-dock[data-manager-account-menu="true"] > .notification-dock,
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] > .notification-dock,
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] > .notification-dock,
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] > .notification-dock {
+  order: 1 !important;
+  flex: 0 0 auto !important;
+  align-self: center !important;
+  position: relative !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .manager-header-account-avatar,
+.manager-header-account-dock[data-manager-account-menu="true"] > .manager-header-account-avatar,
+.admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] > .manager-header-account-avatar,
+.admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] > .manager-header-account-avatar,
+main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"] > .manager-header-account-avatar {
+  order: 2 !important;
+  flex: 0 0 auto !important;
+  align-self: center !important;
+  position: relative !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+}
+
+.manager-header-account-dock[data-console-account-menu="true"] > .manager-account-popover,
+.manager-header-account-dock[data-manager-account-menu="true"] > .manager-account-popover {
+  position: absolute !important;
+}
+
+.manager-header-account-dock .notification-dock-button,
+.manager-header-account-dock .manager-header-account-avatar {
+  transform: none !important;
+}
+
+.manager-header-account-dock .notification-dock-popover {
+  top: 52px !important;
+  right: 0 !important;
+  z-index: 2147483100 !important;
+}
+
+@media (max-width: 760px) {
+  .admin-monitor-main[data-console-header-grid="true"],
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"],
+  main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] {
+    --account-dock-width: clamp(112px, 30vw, 136px) !important;
+    --account-dock-height: clamp(58px, 15vw, 74px) !important;
+  }
+
+  .admin-monitor-main[data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"][data-manager-account-anchor="header-ratio-grid"],
+  main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] > .manager-header-account-dock[data-console-account-menu="true"][data-manager-account-anchor="header-ratio-grid"] {
+    width: var(--account-dock-width) !important;
+    min-width: var(--account-dock-width) !important;
+    gap: .5rem !important;
+    padding: .35rem .45rem !important;
+  }
+
+  .manager-header-account-dock .notification-dock-button {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 14px !important;
+  }
+
+  .manager-header-account-dock .manager-header-account-avatar {
+    width: 46px !important;
+    height: 46px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-monitor-main[data-console-header-grid="true"],
+  .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"],
+  main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor-main[data-console-role="client"][data-console-header-grid="true"] {
+    --account-dock-width: 112px !important;
+    --account-dock-height: 64px !important;
+  }
+}

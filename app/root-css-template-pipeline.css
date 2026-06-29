@@ -1,0 +1,25 @@
+/* Phase 7 root CSS bundle: template and packet pipeline */
+@import './source-normalization.css';
+@import './packet-ui.css';
+@import './template-flow.css';
+@import './templates-header-inline.css';
+@import './template-classification.css';
+@import './progressive-disclosure.css';
+@import './template-premium.css';
+@import './global-minimal-ui.css';
+@import './workflow-premium.css';
+@import './guided-source-flow.css';
+@import './output-guided-flow.css';
+@import './packet-editor-precision.css';
+@import './shared-transitions.css';
+@import './packet-editor-recovery.css';
+@import './packet-editor-focused.css';
+@import './packet-editor-consolidated.css';
+@import './neutral-workspace-system.css';
+@import './packet-editor-fullscreen.css';
+@import './evidence-command-header.css';
+@import './template-progressive-studio.css';
+@import './template-registration-console.css';
+@import './source-progressive-studio.css';
+@import './notepad-packet-review.css';
+@import './workflow-geometry-normalization.css';

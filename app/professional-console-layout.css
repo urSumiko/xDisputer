@@ -1,0 +1,412 @@
+/* Phase 12D — Professional responsive console layout
+   Purpose: fix master/manager layout overlap, oversized headers, unnecessary wrapping, and narrow-screen presentation.
+   Scope: master/admin consoles, access directories, dashboard snapshots, and data tables only. */
+
+.admin-monitor-page.native-console {
+  --console-page-max: 1480px;
+  --console-sidebar: clamp(220px, 18vw, 260px);
+  --console-main-pad-x: clamp(1rem, 2.1vw, 1.8rem);
+  --console-main-pad-y: clamp(1rem, 1.8vw, 1.35rem);
+  --console-card-radius: 18px;
+  --console-row-gap: clamp(0.75rem, 1.5vw, 1rem);
+  --console-account-dock: clamp(220px, 25vw, 360px);
+  min-width: 0;
+  grid-template-columns: var(--console-sidebar) minmax(0, 1fr) !important;
+  align-items: start;
+  overflow-x: clip;
+}
+
+.admin-monitor-sidebar.native-console-sidebar {
+  min-width: 0;
+  width: var(--console-sidebar);
+  padding: 1rem 0.85rem !important;
+  gap: 0.9rem !important;
+}
+
+.admin-monitor-sidebar nav a,
+.admin-monitor-sidebar nav span.console-loading-line {
+  min-width: 0;
+}
+
+.admin-monitor-sidebar nav a {
+  min-height: 42px !important;
+  padding-inline: 0.9rem !important;
+  border-radius: 12px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-monitor-main.native-console-main {
+  min-width: 0;
+  width: min(100%, var(--console-page-max));
+  margin-inline: auto;
+  padding: var(--console-main-pad-y) var(--console-main-pad-x) 2rem !important;
+}
+
+.admin-monitor-page.native-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-main.native-console-main {
+  padding-top: clamp(1.25rem, 1.8vw, 1.6rem) !important;
+}
+
+.admin-monitor-header.native-command-hero {
+  padding: clamp(1rem, 2.2vw, 1.5rem) clamp(1rem, 2.4vw, 1.75rem) !important;
+  margin-bottom: var(--console-row-gap) !important;
+  border-radius: var(--console-card-radius) !important;
+}
+
+.admin-monitor-page.native-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-header.native-command-hero:first-child {
+  width: calc(100% - var(--console-account-dock) - 0.85rem) !important;
+  min-height: 112px;
+  margin-right: calc(var(--console-account-dock) + 0.85rem) !important;
+  display: grid;
+  align-items: center;
+}
+
+.admin-monitor-page.native-console:has([data-manager-account-layout="header-75-25-avatar-only"]) [data-manager-account-menu="true"] {
+  top: var(--console-main-pad-y) !important;
+  right: var(--console-main-pad-x) !important;
+  width: var(--console-account-dock) !important;
+  min-height: 112px !important;
+  border-radius: var(--console-card-radius) !important;
+}
+
+.admin-monitor-page.native-console:has([data-manager-account-layout="header-75-25-avatar-only"]) [data-manager-account-menu="true"]::before {
+  content: '';
+  position: absolute;
+  left: -0.85rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(148, 163, 184, .28);
+}
+
+.admin-monitor-header p,
+.admin-monitor-card-header p,
+.admin-monitor-stats p {
+  margin-bottom: 0.35rem !important;
+  font-size: 0.66rem !important;
+  letter-spacing: 0.11em !important;
+}
+
+.admin-monitor-header h1 {
+  max-width: 980px;
+  font-size: clamp(1.85rem, 3.1vw, 2.85rem) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.admin-monitor-header span {
+  max-width: 780px;
+  margin-top: 0.55rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.45 !important;
+}
+
+.admin-monitor-stats {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+  gap: 0.75rem !important;
+  margin-bottom: var(--console-row-gap) !important;
+}
+
+.admin-monitor-stats article {
+  min-width: 0;
+  padding: 1rem !important;
+  border-radius: 16px !important;
+}
+
+.admin-monitor-stats strong {
+  display: block;
+  min-width: 0;
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-power-grid,
+.progressive-dataset-grid.access-workflow-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)) !important;
+  gap: 0.9rem !important;
+  align-items: stretch;
+}
+
+.admin-monitor-card,
+.progressive-dataset-card,
+.access-workflow-card {
+  min-width: 0;
+  border-radius: var(--console-card-radius) !important;
+}
+
+.admin-monitor-card-header {
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+}
+
+.admin-monitor-card-header > div {
+  min-width: 0;
+}
+
+.admin-monitor-card-header h2,
+.progressive-dataset-card h2,
+.access-workflow-card h2 {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.035em !important;
+  overflow-wrap: normal;
+}
+
+.admin-monitor-card-header span,
+.dashboard-card-link {
+  flex: none;
+  white-space: nowrap;
+}
+
+.dashboard-snapshot-card {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.dashboard-snapshot-list,
+.manager-monitor-list,
+.master-monitor-list {
+  min-width: 0;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: min(320px, 42vh) !important;
+}
+
+.manager-monitor-item,
+.master-monitor-item {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  min-height: 48px !important;
+  padding: 0.75rem 0.85rem !important;
+  gap: 0.75rem !important;
+}
+
+.manager-monitor-item > div,
+.master-monitor-item > div {
+  min-width: 0;
+}
+
+.manager-monitor-item strong,
+.master-monitor-item strong,
+.manager-monitor-item span,
+.master-monitor-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manager-monitor-item .admin-status-badge,
+.master-monitor-item .admin-status-badge,
+.admin-role-badge,
+.admin-status-badge,
+.admin-relation-badge,
+.admin-control-note {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-monitor-table-wrap {
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto !important;
+  overflow-y: auto;
+  border-radius: 16px !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.full-table-page .admin-monitor-table-wrap {
+  max-height: min(70vh, calc(100vh - 250px)) !important;
+}
+
+.admin-monitor-table {
+  width: 100%;
+  min-width: 980px !important;
+  table-layout: fixed;
+}
+
+.admin-monitor-table th,
+.admin-monitor-table td {
+  padding: 0.82rem 0.9rem !important;
+  line-height: 1.25;
+}
+
+.admin-monitor-table th {
+  white-space: nowrap;
+}
+
+.admin-monitor-table td,
+.admin-monitor-table td strong,
+.admin-monitor-table td small {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .admin-monitor-page.native-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-header.native-command-hero:first-child {
+    width: calc(100% - 130px) !important;
+    margin-right: 130px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-monitor-page.native-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-header.native-command-hero:first-child {
+    width: 100% !important;
+    margin-right: 0 !important;
+    padding-right: 5rem !important;
+  }
+}
+
+/* Phase 12E — Manager operations floating header fix.
+   This override must live in the global console stylesheet because /admin first paint
+   should not depend on a hydrated client component style tag. */
+.manager-ops-console .admin-monitor-main[data-console-header-grid="true"] {
+  --console-account-dock: clamp(92px, 8vw, 118px);
+  --manager-floating-radius: 24px;
+  --manager-floating-border: rgba(203, 213, 225, 0.78);
+  --manager-floating-shadow: 0 18px 45px rgba(15, 23, 42, 0.085), 0 2px 8px rgba(15, 23, 42, 0.045);
+  --manager-floating-shadow-hover: 0 26px 68px rgba(15, 23, 42, 0.13), 0 8px 18px rgba(15, 23, 42, 0.06);
+  grid-template-columns: minmax(0, 1fr) var(--console-account-dock) !important;
+  gap: clamp(0.85rem, 1.35vw, 1.1rem) !important;
+  align-items: stretch !important;
+}
+
+.admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-main.native-console-main {
+  padding-top: var(--console-main-pad-y) !important;
+}
+
+.admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-header.native-command-hero:first-child,
+.admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header.native-command-hero:first-of-type {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: auto !important;
+  min-height: clamp(136px, 13vw, 160px) !important;
+  margin: 0 0 var(--console-row-gap, 1rem) 0 !important;
+  display: grid !important;
+  align-items: center !important;
+  border-radius: var(--manager-floating-radius) !important;
+  border-color: var(--manager-floating-border) !important;
+  box-shadow: var(--manager-floating-shadow) !important;
+  animation: managerFloatIn 420ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) [data-manager-account-menu="true"],
+.admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .manager-header-account-dock[data-manager-account-menu="true"] {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: clamp(136px, 13vw, 160px) !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  align-self: stretch !important;
+  border-radius: var(--manager-floating-radius) !important;
+  border: 1px solid var(--manager-floating-border) !important;
+  box-shadow: var(--manager-floating-shadow) !important;
+  animation: managerFloatIn 460ms cubic-bezier(.2, .8, .2, 1) 60ms both;
+}
+
+.admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) [data-manager-account-menu="true"]::before {
+  display: none !important;
+}
+
+.manager-ops-console .manager-header-account-avatar {
+  width: clamp(54px, 4.8vw, 68px) !important;
+  height: clamp(54px, 4.8vw, 68px) !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease !important;
+}
+
+.manager-ops-console .manager-header-account-avatar:hover {
+  transform: translateY(-2px) scale(1.025) !important;
+}
+
+.manager-ops-console .admin-monitor-stats,
+.manager-ops-console .admin-power-grid,
+.manager-ops-console .admin-feedback-card,
+.manager-ops-console .admin-monitor-card {
+  animation: managerFloatIn 460ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.manager-ops-console .admin-monitor-stats {
+  animation-delay: 90ms;
+}
+
+.manager-ops-console .admin-power-grid {
+  animation-delay: 150ms;
+}
+
+.manager-ops-console .admin-monitor-stats article,
+.manager-ops-console .admin-monitor-card,
+.manager-ops-console .native-operation-card {
+  border-color: var(--manager-floating-border) !important;
+  border-radius: var(--manager-floating-radius) !important;
+  box-shadow: var(--manager-floating-shadow) !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease !important;
+}
+
+.manager-ops-console .admin-monitor-stats article:hover,
+.manager-ops-console .admin-monitor-card:hover,
+.manager-ops-console .native-operation-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(148, 163, 184, 0.92) !important;
+  box-shadow: var(--manager-floating-shadow-hover) !important;
+}
+
+@keyframes managerFloatIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 1100px) {
+  .manager-ops-console .admin-monitor-main[data-console-header-grid="true"] {
+    --console-account-dock: 86px;
+  }
+}
+
+@media (max-width: 760px) {
+  .manager-ops-console .admin-monitor-main[data-console-header-grid="true"] {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-header.native-command-hero:first-child,
+  .admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .admin-monitor-main[data-console-header-grid="true"] > .admin-monitor-header.native-command-hero:first-of-type {
+    grid-column: 1 / -1 !important;
+    padding-right: 5.25rem !important;
+  }
+
+  .admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) [data-manager-account-menu="true"],
+  .admin-monitor-page.native-console.manager-ops-console:has([data-manager-account-layout="header-75-25-avatar-only"]) .manager-header-account-dock[data-manager-account-menu="true"] {
+    grid-column: 2 !important;
+    width: auto !important;
+    min-height: auto !important;
+    padding: 0.45rem !important;
+    align-self: start !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manager-ops-console .admin-monitor-header,
+  .manager-ops-console .manager-header-account-dock,
+  .manager-ops-console .admin-monitor-stats,
+  .manager-ops-console .admin-power-grid,
+  .manager-ops-console .admin-monitor-card,
+  .manager-ops-console .admin-monitor-stats article,
+  .manager-ops-console .native-operation-card,
+  .manager-ops-console .manager-header-account-avatar {
+    animation: none !important;
+    transition: none !important;
+  }
+}

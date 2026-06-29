@@ -1,0 +1,2 @@
+/* Compact account popover override. */
+.manager-account-popover{width:min(320px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:min(500px,calc(100dvh - 28px))!important;overflow:auto!important;padding:12px!important;border-radius:20px!important}.manager-account-avatar-large{width:54px!important;height:54px!important;font-size:28px!important}.client-menu-popover{width:min(280px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;padding:10px!important;border-radius:18px!important}

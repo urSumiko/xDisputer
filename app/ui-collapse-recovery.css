@@ -1,0 +1,431 @@
+/* UI Collapse Recovery Layer
+   Imported last on purpose. This file fixes layout collisions caused by older focused CSS layers
+   overriding newer responsive contracts. It does not change business logic. */
+
+:root {
+  --ui-recovery-content-max: 1320px;
+  --ui-recovery-card-radius: 24px;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Shared overflow hardening for screenshots showing horizontal bleed, clipped headers, and collapsed sidebars. */
+.app-shell,
+.admin-monitor-page,
+.native-console,
+.client-shell,
+.workspace-shell,
+.main-area,
+.admin-monitor-main,
+.native-console-main,
+.panel,
+.admin-monitor-card,
+.source-progressive-workspace,
+.templates-progressive-workspace,
+.client-template-runtime,
+.template-workspace-hub {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Source Data stage header: prevent the Generate button from clipping against the right edge. */
+.source-progressive-command,
+.simplified-source-command,
+.template-stage-command,
+.template-selected-command,
+.supporting-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: clamp(0.75rem, 1.4vw, 1.25rem) !important;
+}
+
+.source-progressive-heading,
+.template-stage-heading,
+.template-selected-identity,
+.source-progressive-heading h2,
+.template-stage-heading h2,
+.template-selected-identity h2 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.source-command-actions,
+.source-stage-actions,
+.template-selected-actions {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+}
+
+.source-stage-actions .action-button,
+.source-stage-actions .secondary-button,
+.source-command-actions .action-button,
+.source-command-actions .secondary-button,
+.template-selected-actions button,
+.template-selected-actions a {
+  max-width: min(100%, 280px) !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+  text-align: center !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.15 !important;
+}
+
+/* Evidence editor canonical layout: Evidence files | Preview | Controls.
+   This intentionally overrides supporting-editor-balanced-stage.css, which collapsed Evidence Files. */
+.source-supporting-embedded,
+.required-supporting-embedded,
+.progressive-supporting,
+.supporting-disclosure,
+.layout-disclosure,
+.support-layout-editor.professional-evidence-editor,
+.support-layout-editor.word-crop-editor {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.support-layout-grid.word-crop-grid {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 260px) minmax(460px, 650px) minmax(270px, 300px) !important;
+  grid-template-areas: "evidence preview controls" !important;
+  align-items: start !important;
+  justify-content: center !important;
+  gap: clamp(0.85rem, 1.2vw, 1.15rem) !important;
+  width: min(100%, 1260px) !important;
+  margin-inline: auto !important;
+  overflow: visible !important;
+}
+
+.word-left-evidence-manager {
+  grid-area: evidence !important;
+  width: 100% !important;
+  max-width: 260px !important;
+  min-width: 0 !important;
+  align-self: start !important;
+  justify-self: stretch !important;
+  position: sticky !important;
+  top: 1rem !important;
+  overflow: visible !important;
+}
+
+.support-page-frame {
+  grid-area: preview !important;
+  justify-self: center !important;
+  width: min(100%, 650px) !important;
+  max-width: 650px !important;
+  min-width: 0 !important;
+}
+
+.word-crop-controls,
+.support-layout-controls.word-crop-controls {
+  grid-area: controls !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  max-width: 300px !important;
+  min-width: 0 !important;
+}
+
+.support-page-canvas {
+  width: min(100%, 520px) !important;
+  margin-inline: auto !important;
+}
+
+.evidence-panel-v2,
+.evidence-list-v2,
+.evidence-card-v2,
+.evidence-card-select-v2,
+.evidence-meta-v2,
+.evidence-actions-v2 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.word-left-evidence-manager .evidence-list-v2 {
+  display: grid !important;
+  gap: 0.55rem !important;
+  max-height: min(48vh, 430px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.word-left-evidence-manager .evidence-card-v2 {
+  overflow: hidden !important;
+}
+
+.word-left-evidence-manager .evidence-meta-v2 strong,
+.word-left-evidence-manager .evidence-meta-v2 small {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.word-left-evidence-manager .evidence-actions-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.35rem !important;
+}
+
+.word-left-evidence-manager .evidence-actions-v2 button {
+  min-width: 0 !important;
+  padding-inline: 0.35rem !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.word-left-evidence-manager .evidence-upload-card-v2 {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.word-left-evidence-manager .evidence-upload-button-v2 {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Master/manager console sidebars: stop logo/title and switch cards from collapsing or overflowing. */
+.admin-monitor-sidebar.native-console-sidebar,
+.app-shell > .sidebar {
+  overflow-x: hidden !important;
+}
+
+.admin-monitor-brand,
+.app-shell .brand {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.admin-monitor-brand div,
+.app-shell .brand div,
+.admin-monitor-brand strong,
+.admin-monitor-brand small,
+.app-shell .brand strong,
+.app-shell .brand small {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.admin-monitor-sidebar nav a,
+.admin-monitor-sidebar nav button,
+.app-shell .sidebar nav button,
+.console-sidebar-mode-switch,
+.workspace-account-card {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.console-sidebar-mode-switch {
+  display: grid !important;
+  gap: 0.75rem !important;
+}
+
+.console-sidebar-mode-switch div,
+.console-sidebar-mode-switch strong,
+.console-sidebar-mode-switch small,
+.console-sidebar-mode-switch span {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Master directory: one dataset card with filter controls inside it, no giant duplicate blue header tab. */
+.directory-hero-with-action {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: clamp(0.9rem, 1.6vw, 1.5rem) !important;
+}
+
+.directory-hero-with-action > div {
+  min-width: 0 !important;
+}
+
+.directory-header-action {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 220px !important;
+  min-height: 44px !important;
+  padding: 0.65rem 1rem !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-self: end !important;
+  background: #0f172a !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  white-space: normal !important;
+  text-align: center !important;
+  text-decoration: none !important;
+}
+
+.single-header-dataset,
+.single-header-dataset .admin-monitor-card,
+.native-operation-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.directory-filter-form {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, 320px) auto auto minmax(0, 1fr) !important;
+  align-items: end !important;
+  gap: 0.75rem !important;
+  margin: 0 0 1rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.75) !important;
+}
+
+.directory-filter-form label {
+  display: grid !important;
+  gap: 0.35rem !important;
+  min-width: 0 !important;
+}
+
+.directory-filter-form input {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.directory-filter-form .admin-action-button,
+.directory-pager .admin-action-button {
+  white-space: nowrap !important;
+}
+
+.directory-pager {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+}
+
+.directory-pager > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  justify-content: flex-end !important;
+}
+
+/* Generic table/list containment for datasets that were pushing page width. */
+.admin-monitor-card table,
+.admin-monitor-card .table-scroll,
+.admin-monitor-card [data-table-scroll='true'],
+.master-access-stack table {
+  max-width: 100% !important;
+}
+
+/* Responsive fallback: stack without compressing cards into unreadable columns. */
+@media (max-width: 1240px) {
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(270px, 320px) !important;
+    grid-template-areas:
+      "preview controls"
+      "evidence evidence" !important;
+    width: 100% !important;
+  }
+
+  .word-left-evidence-manager {
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .word-left-evidence-manager .evidence-panel-v2 {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .source-progressive-command,
+  .simplified-source-command,
+  .template-stage-command,
+  .template-selected-command,
+  .directory-hero-with-action {
+    grid-template-columns: 1fr !important;
+  }
+
+  .source-command-actions,
+  .source-stage-actions,
+  .template-selected-actions,
+  .directory-header-action {
+    justify-self: stretch !important;
+    justify-content: stretch !important;
+  }
+
+  .source-stage-actions .action-button,
+  .source-stage-actions .secondary-button,
+  .source-command-actions .action-button,
+  .source-command-actions .secondary-button,
+  .template-selected-actions button,
+  .template-selected-actions a,
+  .directory-header-action {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .support-layout-grid.word-crop-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "preview"
+      "controls"
+      "evidence" !important;
+  }
+
+  .support-page-frame,
+  .word-crop-controls,
+  .support-layout-controls.word-crop-controls,
+  .word-left-evidence-manager {
+    justify-self: stretch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .directory-filter-form {
+    grid-template-columns: 1fr auto auto !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .word-left-evidence-manager .evidence-panel-v2,
+  .directory-filter-form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .directory-filter-form .admin-action-button,
+  .directory-pager .admin-action-button {
+    width: 100% !important;
+  }
+
+  .directory-pager,
+  .directory-pager > div {
+    justify-content: stretch !important;
+  }
+}

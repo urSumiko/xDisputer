@@ -1,0 +1,37 @@
+/* Client payroll profile flow.
+   Output-based profile forces per-output invisibly. Full-time profile keeps per-output optional. */
+
+:root {
+  --client-payroll-profile-contract: output-based-forces-per-output-full-time-optional;
+  --client-output-based-card-visibility: hidden-because-per-output-is-default;
+}
+
+.client-per-output-intent-card {
+  display: none !important;
+}
+
+body[data-client-payroll-employment-type="full_time"] .client-per-output-intent-card,
+.client-per-output-intent-card.optional {
+  display: grid !important;
+}
+
+.client-per-output-intent-card.locked,
+body[data-client-payroll-employment-type="output_based"] .client-per-output-intent-card {
+  display: none !important;
+}
+
+.client-output-mode-chip,
+.client-per-output-intent-card.optional label,
+body[data-client-payroll-employment-type="full_time"] .client-per-output-intent-card label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .55rem !important;
+  padding: .65rem .85rem !important;
+  border-radius: 999px !important;
+  color: #1d4ed8 !important;
+  background: #dbeafe !important;
+  border: 1px solid rgba(147, 197, 253, .95) !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
