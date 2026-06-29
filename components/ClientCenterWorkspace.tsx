@@ -33,7 +33,7 @@ export default function ClientCenterWorkspace({ cases, filings, activeCaseId, ou
   const readyItems = filings.filter((record) => record.status === 'PDF_READY');
   const completedItems = filings.filter((record) => record.status === 'SENT');
   const reviewReady = cases.filter((record) => record.status === 'REVIEW_READY' || record.status === 'PDF_READY');
-  const title = readyItems.length ? `${readyItems.length} final item${readyItems.length === 1 ? '' : 's'} ready` : outputsAvailable ? 'Generated package is ready' : activeCase ? `${activeCase.clientName} is in progress` : 'No active client packet yet';
+  const title = readyItems.length ? `${readyItems.length} final item${readyItems.length === 1 ? '' : 's'} ready` : outputsAvailable ? 'Generated package is ready' : activeCase ? `${activeCase.clientName} is in progress` : 'No active case packet yet';
   const copy = readyItems.length
     ? 'Open outputs, download the final package, then update your local handoff record.'
     : outputsAvailable
@@ -51,7 +51,7 @@ export default function ClientCenterWorkspace({ cases, filings, activeCaseId, ou
   return <section className="client-center-workspace operations-workspace saas-dashboard-shell">
     <section className="panel client-center-hero saas-panel">
       <div>
-        <p className="eyebrow">Client Center</p>
+        <p className="eyebrow">Case Center</p>
         <h2>{title}</h2>
         <p>{copy}</p>
         <div className="client-center-actions">
@@ -59,7 +59,7 @@ export default function ClientCenterWorkspace({ cases, filings, activeCaseId, ou
           <button type="button" className="secondary-button" onClick={onOpenTemplates}>Templates</button>
         </div>
       </div>
-      <div className="client-center-readiness" aria-label="Client workspace summary">
+      <div className="client-center-readiness" aria-label="Case workspace summary">
         <span><strong>{cases.length}</strong><small>Cases</small></span>
         <span><strong>{reviewReady.length}</strong><small>Ready review</small></span>
         <span><strong>{readyItems.length}</strong><small>Final items</small></span>
