@@ -6,8 +6,12 @@ const strictEnv = process.argv.includes('--strict-env');
 
 const requiredRuntimeEnv = [
   'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'NEXT_PUBLIC_SITE_URL'
+];
+
+const publicSupabaseKeyEnv = [
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
 ];
 
 const expectedPackageScripts = [
@@ -21,7 +25,7 @@ const expectedPackageScripts = [
 const sourceContracts = [
   {
     path: 'docs/active-context-binding.md',
-    contains: ['Arisu-art/xDisputer', 'Supabase target', 'access_workspace_attention_queue_v1']
+    contains: ['urSumiko/xDisputer', 'Supabase target', 'access_workspace_attention_queue_v1']
   },
   {
     path: 'docs/xdisputer-connection-validation.sql',
@@ -70,14 +74,18 @@ function warn(message) {
   console.warn(`WARN: ${message}`);
 }
 
+function hasEnvAssignment(text, key) {
+  return new RegExp(`^${key}=.+`, 'm').test(text);
+}
+
 console.log('\n=== xDisputer Supabase connection doctor ===');
 
 const remote = runText('git remote get-url origin');
 if (remote) {
-  if (/Arisu-art\/xDisputer(?:\.git)?$/i.test(remote)) {
-    ok(`Git remote is bound to Arisu-art/xDisputer (${remote})`);
+  if (/urSumiko\/xDisputer(?:\.git)?$/i.test(remote)) {
+    ok(`Git remote is bound to urSumiko/xDisputer (${remote})`);
   } else {
-    fail(`Git remote is not Arisu-art/xDisputer: ${remote}`);
+    fail(`Git remote is not urSumiko/xDisputer: ${remote}`);
   }
 } else {
   warn('Git remote could not be read in this shell.');
@@ -124,7 +132,10 @@ if (!readableEnvFiles.length) {
 } else {
   for (const file of readableEnvFiles) {
     const text = read(file);
-    const missing = requiredRuntimeEnv.filter((key) => !new RegExp(`^${key}=.+`, 'm').test(text));
+    const missing = requiredRuntimeEnv.filter((key) => !hasEnvAssignment(text, key));
+    const hasPublicSupabaseKey = publicSupabaseKeyEnv.some((key) => hasEnvAssignment(text, key));
+    if (!hasPublicSupabaseKey) missing.push(publicSupabaseKeyEnv.join(' or '));
+
     if (missing.length) {
       const message = `${file} missing runtime env: ${missing.join(', ')}`;
       if (strictEnv && file !== '.env.example') fail(message);
