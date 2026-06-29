@@ -7,12 +7,13 @@ import { bureauInfo, type Bureau } from './letter-engine';
 import { createSupportingDocumentsPdf } from './packet-renderer';
 import type { Round } from './reference-store';
 import { readTemplateExhibit } from './template-exhibits';
+import { isFtcEnabled } from './workflow-framework';
 
 type PacketType = 'DISPUTE' | 'LATE_PAYMENT';
 export type PacketRoute = { type: PacketType; bureau: string };
 
 function safe(value: string) {
-  return value.replace(/[\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+  return value.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
 }
 
 function findDocument(docs: ReviewOutput[], route: PacketRoute, role: 'LETTER' | 'AFFIDAVIT' | 'FTC') {
@@ -26,7 +27,7 @@ function findDocument(docs: ReviewOutput[], route: PacketRoute, role: 'LETTER' |
 /**
  * Writes the complete ordered component package for each generated route.
  * DOCX files remain editable; PDFs are inserted unchanged in filing position.
- * FTC Identity Theft Report is generated from source data and inserted into dispute packets.
+ * FTC remains available behind the FTC feature flag and is excluded while disabled.
  */
 export async function addOrderedPacketFolders(
   zip: JSZip,
@@ -57,12 +58,6 @@ export async function addOrderedPacketFolders(
   for (const route of routes) {
     const title = route.type === 'DISPUTE' ? 'Dispute Letter' : 'Late Payment Letter';
 
-    /*
-      Folder policy:
-      - If only dispute letters are generated, do not add a top-level packet folder.
-      - If both dispute and late payment are generated, group by letter type.
-      - Use "Dispute Letter", never "Dispute Packet".
-    */
     const group = hasLatePayment ? `${title}/` : '';
     const folder = `${group}${client} ${route.bureau}/`;
 
@@ -83,9 +78,11 @@ export async function addOrderedPacketFolders(
       if (!affidavit) throw new Error('Required component missing: 05 Affidavit.docx was not generated.');
       zip.file(`${folder}05 Affidavit.docx`, await assertGeneratedDocx(affidavit.blob, 'Affidavit', [clientName]));
 
-      const ftc = findDocument(docs, route, 'FTC');
-      if (!ftc) throw new Error('Required component missing: 06 FTC Identity Theft Report.docx was not generated.');
-      zip.file(`${folder}06 FTC Identity Theft Report.docx`, await assertGeneratedDocx(ftc.blob, 'FTC Identity Theft Report', []));
+      if (isFtcEnabled()) {
+        const ftc = findDocument(docs, route, 'FTC');
+        if (!ftc) throw new Error('Required component missing: 06 FTC Identity Theft Report.docx was not generated.');
+        zip.file(`${folder}06 FTC Identity Theft Report.docx`, await assertGeneratedDocx(ftc.blob, 'FTC Identity Theft Report', []));
+      }
     }
   }
 }
