@@ -42,18 +42,6 @@ function roleLabel(role: ConsoleRole, mode: ConsoleMode) {
   return mode === 'workspace' ? 'Manager workspace account' : 'Manager operations account';
 }
 
-function surfaceLabel(role: ConsoleRole, mode: ConsoleMode) {
-  if (role === 'client') return 'Disputer packet workspace';
-  if (role === 'master') return mode === 'workspace' ? 'Workspace control' : 'Governance monitoring';
-  return mode === 'workspace' ? 'Workspace authoring' : 'Operations monitoring';
-}
-
-function roleDisplayLabel(role: ConsoleRole) {
-  if (role === 'client') return 'Disputer';
-  if (role === 'master') return 'Master';
-  return 'Manager';
-}
-
 function displayNameFromUrl() {
   if (typeof window === 'undefined') return '';
   const params = new URLSearchParams(window.location.search);
@@ -102,14 +90,9 @@ export default function AccountMenu({ role, mode, email, displayName, accountLab
   return <div ref={rootRef} className="manager-header-account-dock" data-console-component="AccountMenu" data-console-account-menu="true" data-console-account-role={role} data-console-mode={mode} data-manager-account-menu="true" data-manager-account-anchor="header-ratio-grid" data-manager-account-layout="compact-sticky-bell-avatar-row" data-manager-account-state={open ? 'open' : 'closed'} data-manager-account-popover-align="same-rail">
     <NotificationDock />
     <button type="button" className="manager-header-account-avatar" aria-haspopup="dialog" aria-expanded={open} aria-controls={popoverId} aria-label={`Open ${accountLabel} account settings`} onClick={() => setOpen((value) => !value)}>{initial}</button>
-    {open ? <div id={popoverId} className="manager-account-popover" data-console-account-popover="true" data-manager-account-popover="true" data-manager-account-popover-align="same-rail" role="dialog" aria-label={`${accountLabel} settings`}>
-      <div className="manager-account-popover-topline"><span>{email || accountLabel}</span><button type="button" className="manager-account-close" aria-label="Close account settings" onClick={() => setOpen(false)}>×</button></div>
-      <section className="manager-account-identity-panel"><div className="manager-account-avatar-large" aria-hidden="true">{initial}</div><h2>{resolvedDisplayName}</h2><p>{roleLabel(role, mode)}</p></section>
-      <section className="manager-account-function-panel" aria-label="Current account context">
-        <div><strong>Current area</strong><span>{surfaceLabel(role, mode)}</span></div>
-        <div><strong>Workspace role</strong><span>{roleDisplayLabel(role)}</span></div>
-        <div><strong>Account email</strong><span>{email || 'Not available'}</span></div>
-      </section>
+    {open ? <div id={popoverId} className="manager-account-popover manager-account-popover-clean" data-console-account-popover="true" data-manager-account-popover="true" data-manager-account-popover-align="same-rail" role="dialog" aria-label={`${accountLabel} settings`}>
+      <div className="manager-account-popover-topline"><span>Account settings</span><button type="button" className="manager-account-close" aria-label="Close account settings" onClick={() => setOpen(false)}>×</button></div>
+      <section className="manager-account-identity-panel"><div className="manager-account-avatar-large" aria-hidden="true">{initial}</div><h2>{resolvedDisplayName}</h2><p>{roleLabel(role, mode)}</p>{email ? <small className="manager-account-email-inline">{email}</small> : null}</section>
       <form className="manager-account-settings-form" action="/api/account/profile" method="post">
         <input type="hidden" name="next" value={safeNext} />
         <label><span>Display name</span><input name="full_name" defaultValue={resolvedDisplayName} maxLength={120} placeholder="Account display name" /></label>
