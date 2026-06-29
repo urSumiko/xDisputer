@@ -75,6 +75,8 @@ function placeholders(ctx: MappedAppendixContext): PlaceholderValues {
     affiant_name: s.name,
     declarant_name: s.name,
     consumer_signature_name: s.name,
+    affiant_printed_name: s.name,
+    signer_name: s.name,
     consumer_first_name: s.firstName,
     consumer_middle_name: ctx.kind === 'FTC' ? '' : s.middleName,
     consumer_last_name: s.lastName,
@@ -121,8 +123,11 @@ function allMatches(root: Element, pattern: RegExp, value: string) { Array.from(
 function styledRun(root: Element) { return nodes(root, 'r').find((run) => text(run)) || nodes(root, 'r')[0]; }
 function lines(paragraph: Element, values: string[]) { const doc = paragraph.ownerDocument, source = styledRun(paragraph) || doc.createElementNS(W, 'w:r'); Array.from(paragraph.children).forEach((node) => { if (!(node.namespaceURI === W && node.localName === 'pPr')) paragraph.removeChild(node); }); values.forEach((value, index) => { const run = source.cloneNode(true) as Element; Array.from(run.children).forEach((node) => { if (!(node.namespaceURI === W && node.localName === 'rPr')) run.removeChild(node); }); if (index) run.appendChild(doc.createElementNS(W, 'w:br')); const textNode = doc.createElementNS(W, 'w:t'); put(textNode, value); run.appendChild(textNode); paragraph.appendChild(run); }); }
 function cloneParagraphLike(source: Element, values: string[]) { const paragraph = source.cloneNode(true) as Element; lines(paragraph, values); return paragraph; }
+function cloneOneParagraphPerValue(source: Element, values: string[]) { return values.map((value) => cloneParagraphLike(source, [value])); }
 function insertAfter(reference: Element, node: Element) { reference.parentNode?.insertBefore(node, reference.nextSibling); }
-function boundaryParagraph(value: string) { return /^\s*(?:I\s+declare|\d+\.\s*Request|Request\s+for\s+Action|\d+\.\s*Oath|Oath\s+and\s+Signature|Sincerely|Date\s*:)/i.test(value); }
+function insertManyAfter(reference: Element, items: Element[]) { items.slice().reverse().forEach((item) => insertAfter(reference, item)); }
+function replaceParagraphWithMany(reference: Element, items: Element[]) { const parent = reference.parentNode; if (!parent) return; items.forEach((item) => parent.insertBefore(item, reference)); parent.removeChild(reference); }
+function boundaryParagraph(value: string) { return /^\s*(?:I\s+declare|\d+\.\s*Request|Request\s+for\s+Action|\d+\.\s*Oath|Oath\s+and\s+Signature|Sincerely|Respectfully|Date\s*:)/i.test(value); }
 function accountLinesForAffidavit(source: ParsedSource) { return affidavitItems(source).map((item) => item.account_line || item.display_text).filter(Boolean); }
 function normalizeSecurityNumberFormatting(paragraph: Element, ssn: string) { const safeSsn = ssn.replace(/-/g, '‑'); allMatches(paragraph, /Security\s+num\s*[-‐-‒–—]\s*ber/gi, 'Security number'); allMatches(paragraph, /(?:X{3}|\d{3})[-‐-‒–—](?:X{2}|\d{2})[-‐-‒–—](?:X{4}|\d{4})/gi, safeSsn); }
 function accountPlaceholderPattern() { return /\{\{\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*\}\}|\[\[\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*\]\]|«\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*»/i; }
@@ -130,7 +135,24 @@ function rowValue(row: RenderRow, alias: string) { const key = alias.replace(/[{
 function replaceAccountTokens(paragraph: Element, row: RenderRow) { const pattern = /\{\{\s*([^{}]+?)\s*\}\}|\[\[\s*([^\[\]]+?)\s*\]\]|«\s*([^«»]+?)\s*»/g; Array.from(raw(paragraph).matchAll(pattern)).reverse().forEach((match) => { const alias = String(match[1] || match[2] || match[3] || '').trim(); if (!/^(?:account[._\s-]?)?(?:name|number|no\.?|#|line)$|^display_text$/i.test(alias)) return; if (typeof match.index === 'number') replaceRange(paragraph, match.index, match.index + match[0].length, rowValue(row, alias)); }); }
 function cloneAccountPrototype(prototype: Element, rows: RenderRow[]) { return rows.map((row) => { const paragraph = prototype.cloneNode(true) as Element; replaceAccountTokens(paragraph, row); if (accountPlaceholderPattern().test(raw(paragraph))) lines(paragraph, [row.account_line || row.display_text]); return paragraph; }); }
 function documentHasRenderedAccountData(root: Element, accountRows: RenderRow[]) { const value = raw(root).toUpperCase(); return accountRows.some((row) => [row.account_name, row.account_number, row.account_line].filter(Boolean).some((item) => value.includes(item.toUpperCase()))); }
-function patchSignatureName(paragraphsList: Element[], name: string) { const signatureAliases = ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'consumer_name', 'client_name']; paragraphsList.forEach((paragraph) => signatureAliases.forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name))); const exact = paragraphsList.find((p) => text(p).toUpperCase() === name.toUpperCase() || /^JAZZMINE\s+LAMBERT$/i.test(text(p))); if (exact) lines(exact, [name]); const tail = paragraphsList.slice(Math.max(0, paragraphsList.length - 12)); const candidate = tail.find((p) => /^[A-Z][A-Z\s.'-]{3,}$/.test(text(p)) && !/(STATE|COUNTY|ACCOUNT|INFORMATION|REQUEST|OATH|DATE|SIGNATURE)/i.test(text(p))); if (candidate) lines(candidate, [name]); }
+function replaceSignatureAliases(paragraph: Element, name: string) { ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'affiant_printed_name', 'signer_name', 'consumer_name', 'client_name'].forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name)); }
+function looksLikeStandaloneName(value: string) { return /^[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){1,4}$/.test(value) && !/(STATE|COUNTY|ACCOUNT|INFORMATION|REQUEST|OATH|DATE|SIGNATURE|SINCERELY|RESPECTFULLY|CONSUMER|SOCIAL|SECURITY)/i.test(value); }
+function patchSignatureName(paragraphsList: Element[], name: string) {
+  paragraphsList.forEach((paragraph) => replaceSignatureAliases(paragraph, name));
+  const exact = paragraphsList.find((p) => text(p).toUpperCase() === name.toUpperCase() || /^JAZZMINE\s+LAMBERT$/i.test(text(p)));
+  if (exact) { lines(exact, [name]); return true; }
+
+  const closingIndex = paragraphsList.map((p) => text(p)).findLastIndex((value) => /^(?:Sincerely|Respectfully|Regards|Signed)\s*,?$/i.test(value));
+  if (closingIndex >= 0) {
+    const candidate = paragraphsList.slice(closingIndex + 1, Math.min(paragraphsList.length, closingIndex + 6)).find((paragraph) => text(paragraph) && !/^Date\s*:/i.test(text(paragraph)));
+    if (candidate) { lines(candidate, [name]); return true; }
+  }
+
+  const tail = paragraphsList.slice(Math.max(0, paragraphsList.length - 18));
+  const candidate = tail.find((p) => looksLikeStandaloneName(text(p)));
+  if (candidate) { lines(candidate, [name]); return true; }
+  return false;
+}
 async function open(file: Blob, label: string, options: AppendixRenderOptions): Promise<Opened> { await checkpoint(options, `Opening ${label} template`, 0, 3); const zip = new PizZip(await file.arrayBuffer()); await checkpoint(options, `Reading ${label} document XML`, 1, 3); const xmlFile = zip.file('word/document.xml'); if (!xmlFile) throw new Error(`${label} DOCX document XML is unavailable.`); const xmlText = xmlFile.asText(), xml = new DOMParser().parseFromString(xmlText, 'application/xml'), body = xml.getElementsByTagNameNS(W, 'body')[0]; if (!body) throw new Error(`${label} DOCX body is unavailable.`); await checkpoint(options, `Template loaded: ${label}`, 2, 3); return { zip, xmlText, xml, body }; }
 async function save(opened: Opened, options: AppendixRenderOptions) { await checkpoint(options, 'Serializing DOCX output', 0, 2); opened.zip.file('word/document.xml', new XMLSerializer().serializeToString(opened.xml)); await checkpoint(options, 'Compressing DOCX output', 1, 2); assertActive(options); return hardenGeneratedDocx(opened.zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'STORE' })); }
 
@@ -146,7 +168,7 @@ async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, op
   if (opening) { captured(opening, /^(I,\s*)(.*?)(\s+residing\s+at\s+)/i, 2, s.name.toUpperCase()); captured(opening, /(\s+residing\s+at\s+)(.*?)(\s+being\s+duly)/i, 2, street); }
   if (personal) { captured(personal, /(current\s+address\s+is\s+)(.*?)(\.\s*My\s+(?:Social\s+)?Security)/i, 2, street); captured(personal, /((?:Social\s+)?Security\s+number\s+is\s*)(.*)$/i, 2, s.ssn); normalizeSecurityNumberFormatting(personal, s.ssn); }
   const accountRows = affidavitItems(s);
-  const accountLines = accountRows.map((item) => item.account_line || item.display_text).filter(Boolean);
+  const accountLines = accountLinesForAffidavit(s);
   if (!accountLines.length) throw new Error('Affidavit account section cannot render because no dispute accounts were found in Source Data.');
   const accountAlreadyRendered = mode === 'repair-only' && documentHasRenderedAccountData(opened.body, accountRows);
   if (!accountAlreadyRendered) {
@@ -159,17 +181,14 @@ async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, op
         if (boundaryParagraph(value)) break;
         existingAccountParagraphs.push(paragraph);
       }
-      const prototype = existingAccountParagraphs.find((paragraph) => text(paragraph) || accountPlaceholderPattern().test(raw(paragraph))) || heading;
+      const prototype = existingAccountParagraphs.find((paragraph) => accountPlaceholderPattern().test(raw(paragraph)) || text(paragraph)) || heading;
+      const rendered = accountPlaceholderPattern().test(raw(prototype)) ? cloneAccountPrototype(prototype, accountRows) : cloneOneParagraphPerValue(prototype, accountLines);
       existingAccountParagraphs.forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
-      const rendered = accountPlaceholderPattern().test(raw(prototype)) ? cloneAccountPrototype(prototype, accountRows) : [cloneParagraphLike(prototype, accountLines)];
-      rendered.reverse().forEach((paragraph) => insertAfter(heading, paragraph));
+      insertManyAfter(heading, rendered);
     } else {
       const anchor = all.find((p) => /Account\s+Name\s*[-–—]\s*Account\s*(?:Number|#)/i.test(raw(p)) || accountPlaceholderPattern().test(raw(p)));
-      if (anchor && accountPlaceholderPattern().test(raw(anchor))) {
-        const rendered = cloneAccountPrototype(anchor, accountRows);
-        anchor.parentNode?.removeChild(anchor);
-        rendered.reverse().forEach((paragraph) => insertAfter(all[0], paragraph));
-      } else if (anchor) lines(anchor, accountLines);
+      if (anchor && accountPlaceholderPattern().test(raw(anchor))) replaceParagraphWithMany(anchor, cloneAccountPrototype(anchor, accountRows));
+      else if (anchor) replaceParagraphWithMany(anchor, cloneOneParagraphPerValue(anchor, accountLines));
       else throw new Error('Affidavit template is missing an Account Information section or Account Name - Account number anchor.');
     }
   }
@@ -179,7 +198,7 @@ async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, op
     allMatches(paragraph, /\{\{\s*accounts\.lines\s*\}\}/gi, accountLines.join('\n'));
   });
   patchSignatureName(paragraphs(opened.body), s.name);
-  const date = all.find((p) => /^Date\s*:/i.test(text(p)));
+  const date = topParagraphs(opened.body).find((p) => /^Date\s*:/i.test(text(p)));
   if (date) captured(date, /^(Date\s*:\s*)(.*)$/i, 2, ctx.documentDate);
   await checkpoint(options, 'Affidavit account anchors mapped in-place', 4, 4);
   return save(opened, options);
@@ -193,7 +212,7 @@ async function ftc(ctx: MappedAppendixContext, opened: Opened, options: Appendix
   const values = placeholders(ctx);
   paragraphs(opened.body).forEach((paragraph) => {
     Object.entries(values).forEach(([key, value]) => {
-      if (typeof value === 'string') allMatches(paragraph, new RegExp(`\{\{\s*${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\s*\}\}`, 'gi'), value);
+      if (typeof value === 'string') allMatches(paragraph, new RegExp(`\\{\\{\\s*${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\}\\}`, 'gi'), value);
     });
   });
   return save(opened, options);
