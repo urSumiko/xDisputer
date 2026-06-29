@@ -14,6 +14,10 @@ export type NotificationApiPayload = {
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
+function isMissingRpcError(message: string | null | undefined) {
+  return /could not find the function|function .* does not exist|schema cache/i.test(message || '');
+}
+
 async function syncRecentManagerGeneratedOutput(supabase: SupabaseServerClient, managerId: string, role: string) {
   if (role !== 'manager') return null;
 
@@ -22,15 +26,16 @@ async function syncRecentManagerGeneratedOutput(supabase: SupabaseServerClient, 
       manager_id_input: managerId,
       max_rows: 50
     });
-    if (activitySync.error) return activitySync.error.message;
+    if (activitySync.error && !isMissingRpcError(activitySync.error.message)) return activitySync.error.message;
 
     const notificationSync = await supabase.rpc('sync_manager_output_activity_notifications_v1', {
       manager_id_input: managerId,
       max_rows: 50
     });
-    if (notificationSync.error) return notificationSync.error.message;
+    if (notificationSync.error && !isMissingRpcError(notificationSync.error.message)) return notificationSync.error.message;
   } catch (error) {
-    return error instanceof Error ? error.message : 'Manager notification sync failed.';
+    const message = error instanceof Error ? error.message : 'Manager notification sync failed.';
+    return isMissingRpcError(message) ? null : message;
   }
 
   return null;
