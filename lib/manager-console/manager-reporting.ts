@@ -5,18 +5,19 @@ import { listManagerUserSettings, type ManagerUserSetting, type ManagerUserSetti
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
-export type ManagerReportType = 'summary' | 'salary_outputs' | 'users';
+export type ManagerReportType = 'summary' | 'salary_outputs' | 'users' | 'per_boss';
 export type ManagerReportRange = { fromDate: string; toDate: string; startIso: string; endIso: string };
 export type ManagerReportInput = { type: ManagerReportType; range: ManagerReportRange };
 
-export type ManagerReportOutputRow = { id: string; disputerId: string; disputerName: string; disputerEmail: string; clientName: string; roundLabel: string; status: string; outputType: string; outputCount: number; rateAmount: number; estimatedPay: number; createdAt: string };
+export type ManagerReportOutputRow = { id: string; disputerId: string; disputerName: string; disputerEmail: string; bossName: string; clientName: string; roundLabel: string; status: string; outputType: string; outputCount: number; rateAmount: number; estimatedPay: number; createdAt: string };
 export type ManagerReportUserRow = { id: string; name: string; email: string; status: string; employmentType: string; baseSalary: number; perOutputRate: number; outputLimit: number | null; outputs: number; approvedOutputs: number; pendingOutputs: number; returnedOutputs: number; estimatedPay: number };
+export type ManagerReportBossRow = { bossName: string; disputerCount: number; outputRows: number; outputItems: number; approvedOutputs: number; pendingOutputs: number; returnedOutputs: number; fulltimeRows: number; outputPay: number; totalPay: number };
 export type ManagerReportTotals = { userCount: number; activeUsers: number; blockedUsers: number; totalOutputRows: number; totalOutputItems: number; approvedRows: number; pendingRows: number; returnedRows: number; fulltimeRows: number; baseSalaryTotal: number; approvedExtraPay: number; pendingExtraPay: number; estimatedPayTotal: number };
-export type ManagerReportData = { input: ManagerReportInput; accounts: AccountDirectoryRow[]; entitlements: EntitlementLimitMap; settings: ManagerUserSettingMap; outputs: ManagerReportOutputRow[]; users: ManagerReportUserRow[]; totals: ManagerReportTotals; errorMessage: string | null };
+export type ManagerReportData = { input: ManagerReportInput; accounts: AccountDirectoryRow[]; entitlements: EntitlementLimitMap; settings: ManagerUserSettingMap; outputs: ManagerReportOutputRow[]; users: ManagerReportUserRow[]; bosses: ManagerReportBossRow[]; totals: ManagerReportTotals; errorMessage: string | null };
 
 type RawOutputApproval = { id: string; disputer_id: string; generation_run_id: string | null; output_label: string | null; output_count: number | null; rate_amount: number | null; status: string | null; notes: string | null; round_label: string | null; letter_route: string | null; client_name: string | null; is_per_output: boolean | null; approved_at: string | null; rejected_at: string | null; created_at: string | null };
 
-const REPORT_TYPES = new Set<ManagerReportType>(['summary', 'salary_outputs', 'users']);
+const REPORT_TYPES = new Set<ManagerReportType>(['summary', 'salary_outputs', 'users', 'per_boss']);
 const OUTPUT_COLUMNS = 'id,disputer_id,generation_run_id,output_label,output_count,rate_amount,status,notes,round_label,letter_route,client_name,is_per_output,approved_at,rejected_at,created_at';
 const PH_OFFSET_MS = 8 * 60 * 60 * 1000;
 
@@ -29,7 +30,8 @@ function positiveMoney(value: unknown) { const number = Number(value || 0); retu
 function accountName(account?: AccountDirectoryRow) { return account?.full_name || account?.email || 'Disputer'; }
 function accountStatus(account?: AccountDirectoryRow) { return account?.account_status || 'unknown'; }
 function employmentType(setting?: ManagerUserSetting) { return setting?.employment_type === 'output_based' || setting?.is_regular === false ? 'Per-output' : 'Full-time'; }
-function normalizeReportType(value: string | undefined): ManagerReportType { if (value === 'salary' || value === 'outputs') return 'salary_outputs'; return value && REPORT_TYPES.has(value as ManagerReportType) ? value as ManagerReportType : 'summary'; }
+function normalizeReportType(value: string | undefined): ManagerReportType { if (value === 'salary' || value === 'outputs') return 'salary_outputs'; if (value === 'boss' || value === 'bosses' || value === 'per-boss' || value === 'perBoss') return 'per_boss'; return value && REPORT_TYPES.has(value as ManagerReportType) ? value as ManagerReportType : 'summary'; }
+function bossName(value: string | null | undefined) { const clean = String(value || '').trim().replace(/\s+/g, ' '); return clean || 'Boss not set'; }
 
 export function moneyText(value: number) { return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(value || 0); }
 export function formatReportDate(value: string) { if (!value) return '—'; try { return new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(value)); } catch { return '—'; } }
@@ -62,6 +64,45 @@ function rowPay(row: RawOutputApproval, setting?: ManagerUserSetting) {
 
 function emptyTotals(): ManagerReportTotals { return { userCount: 0, activeUsers: 0, blockedUsers: 0, totalOutputRows: 0, totalOutputItems: 0, approvedRows: 0, pendingRows: 0, returnedRows: 0, fulltimeRows: 0, baseSalaryTotal: 0, approvedExtraPay: 0, pendingExtraPay: 0, estimatedPayTotal: 0 }; }
 
+function buildBossRows(outputs: ManagerReportOutputRow[], users: ManagerReportUserRow[]) {
+  const byDisputer = new Map(users.map((user) => [user.id, user]));
+  const groups = new Map<string, { disputers: Set<string>; outputRows: number; outputItems: number; approvedOutputs: number; pendingOutputs: number; returnedOutputs: number; fulltimeRows: number; outputPay: number; totalPay: number }>();
+  for (const row of outputs) {
+    const key = bossName(row.bossName);
+    const group = groups.get(key) || { disputers: new Set<string>(), outputRows: 0, outputItems: 0, approvedOutputs: 0, pendingOutputs: 0, returnedOutputs: 0, fulltimeRows: 0, outputPay: 0, totalPay: 0 };
+    group.disputers.add(row.disputerId);
+    group.outputRows += 1;
+    group.outputItems += row.outputCount;
+    if (row.status === 'approved' || row.status === 'paid') group.approvedOutputs += row.outputCount;
+    if (row.status === 'pending') group.pendingOutputs += row.outputCount;
+    if (row.status === 'rejected') group.returnedOutputs += row.outputCount;
+    if (row.outputType === 'Full-time record') group.fulltimeRows += 1;
+    group.outputPay += row.estimatedPay;
+    groups.set(key, group);
+  }
+
+  for (const group of groups.values()) {
+    for (const disputerId of group.disputers) {
+      const user = byDisputer.get(disputerId);
+      if (user?.employmentType === 'Full-time') group.totalPay += user.baseSalary;
+    }
+    group.totalPay += group.outputPay;
+  }
+
+  return Array.from(groups.entries()).map(([name, group]) => ({
+    bossName: name,
+    disputerCount: group.disputers.size,
+    outputRows: group.outputRows,
+    outputItems: group.outputItems,
+    approvedOutputs: group.approvedOutputs,
+    pendingOutputs: group.pendingOutputs,
+    returnedOutputs: group.returnedOutputs,
+    fulltimeRows: group.fulltimeRows,
+    outputPay: group.outputPay,
+    totalPay: group.totalPay
+  })).sort((left, right) => right.totalPay - left.totalPay || left.bossName.localeCompare(right.bossName));
+}
+
 export async function listManagerReportData(supabase: SupabaseServerClient, managerId: string, input: ManagerReportInput): Promise<ManagerReportData> {
   const accountsResult = await listManagerClientDirectory(supabase, { view: 'all', page: 1, pageSize: 250 });
   const accounts = accountsResult.accounts;
@@ -76,7 +117,7 @@ export async function listManagerReportData(supabase: SupabaseServerClient, mana
     const setting = settingsResult.settings[row.disputer_id];
     const outputCount = Math.max(1, Number(row.output_count || 1));
     const rateAmount = positiveMoney(row.rate_amount || setting?.per_output_rate || setting?.rate || 0);
-    return { id: row.id, disputerId: row.disputer_id, disputerName: accountName(account), disputerEmail: account?.email || '', clientName: row.client_name || 'Not set', roundLabel: row.round_label || 'Not set', status: row.status || 'recorded', outputType: row.is_per_output ? 'Per-output' : 'Full-time record', outputCount, rateAmount, estimatedPay: rowPay(row, setting), createdAt: row.created_at || '' };
+    return { id: row.id, disputerId: row.disputer_id, disputerName: accountName(account), disputerEmail: account?.email || '', bossName: bossName(row.notes), clientName: row.client_name || 'Not set', roundLabel: row.round_label || 'Not set', status: row.status || 'recorded', outputType: row.is_per_output ? 'Per-output' : 'Full-time record', outputCount, rateAmount, estimatedPay: rowPay(row, setting), createdAt: row.created_at || '' };
   });
   const outputsByUser = new Map<string, ManagerReportOutputRow[]>();
   for (const row of outputs) outputsByUser.set(row.disputerId, [...(outputsByUser.get(row.disputerId) || []), row]);
@@ -101,5 +142,6 @@ export async function listManagerReportData(supabase: SupabaseServerClient, mana
     totals.baseSalaryTotal += baseSalary; totals.approvedExtraPay += approvedPay; totals.pendingExtraPay += pendingPay; totals.estimatedPayTotal += estimatedPay;
     return { id: account.id, name: accountName(account), email: account.email || '', status: accountStatus(account), employmentType: employmentType(setting), baseSalary, perOutputRate: positiveMoney(setting?.per_output_rate || setting?.rate || 0), outputLimit: entitlementsResult.entitlements[account.id]?.effective_output_limit || null, outputs: userOutputs.reduce((sum, row) => sum + row.outputCount, 0), approvedOutputs: userOutputs.filter((row) => row.status === 'approved' || row.status === 'paid').reduce((sum, row) => sum + row.outputCount, 0), pendingOutputs: userOutputs.filter((row) => row.status === 'pending').reduce((sum, row) => sum + row.outputCount, 0), returnedOutputs: userOutputs.filter((row) => row.status === 'rejected').reduce((sum, row) => sum + row.outputCount, 0), estimatedPay };
   });
-  return { input, accounts, entitlements: entitlementsResult.entitlements, settings: settingsResult.settings, outputs, users, totals, errorMessage };
+  const bosses = buildBossRows(outputs, users);
+  return { input, accounts, entitlements: entitlementsResult.entitlements, settings: settingsResult.settings, outputs, users, bosses, totals, errorMessage };
 }
