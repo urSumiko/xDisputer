@@ -83,7 +83,19 @@ export async function createBlankPdf(label = 'Packet component') {
   return toPdfBlob(await document.save());
 }
 
-async function renderDocxToPdf(blob: Blob, label: string) {
+async function convertDocxWithServer(blob: Blob, label: string) {
+  if (typeof fetch !== 'function') throw new Error('Server conversion unavailable.');
+  const formData = new FormData();
+  formData.set('file', new File([blob], `${label.replace(/[\\/:*?"<>|]+/g, '_') || 'document'}.docx`, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+  const response = await fetch('/api/convert/docx-to-pdf', { method: 'POST', body: formData, cache: 'no-store' });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || `Server DOCX conversion failed with HTTP ${response.status}.`);
+  }
+  return await response.blob();
+}
+
+async function renderDocxToPdfInBrowser(blob: Blob, label: string) {
   const [{ renderAsync }, html2canvas] = await Promise.all([
     import('docx-preview'),
     import('html2canvas').then((module) => module.default)
@@ -92,6 +104,17 @@ async function renderDocxToPdf(blob: Blob, label: string) {
   const host = document.createElement('div');
   host.className = 'pdf-render-host';
   host.setAttribute('aria-hidden', 'true');
+  Object.assign(host.style, {
+    position: 'fixed',
+    left: '-100000px',
+    top: '0',
+    width: '900px',
+    height: '1px',
+    overflow: 'visible',
+    opacity: '0',
+    pointerEvents: 'none',
+    zIndex: '-1'
+  });
   document.body.appendChild(host);
   try {
     await renderAsync(await readBlobBuffer(blob), host, undefined, {
@@ -112,6 +135,14 @@ async function renderDocxToPdf(blob: Blob, label: string) {
     host.remove();
   }
   return toPdfBlob(await target.save());
+}
+
+async function renderDocxToPdf(blob: Blob, label: string) {
+  try {
+    return await convertDocxWithServer(blob, label);
+  } catch {
+    return await renderDocxToPdfInBrowser(blob, label);
+  }
 }
 
 function renderedDocxPdf(blob: Blob, label: string) {
