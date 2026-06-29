@@ -54,7 +54,7 @@ function textOf(node: HTMLElement) {
 
 function stateOf(slot: Slot) {
   if (slot.document) return 'Editable DOCX';
-  if (slot.id === 'SUPPORTING') return 'Evidence layout';
+  if (slot.id === 'SUPPORTING') return 'Supporting layout';
   return slot.configured ? 'Configured' : 'Not generated';
 }
 
@@ -90,8 +90,8 @@ function ensureFtcEditorSlot(slots: Slot[], ftc?: ReviewOutput, ftcConfigured?: 
 
   normalized.push({
     id: 'FTC',
-        number: 6,
-        label: 'FTC Identity Theft Report',
+    number: 6,
+    label: 'FTC Identity Theft Report',
     document: ftc,
     configured: Boolean(ftc || ftcConfigured),
     message: ftc
@@ -383,7 +383,7 @@ export default function SimpleDocxEditor({
 
     const messages: Record<SlotId, string> = {
       LETTER: 'Editable DOCX component',
-      SUPPORTING: 'One-page evidence layout',
+      SUPPORTING: 'One-page supporting document layout',
       FCRA: exhibits.FCRA ? 'Configured insert' : 'Not configured',
       AFFIDAVIT: affidavit ? 'Editable DOCX component' : exhibits.AFFIDAVIT ? 'Configured template; regenerate packet to create editable Affidavit DOCX' : 'Not configured',
       ATTACHMENT: exhibits.ATTACHMENT ? 'Configured insert' : 'Not configured',
@@ -477,7 +477,7 @@ export default function SimpleDocxEditor({
           </div>
 
           {selected.id === 'SUPPORTING' && evidence?.supporting.length ? (
-            <div className="packet-header-evidence-slot" id={evidenceToolsId} aria-label="Evidence image tools" />
+            <div className="packet-header-evidence-slot" id={evidenceToolsId} aria-label="Supporting document image tools" />
           ) : null}
 
           <div className="editor-command-actions">
