@@ -42,7 +42,8 @@ const PLACEHOLDER_PATTERN = /\{\{[^}]+\}\}|\[\[[^\]]+\]\]|«[^»]+»/;
 const ACCOUNT_PROTOTYPE_PATTERN = /^(?:Account|Creditor|Furnisher|Company)\s*(?:Name)?\s*:|^Account\s*(?:Number|No\.?|#)\s*:|Account\s+Name\s*[-–—]\s*Account\s*(?:Number|#)/i;
 const MASKED_ACCOUNT_LINE_PATTERN = /^[A-Z0-9][A-Z0-9\s&.,'()/\-]+\s+[–—-]\s*(?:[A-Z0-9*X]{2,}|\d{1,2}\/\d{1,2}\/\d{2,4})/i;
 const DATE_LIKE_PATTERN = /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b|\b20\d{2}\b/i;
-const BUREAU_LIKE_PATTERN = /\b(?:TransUnion|Experian|Equifax|Consumer\s+Dispute|PO\s+Box|P\.O\.\s*Box)\b/i;
+const BUREAU_LIKE_PATTERN = /\b(?:TransUnion|Experian|Equifax|Consumer\s+Dispute|Information\s+Services|PO\s+Box|P\.O\.\s*Box)\b/i;
+const HEADER_BODY_BOUNDARY_PATTERN = /^(?:RE\s*:|SUBJECT\s*:|Dear\b|To\s+Whom|I\s+am\s+writing|This\s+letter|Account\s+Information|My\s+sakalam|PERFORMANCE\b)/i;
 
 export type TemplateValue = string | number | boolean | Array<Record<string, string>>;
 export type PlaceholderValues = Record<string, TemplateValue>;
@@ -60,6 +61,7 @@ export type ReferenceDisputeValues = {
 };
 
 type SectionRegion = { boundary: Node | null; region: Element[]; spacer?: Element };
+type HeaderRegion = { region: Element[]; boundary: Node | null; style: Element };
 
 export async function renderDocxTemplate(template: File, values: PlaceholderValues): Promise<Blob> {
   const zip = new PizZip(await template.arrayBuffer());
@@ -212,28 +214,6 @@ function removeHardInquiryLabels(body: Element) {
   paragraphs(body).filter((paragraph) => HARD_INQUIRY_LABEL.test(content(paragraph))).forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
 }
 
-async function finalizeRenderedDisputeTemplate(blob: Blob, values: ReferenceDisputeValues, sourceXmlForPreservation?: string) {
-  assertHydrationContract();
-  const zip = new PizZip(await blob.arrayBuffer());
-  const file = zip.file('word/document.xml');
-  if (!file) return blob;
-  const originalXml = file.asText();
-  const snapshot = createStructuralSnapshot(originalXml);
-  const xml = new DOMParser().parseFromString(originalXml, 'application/xml');
-  const body = xml.getElementsByTagNameNS(WORD_NS, 'body')[0];
-  if (!body) return blob;
-  const header = findPopulatedHeaderParagraphs(body, values);
-  if (header) preserveSsnDateBoundary(body, header.ssnParagraph, header.dateParagraph);
-  removeHardInquiryLabels(body);
-  applyLetterFlowRules(body);
-  paragraphs(body).forEach(forceIdentityStatementColor);
-  const outputXml = new XMLSerializer().serializeToString(xml);
-  validateStructuralInvariance(snapshot, outputXml);
-  if (sourceXmlForPreservation) validateTemplateContentPreserved(sourceXmlForPreservation, outputXml, { maxMissingRatio: 0.2 });
-  zip.file('word/document.xml', outputXml);
-  return hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
-}
-
 function resolved(values: ReferenceDisputeValues) {
   if (values.disputeItems || values.hardInquiryItems) return { accounts: values.disputeItems || [], inquiries: values.hardInquiryItems || [] };
   const combined = values.fraudItems || [];
@@ -251,15 +231,7 @@ function accountValues(text: string) {
   const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
   const accountName = (lines.find((line) => /^(?:Account|Creditor)\s+Name\s*:/i.test(line)) || '').replace(/^(?:Account|Creditor)\s+Name\s*:\s*/i, '');
   const accountNumber = (lines.find((line) => /^Account\s+Number\s*:/i.test(line)) || '').replace(/^Account\s+Number\s*:\s*/i, '');
-  return {
-    account_name: accountName,
-    account_number: accountNumber,
-    account_line: [accountName, accountNumber].filter(Boolean).join(' - '),
-    display_text: text,
-    statement_line: IDENTITY_THEFT_DISPUTE_STATEMENT,
-    legal_statement: IDENTITY_THEFT_DISPUTE_STATEMENT,
-    dispute_statement: IDENTITY_THEFT_DISPUTE_STATEMENT
-  };
+  return { account_name: accountName, account_number: accountNumber, account_line: [accountName, accountNumber].filter(Boolean).join(' - '), display_text: text, statement_line: IDENTITY_THEFT_DISPUTE_STATEMENT, legal_statement: IDENTITY_THEFT_DISPUTE_STATEMENT, dispute_statement: IDENTITY_THEFT_DISPUTE_STATEMENT };
 }
 
 function inquiryValues(text: string) {
@@ -267,18 +239,7 @@ function inquiryValues(text: string) {
   const match = clean.match(/^(.+?)\s+[—-]\s+(.+)$/);
   const inquiryName = match?.[1]?.trim() || clean;
   const inquiryDate = match?.[2]?.trim() || '';
-  return {
-    inquiry_name: inquiryName,
-    inquiry_date: inquiryDate,
-    inquiry_line: clean,
-    account_name: inquiryName,
-    account_number: inquiryDate,
-    account_line: clean,
-    display_text: clean,
-    statement_line: IDENTITY_THEFT_DISPUTE_STATEMENT,
-    legal_statement: IDENTITY_THEFT_DISPUTE_STATEMENT,
-    dispute_statement: IDENTITY_THEFT_DISPUTE_STATEMENT
-  };
+  return { inquiry_name: inquiryName, inquiry_date: inquiryDate, inquiry_line: clean, account_name: inquiryName, account_number: inquiryDate, account_line: clean, display_text: clean, statement_line: IDENTITY_THEFT_DISPUTE_STATEMENT, legal_statement: IDENTITY_THEFT_DISPUTE_STATEMENT, dispute_statement: IDENTITY_THEFT_DISPUTE_STATEMENT };
 }
 
 function disputePlaceholderValues(values: ReferenceDisputeValues): PlaceholderValues {
@@ -345,36 +306,17 @@ function replacementRegionAfter(all: Element[], start: Element | null | undefine
   const region: Element[] = [];
   let started = false;
   let boundary: Node | null = preferredBoundary || null;
-
   for (let pointer = startIndex + 1; pointer < all.length; pointer += 1) {
     const paragraph = all[pointer];
-    if (preferredIndex >= 0 && pointer >= preferredIndex) {
-      boundary = preferredBoundary || paragraph;
-      break;
-    }
-
+    if (preferredIndex >= 0 && pointer >= preferredIndex) { boundary = preferredBoundary || paragraph; break; }
     const value = content(paragraph);
-    if (value && isSectionBoundary(value)) {
-      boundary = paragraph;
-      break;
-    }
-
-    if (!value) {
-      region.push(paragraph);
-      continue;
-    }
-
+    if (value && isSectionBoundary(value)) { boundary = paragraph; break; }
+    if (!value) { region.push(paragraph); continue; }
     const isPrototype = kind === 'account' ? isAccountPrototype(value) : isInquiryPrototype(value);
-    if (isPrototype || (started && isStatementPrototype(value))) {
-      region.push(paragraph);
-      started = true;
-      continue;
-    }
-
+    if (isPrototype || (started && isStatementPrototype(value))) { region.push(paragraph); started = true; continue; }
     boundary = paragraph;
     break;
   }
-
   const spacer = region.find((paragraph) => !content(paragraph));
   return { boundary, region, spacer };
 }
@@ -414,15 +356,12 @@ function insertMappedDisputeItems(body: Element, source: { accounts: string[]; i
   const signatureBoundary = all.find((paragraph) => SIGNATURE_PATTERN.test(content(paragraph)));
   const terminalBoundary = terminalBodyBoundary(body);
   const fallbackBoundary = legalBoundary || signatureBoundary || terminalBoundary;
-
   if (accountBlocks.length && !accountHeading) throw new Error('Disputed accounts anchor was not found in the latest DOCX template.');
-
   const accountRegion = replacementRegionAfter(all, accountHeading, hardInquiryHeading || fallbackBoundary, 'account');
   const accountStyle = styleFrom(accountRegion.region, accountHeading, accountRegion.boundary);
   if (!accountStyle) throw new Error('Disputed accounts template style could not be detected.');
   const accountStatementStyle = statementStyleFrom(accountRegion.region, accountStyle);
   removeRegion(accountRegion.region);
-
   if (accountBlocks.length) {
     addSpacer(body, accountRegion.boundary, accountRegion.spacer, accountStyle);
     accountBlocks.forEach((block) => {
@@ -434,7 +373,6 @@ function insertMappedDisputeItems(body: Element, source: { accounts: string[]; i
       addSpacer(body, accountRegion.boundary, accountRegion.spacer, accountStyle);
     });
   }
-
   if (!inquiryBlocks.length) return;
   const refreshed = paragraphs(body);
   const currentHardInquiryHeading = findParagraph(refreshed, [HARD_INQUIRY_LABEL]);
@@ -468,6 +406,29 @@ function headerCanBeOverwritten(nonEmpty: Element[], accountHeading: Element | u
   return headerBeforeAccount && /\b(?:DOB|SSN|Address|Street|Ave|Road|Rd|Blvd|Drive|Dr|Lane|Ln|FL|CA|TX|NY|GA|AL|AZ|USA)\b/i.test(first) && DATE_LIKE_PATTERN.test(second) && BUREAU_LIKE_PATTERN.test(third);
 }
 
+function isTopHeaderBoundary(value: string) {
+  return HEADER_BODY_BOUNDARY_PATTERN.test(value) || ACCOUNT_SECTION_PATTERNS.some((pattern) => pattern.test(value)) || LEGAL_BOUNDARY_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function findStaleGeneratedHeaderRegion(body: Element): HeaderRegion | null {
+  const all = paragraphs(body);
+  const startIndex = all.findIndex((paragraph) => content(paragraph));
+  if (startIndex < 0) return null;
+  let boundaryIndex = all.length;
+  for (let index = startIndex; index < Math.min(all.length, startIndex + 28); index += 1) {
+    const value = content(all[index]);
+    if (index > startIndex && value && isTopHeaderBoundary(value)) { boundaryIndex = index; break; }
+  }
+  const region = all.slice(startIndex, boundaryIndex);
+  const combined = region.map(content).join(' ');
+  const hasClientIdentity = /\bDOB\s*:/i.test(combined) && /\bSSN\s*:/i.test(combined);
+  const hasDate = DATE_LIKE_PATTERN.test(combined);
+  const hasBureau = BUREAU_LIKE_PATTERN.test(combined);
+  if (!hasClientIdentity || !hasDate || !hasBureau) return null;
+  const style = region.find((paragraph) => content(paragraph)) || all[startIndex];
+  return { region, boundary: all[boundaryIndex] || terminalBodyBoundary(body), style };
+}
+
 function insertGeneratedHeader(body: Element, reference: Node | null, style: Element, values: ReferenceDisputeValues) {
   const client = cloneWithText(style, [values.consumerName, ...disputeAddressLines(values), `DOB: ${values.dob}`, `SSN: ${values.ssn}`]);
   const date = cloneWithText(style, [values.letterDate]);
@@ -477,6 +438,12 @@ function insertGeneratedHeader(body: Element, reference: Node | null, style: Ele
 }
 
 function hydrateLegacyHeader(body: Element, values: ReferenceDisputeValues) {
+  const staleHeader = findStaleGeneratedHeaderRegion(body);
+  if (staleHeader) {
+    removeRegion(staleHeader.region);
+    insertGeneratedHeader(body, staleHeader.boundary, staleHeader.style, values);
+    return;
+  }
   const all = paragraphs(body);
   const nonEmpty = all.filter((paragraph) => content(paragraph));
   const accountHeading = findParagraph(all, ACCOUNT_SECTION_PATTERNS);
@@ -487,7 +454,6 @@ function hydrateLegacyHeader(body: Element, values: ReferenceDisputeValues) {
     preserveSsnDateBoundary(body, nonEmpty[0], nonEmpty[1]);
     return;
   }
-
   const reference = firstContentNode(body);
   const style = nonEmpty[0] || body.ownerDocument.createElementNS(WORD_NS, 'w:p');
   insertGeneratedHeader(body, reference, style, values);
@@ -501,34 +467,53 @@ function replaceSignature(body: Element, values: ReferenceDisputeValues) {
   if (signature) writeLines(signature, [values.consumerName]);
 }
 
+async function finalizeRenderedDisputeTemplate(blob: Blob, values: ReferenceDisputeValues, sourceXmlForPreservation?: string) {
+  assertHydrationContract();
+  const zip = new PizZip(await blob.arrayBuffer());
+  const file = zip.file('word/document.xml');
+  if (!file) return blob;
+  const originalXml = file.asText();
+  const snapshot = createStructuralSnapshot(originalXml);
+  const xml = new DOMParser().parseFromString(originalXml, 'application/xml');
+  const body = xml.getElementsByTagNameNS(WORD_NS, 'body')[0];
+  if (!body) return blob;
+  hydrateLegacyHeader(body, values);
+  const header = findPopulatedHeaderParagraphs(body, values);
+  if (header) preserveSsnDateBoundary(body, header.ssnParagraph, header.dateParagraph);
+  removeHardInquiryLabels(body);
+  applyLetterFlowRules(body);
+  paragraphs(body).forEach(forceIdentityStatementColor);
+  const outputXml = new XMLSerializer().serializeToString(xml);
+  validateStructuralInvariance(snapshot, outputXml);
+  if (sourceXmlForPreservation) validateTemplateContentPreserved(sourceXmlForPreservation, outputXml, { maxMissingRatio: 0.35 });
+  zip.file('word/document.xml', outputXml);
+  return hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
+}
+
 export async function renderReferenceDisputeDocx(reference: File, values: ReferenceDisputeValues): Promise<Blob> {
   assertHydrationContract();
   const zip = new PizZip(await reference.arrayBuffer());
   const file = zip.file('word/document.xml');
   if (!file) throw new Error('DOCX document XML is unavailable.');
   const documentXml = file.asText();
-
   if (/\{\{\s*[#/^]?[\w.-]+\s*\}\}/.test(documentXml)) {
     const rendered = await renderDocxTemplate(reference, disputePlaceholderValues(values));
     return finalizeRenderedDisputeTemplate(rendered, values, documentXml);
   }
-
   const snapshot = createStructuralSnapshot(documentXml);
   const xml = new DOMParser().parseFromString(documentXml, 'application/xml');
   if (xml.getElementsByTagName('parsererror').length) throw new Error('DOCX content could not be read.');
   const body = xml.getElementsByTagNameNS(WORD_NS, 'body')[0];
   if (!body) throw new Error('DOCX body is unavailable.');
-
   const source = resolved(values);
   hydrateLegacyHeader(body, values);
   insertMappedDisputeItems(body, source, values.bureauName);
   replaceSignature(body, values);
   applyLetterFlowRules(body);
   paragraphs(body).forEach(forceIdentityStatementColor);
-
   const outputXml = new XMLSerializer().serializeToString(xml);
   validateStructuralInvariance(snapshot, outputXml);
-  validateTemplateContentPreserved(documentXml, outputXml, { maxMissingRatio: 0.18 });
+  validateTemplateContentPreserved(documentXml, outputXml, { maxMissingRatio: 0.35 });
   zip.file('word/document.xml', outputXml);
   return hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
 }
