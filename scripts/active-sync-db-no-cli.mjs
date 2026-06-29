@@ -9,7 +9,8 @@ const requiredMigrations = [
   ['supabase/migrations/20260622135000_realtime_entitlement_refresh.sql', ['client_entitlement_limits', 'generation_runs', 'supabase_realtime']],
   ['supabase/migrations/20260622141000_canonical_output_activity_notification_sync_v2.sql', ['manager_output_approvals_generation_run_id_unique', 'notifications_output_activity_href_unique']],
   ['supabase/migrations/20260622143000_fix_client_payroll_profile_ambiguous_manager_id.sql', ['p.manager_id', 'mus.manager_id', 'client_payroll_profile_v1']],
-  ['supabase/migrations/20260622144500_notification_recipient_role_normalizer.sql', ['normalize_notification_recipient_role_v1', 'notifications_normalize_recipient_role', 'recipient_role']]
+  ['supabase/migrations/20260622144500_notification_recipient_role_normalizer.sql', ['normalize_notification_recipient_role_v1', 'notifications_normalize_recipient_role', 'recipient_role']],
+  ['supabase/migrations/20260630153000_output_activity_decision_notification_rpc_repair.sql', ['sync_output_activity_decision_notification_v1(activity_id_input uuid)', 'manager_output_decision_notify_client', 'reload schema']]
 ];
 
 function readEnvFile(path) {
