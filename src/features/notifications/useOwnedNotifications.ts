@@ -3,7 +3,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import type { NotificationRecord } from '../../../lib/notifications/notification-types';
-import { createSupabaseBrowserClient } from '../../../lib/supabase/browser';
+import { createSupabaseBrowserClient, hasSupabaseBrowserEnv } from '../../../lib/supabase/browser';
 import { notificationOwnershipContract } from './notification-ownership-contract';
 
 type Snapshot = {
@@ -205,6 +205,15 @@ function clearTimers() {
 
 function startController() {
   if (started || typeof window === 'undefined') return;
+
+  if (!hasSupabaseBrowserEnv()) {
+    emit({
+      ...EMPTY_SNAPSHOT,
+      errorMessage: 'Supabase browser env missing. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, then restart Next.js.'
+    }, 'mount');
+    return;
+  }
+
   started = true;
   if (teardownTimer) window.clearTimeout(teardownTimer);
   teardownTimer = null;
