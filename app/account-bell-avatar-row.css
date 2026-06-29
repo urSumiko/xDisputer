@@ -70,6 +70,37 @@ main.app-shell[data-client-console-shell="true"] section.main-area.admin-monitor
   z-index: 2147483100 !important;
 }
 
+.manager-header-account-dock .notification-dock-badge,
+.topbar-notification-root .notification-bell-button > strong,
+.topbar-icon-button.notification-bell-button > strong {
+  background: #dc2626 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, .28) !important;
+}
+
+.manager-account-popover-clean .manager-account-popover-topline > span {
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  letter-spacing: .02em !important;
+  color: #0f172a !important;
+}
+
+.manager-account-popover-clean .manager-account-identity-panel {
+  gap: .45rem !important;
+}
+
+.manager-account-popover-clean .manager-account-email-inline {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
 @media (max-width: 760px) {
   .admin-monitor-main[data-console-header-grid="true"],
   .admin-monitor-page[data-console-shell="true"] [data-console-main="true"][data-console-header-grid="true"],
