@@ -4,6 +4,7 @@ import type { TemplateDocumentKind } from '../template-contracts';
 import { renderDynamicDocxTemplateV2 } from '../dynamic-template/render-orchestrator';
 import { resolveDynamicTemplateRendererMode, type DynamicTemplateRendererMode } from '../dynamic-template/renderer-mode';
 import { renderLegacyAppendixAdapter, renderLegacyLetterAdapter } from './legacy-renderer-adapter';
+import { assertTemplateRenderProof } from './render-proof-gate';
 
 export type TemplateEngineResult = {
   blob: Blob;
@@ -24,6 +25,30 @@ function toFile(value: Blob | File, filename: string) {
 
 function legacyKindAllowed(kind: TemplateDocumentKind) {
   return kind === 'DISPUTE_LETTER' || kind === 'LATE_PAYMENT_LETTER' || kind === 'AFFIDAVIT' || kind === 'FTC';
+}
+
+async function withProof(input: {
+  result: TemplateEngineResult;
+  kind: TemplateDocumentKind;
+  parsed: ParsedSource;
+  route?: LetterRoute | null;
+  bureau?: Bureau;
+}) {
+  const proof = await assertTemplateRenderProof({
+    kind: input.kind,
+    blob: input.result.blob,
+    engine: input.result.engine,
+    rendererMode: input.result.rendererMode,
+    parsed: input.parsed,
+    route: input.route,
+    bureau: input.bureau,
+    manifest: input.result.manifest
+  });
+
+  const proofWarnings = proof.warnings.map((warning) => `Render proof: ${warning}`);
+  return proofWarnings.length
+    ? { ...input.result, warnings: [...input.result.warnings, ...proofWarnings], manifest: { ...input.result.manifest, templateRenderProof: proof } }
+    : { ...input.result, manifest: { ...input.result.manifest, templateRenderProof: proof } };
 }
 
 export async function renderWithBestTemplateEngine(input: {
@@ -52,13 +77,19 @@ export async function renderWithBestTemplateEngine(input: {
         rendererMode
       });
 
-      return {
-        blob: dynamic.blob,
-        engine: 'dynamic-template-v2',
-        rendererMode,
-        warnings,
-        manifest: dynamic.manifest
-      };
+      return withProof({
+        kind: input.kind,
+        parsed: input.parsed,
+        route: input.route,
+        bureau: input.bureau,
+        result: {
+          blob: dynamic.blob,
+          engine: 'dynamic-template-v2',
+          rendererMode,
+          warnings,
+          manifest: dynamic.manifest
+        }
+      });
     } catch (error) {
       warnings.push(`Dynamic Template Engine v2 fallback: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -73,13 +104,19 @@ export async function renderWithBestTemplateEngine(input: {
       round: input.round,
       documentDate: input.documentDate
     });
-    return {
-      blob,
-      engine: 'legacy-renderer-adapter',
-      rendererMode,
-      warnings,
-      manifest: { templateEngine: { chosen: 'legacy-renderer-adapter', reason: warnings.length ? 'v2-fallback' : 'legacy-forced', warnings } }
-    };
+    return withProof({
+      kind: input.kind,
+      parsed: input.parsed,
+      route: input.route,
+      bureau: input.bureau,
+      result: {
+        blob,
+        engine: 'legacy-renderer-adapter',
+        rendererMode,
+        warnings,
+        manifest: { templateEngine: { chosen: 'legacy-renderer-adapter', reason: warnings.length ? 'v2-fallback' : 'legacy-forced', warnings } }
+      }
+    });
   }
 
   if (input.kind === 'AFFIDAVIT' || input.kind === 'FTC') {
@@ -92,13 +129,19 @@ export async function renderWithBestTemplateEngine(input: {
       round: input.round,
       documentDate: input.documentDate
     });
-    return {
-      blob,
-      engine: 'legacy-renderer-adapter',
-      rendererMode,
-      warnings,
-      manifest: { templateEngine: { chosen: 'legacy-renderer-adapter', reason: warnings.length ? 'v2-fallback' : 'appendix-legacy', warnings } }
-    };
+    return withProof({
+      kind: input.kind,
+      parsed: input.parsed,
+      route: input.route,
+      bureau: input.bureau,
+      result: {
+        blob,
+        engine: 'legacy-renderer-adapter',
+        rendererMode,
+        warnings,
+        manifest: { templateEngine: { chosen: 'legacy-renderer-adapter', reason: warnings.length ? 'v2-fallback' : 'appendix-legacy', warnings } }
+      }
+    });
   }
 
   throw new Error(`Unsupported template kind for templated rendering: ${input.kind}.`);
