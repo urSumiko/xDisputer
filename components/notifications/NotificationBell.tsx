@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { NotificationRecord } from '../../lib/notifications/notification-types';
-
-type NotificationState = {
-  notifications: NotificationRecord[];
-  unreadCount: number;
-  errorMessage?: string | null;
-};
-
-const emptyState: NotificationState = { notifications: [], unreadCount: 0 };
+import { useOwnedNotifications } from '../../src/features/notifications/useOwnedNotifications';
 
 function severityLabel(value: NotificationRecord['severity']) {
   if (value === 'success') return 'Success';
@@ -20,33 +13,45 @@ function severityLabel(value: NotificationRecord['severity']) {
 
 function formatTime(value: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'recently';
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date);
+  if (Number.isNaN(date.getTime())) return 'Time not recorded';
+  return new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila',
+    month: 'short',
+    day: '2-digit',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(date) + ' PH';
+}
+
+function NotificationContent({ item }: { item: NotificationRecord }) {
+  return <>
+    <span>{severityLabel(item.severity)}</span>
+    <strong>{item.title}</strong>
+    {item.body ? <small>{item.body}</small> : null}
+    <em>{formatTime(item.created_at)}</em>
+  </>;
 }
 
 export default function NotificationBell() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [state, setState] = useState<NotificationState>(emptyState);
-  const [loading, setLoading] = useState(false);
   const popoverId = useMemo(() => 'xdisputer-notification-popover', []);
+  const { notifications, unreadCount, errorMessage, syncErrorMessage, loading, refresh, markOneRead, markAllRead } = useOwnedNotifications();
 
   useEffect(() => {
-    let active = true;
-    async function loadNotifications() {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/notifications', { cache: 'no-store' });
-        if (!response.ok) return;
-        const payload = await response.json() as NotificationState;
-        if (active) setState({ notifications: payload.notifications || [], unreadCount: payload.unreadCount || 0, errorMessage: payload.errorMessage });
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    loadNotifications();
-    return () => { active = false; };
-  }, []);
+    if (open) void refresh();
+  }, [open, refresh]);
+
+  useEffect(() => {
+    function refreshFromGlobalEvent() { void refresh(); }
+    window.addEventListener('xdisputer:output-entitlement-updated', refreshFromGlobalEvent);
+    window.addEventListener('xdisputer:output-activity-route-refreshed', refreshFromGlobalEvent);
+    return () => {
+      window.removeEventListener('xdisputer:output-entitlement-updated', refreshFromGlobalEvent);
+      window.removeEventListener('xdisputer:output-activity-route-refreshed', refreshFromGlobalEvent);
+    };
+  }, [refresh]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,29 +69,31 @@ export default function NotificationBell() {
     };
   }, [open]);
 
-  async function markRead() {
-    await fetch('/api/notifications/read', { method: 'POST' });
-    const readAt = new Date().toISOString();
-    setState((current) => ({ ...current, notifications: current.notifications.map((item) => ({ ...item, read_at: item.read_at || readAt })), unreadCount: 0 }));
+  async function openNotification(item: NotificationRecord) {
+    await markOneRead(item.id);
+    if (!item.href) return;
+    setOpen(false);
   }
 
   return <div ref={rootRef} className="topbar-notification-root" data-topbar-notification="true" data-notification-state={open ? 'open' : 'closed'}>
     <button type="button" className="topbar-icon-button notification-bell-button" aria-haspopup="dialog" aria-expanded={open} aria-controls={popoverId} aria-label="Open notifications" onClick={() => setOpen((value) => !value)}>
-      <span aria-hidden="true">N</span>
-      {state.unreadCount ? <strong aria-label={`${state.unreadCount} unread notifications`}>{state.unreadCount > 9 ? '9+' : state.unreadCount}</strong> : null}
+      <span aria-hidden="true">🔔</span>
+      {unreadCount ? <strong aria-label={`${unreadCount} unread notifications`}>{unreadCount > 9 ? '9+' : unreadCount}</strong> : null}
     </button>
     {open ? <div id={popoverId} className="notification-popover" role="dialog" aria-label="Notifications">
-      <div className="notification-popover-topline"><span>Notifications</span><button type="button" onClick={markRead}>Mark read</button></div>
+      <div className="notification-popover-topline"><span>Notifications</span><button type="button" onClick={() => void markAllRead()}>Mark read</button></div>
       {loading ? <p className="notification-empty">Loading latest notifications...</p> : null}
-      {!loading && state.errorMessage ? <p className="notification-empty">Notifications unavailable: {state.errorMessage}</p> : null}
-      {!loading && !state.errorMessage && !state.notifications.length ? <p className="notification-empty">No notifications yet.</p> : null}
+      {!loading && errorMessage ? <p className="notification-empty">Notifications unavailable: {errorMessage}</p> : null}
+      {!loading && !errorMessage && syncErrorMessage ? <p className="notification-empty">Notification sync is repairing. Latest output activity will still appear below.</p> : null}
+      {!loading && !errorMessage && !notifications.length ? <p className="notification-empty">No notifications yet.</p> : null}
       <div className="notification-list">
-        {state.notifications.map((item) => <a key={item.id} className="notification-item" href={item.href || '#'} data-notification-read={item.read_at ? 'true' : 'false'} data-notification-severity={item.severity}>
-          <span>{severityLabel(item.severity)}</span>
-          <strong>{item.title}</strong>
-          {item.body ? <small>{item.body}</small> : null}
-          <em>{formatTime(item.created_at)}</em>
-        </a>)}
+        {notifications.map((item) => item.href ? <a key={item.id} className="notification-item" href={item.href} data-notification-read={item.read_at ? 'true' : 'false'} data-notification-severity={item.severity} onClick={() => void openNotification(item)}>
+          <NotificationContent item={item} />
+          <b className="notification-open-label">Open</b>
+        </a> : <article key={item.id} className="notification-item notification-item-static" data-notification-read={item.read_at ? 'true' : 'false'} data-notification-severity={item.severity}>
+          <NotificationContent item={item} />
+          {!item.read_at ? <button type="button" className="notification-open-label" onClick={() => void markOneRead(item.id)}>Mark read</button> : null}
+        </article>)}
       </div>
     </div> : null}
   </div>;
