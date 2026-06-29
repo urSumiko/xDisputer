@@ -74,13 +74,20 @@ function auto(index: number, total: number): SupportingPlacement {
 function upgradedPlacement(asset: PacketAsset, index: number, count: number): SupportingPlacement {
   const existing = asset.placement;
   if (!existing) return auto(index, count);
-  if (count === 1 && (existing.width < 0.86 || existing.height < 0.38)) {
+  const singleDocumentNeedsRepair = count === 1 && (
+    existing.width < 0.86 ||
+    existing.height < 0.38 ||
+    existing.y > 0.34 ||
+    existing.y + existing.height > 0.96
+  );
+  if (singleDocumentNeedsRepair) {
+    const slot = auto(index, count);
     return sanitize({
       ...existing,
       x: 0.04,
-      y: clamp(existing.y, 0.08, 0.28),
+      y: slot.y,
       width: 0.92,
-      height: Math.max(existing.height, 0.48),
+      height: Math.max(slot.height, Math.min(existing.height || slot.height, 0.58)),
       fit: existing.fit || 'contain'
     });
   }
