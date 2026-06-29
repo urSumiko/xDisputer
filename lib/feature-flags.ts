@@ -6,10 +6,19 @@ type FeatureFlag = {
   reason?: string;
 };
 
+function envOverrideEnabled(value: string | undefined) {
+  return value === '1' || value === 'true' || value === 'enabled';
+}
+
+const FTC_TEMPORARILY_ENABLED_BY_ENV = envOverrideEnabled(process.env.NEXT_PUBLIC_XDISPUTER_ENABLE_FTC);
+
 const FEATURE_FLAGS: Record<FeatureFlagName, FeatureFlag> = {
   FTC_IDENTITY_THEFT_REPORT: {
     name: 'FTC_IDENTITY_THEFT_REPORT',
-    enabled: true
+    enabled: FTC_TEMPORARILY_ENABLED_BY_ENV,
+    reason: FTC_TEMPORARILY_ENABLED_BY_ENV
+      ? undefined
+      : 'Temporarily disabled: FTC output packet generation and FTC template upload are paused. Set NEXT_PUBLIC_XDISPUTER_ENABLE_FTC=1 to restore it.'
   }
 };
 
@@ -38,8 +47,12 @@ export function getFeatureFlags(): Record<FeatureFlagName, FeatureFlag> {
 
 export function setFeatureEnabled(name: FeatureFlagName, enabled: boolean): void {
   FEATURE_FLAGS[name].enabled = enabled;
+  FEATURE_FLAGS[name].reason = enabled ? undefined : FEATURE_FLAGS[name].reason;
 }
 
 export function resetFeatureFlags(): void {
-  FEATURE_FLAGS.FTC_IDENTITY_THEFT_REPORT.enabled = true;
+  FEATURE_FLAGS.FTC_IDENTITY_THEFT_REPORT.enabled = FTC_TEMPORARILY_ENABLED_BY_ENV;
+  FEATURE_FLAGS.FTC_IDENTITY_THEFT_REPORT.reason = FTC_TEMPORARILY_ENABLED_BY_ENV
+    ? undefined
+    : 'Temporarily disabled: FTC output packet generation and FTC template upload are paused. Set NEXT_PUBLIC_XDISPUTER_ENABLE_FTC=1 to restore it.';
 }
