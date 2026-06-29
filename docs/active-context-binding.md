@@ -1,12 +1,13 @@
 # xDisputer active context binding
 
-_Last updated: 2026-06-15_
+_Last updated: 2026-06-30_
 
 ## Active repository
 
-- GitHub repository: `Arisu-art/xDisputer`
-- User prompt alias observed: `Arisu-art/xDispute`
+- GitHub repository: `urSumiko/xDisputer`
+- User prompt aliases observed: `urSumiko/xDispute`, `xDisputer`
 - Default branch: `main`
+- Codespace path: `/workspaces/xDisputer`
 - Supabase target: project connected through existing environment variables and migrations.
 
 ## Current active technical state
@@ -16,6 +17,7 @@ _Last updated: 2026-06-15_
 - Active package scripts now route connection checks through `npm run connections:doctor`.
 - Connection doctor exists at `scripts/check-env-contract.mjs`.
 - Connection inheritance: see `docs/active-connector-inheritance.md`.
+- Browser Supabase runtime accepts `NEXT_PUBLIC_SUPABASE_ANON_KEY` and falls back to `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 
 ## Active Supabase/RPC layer
 
@@ -40,15 +42,17 @@ These contracts power:
 - Keep Supabase migrations additive unless a root-cause fix explicitly requires controlled replacement of a broken function signature.
 - Avoid destructive table changes unless the user explicitly approves a data migration plan.
 - Use root-cause tracing before UI rewrites.
+- Do not let optional browser notification startup crash the root layout when Supabase browser env keys are missing locally.
 
 ## Roadmap checkpoint
 
 | Area | Current status | Next logical action |
 | --- | --- | --- |
-| Repository binding | Active repository identified as `Arisu-art/xDisputer`. | Run the Supabase local sequence in Codespaces. |
+| Repository binding | Active repository identified as `urSumiko/xDisputer`. | Pull `origin/main` in Codespaces and run `npm run connections:doctor`. |
 | Supabase | Multi-tenant workspace RPC migrations exist. | Run DB push/migration status and SQL validation. |
 | Generation reliability | Workflow framework export is present. | Keep generation contract single-source and avoid duplicate packet order declarations. |
 | Error prevention | Error ledger now exists. | Update it whenever a root cause is found, before applying another patch. |
+| Browser env stability | Notification startup no longer throws through `RootLayout` when browser Supabase env is absent. | Add `.env.local`, restart Next.js, and run the guard chain. |
 
 ## Required local sequence
 
