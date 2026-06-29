@@ -295,13 +295,13 @@ export default function GuidedSourceDataFlow({
     setScopeConfirmed(true);
     setReadinessAttempted(false);
     showStage('EVIDENCE');
-    onMessage('Packet scope confirmed. Upload Supporting Documents evidence to continue.');
+    onMessage('Packet scope confirmed. Upload Supporting Documents to continue.');
   }
 
   function confirmEvidence() {
     setReadinessAttempted(true);
     if (!evidenceReady) {
-      onMessage('Supporting Documents are required. Upload at least one evidence image to continue.');
+      onMessage('Supporting Documents are required. Upload at least one supporting document image to continue.');
       return;
     }
     if (!packetReady) {
@@ -361,7 +361,7 @@ export default function GuidedSourceDataFlow({
             <textarea className="guided-source-text source-focused-text" value={source} onChange={(event) => { setValidationMessage(''); setReadinessAttempted(false); setScopeConfirmed(false); onEditSource(event.target.value); }} placeholder="Type or paste Notepad/TXT source data here. Pasting edits this draft and does not replace the protected original." />
           </div>
           {pendingImport && <div className="source-safety-confirm" role="alertdialog" aria-label="Confirm source replacement"><div><strong>Replace working source with this Notepad/TXT?</strong><p>Your current working draft will be saved as a recovery copy before the new source is imported. Existing generated outputs will be cleared because source data changed.</p></div><div><button type="button" className="secondary-button" onClick={() => setPendingImport(null)}>Cancel</button><button type="button" className="action-button" onClick={confirmImport}>Save draft and import</button></div></div>}
-          {confirmRestore && <div className="source-safety-confirm" role="alertdialog" aria-label="Confirm restore original source"><div><strong>Restore the protected imported original?</strong><p>Your current draft will first be stored as a recovery copy. Supporting evidence stays attached; generated output is cleared until you regenerate from the restored source.</p></div><div><button type="button" className="secondary-button" onClick={() => setConfirmRestore(false)}>Cancel</button><button type="button" className="action-button" onClick={performRestore}>Save draft and restore</button></div></div>}
+          {confirmRestore && <div className="source-safety-confirm" role="alertdialog" aria-label="Confirm restore original source"><div><strong>Restore the protected imported original?</strong><p>Your current draft will first be stored as a recovery copy. Supporting documents stay attached; generated output is cleared until you regenerate from the restored source.</p></div><div><button type="button" className="secondary-button" onClick={() => setConfirmRestore(false)}>Cancel</button><button type="button" className="action-button" onClick={performRestore}>Save draft and restore</button></div></div>}
           {affidavitRequired && <section ref={affidavitPanel} className={`affidavit-source-panel ${affidavitReady ? 'ready' : 'required'}`} aria-label="Affidavit information"><header><div><p className="eyebrow">Affidavit information</p><h3>Execution jurisdiction</h3><p>Mapped automatically from the current address: state and county are inserted into the generated affidavit.</p></div><span>{affidavitReady ? 'Ready' : 'Review'}</span></header><div className="affidavit-source-grid"><CalculatedField label="State of · mapped from state" value={parsed.affidavitState} /><CalculatedField label="County of · mapped from city" value={parsed.affidavitCounty} /><article><span>Mapped from source data</span><strong>{parsed.name || 'Client name unavailable'}</strong><small>{parsed.address.join(' ') || 'Address unavailable'} · SSN {parsed.ssn || 'Unavailable'}</small></article></div></section>}
           {customFields.length > 0 && <section className={`custom-template-source-panel ${customReady ? 'ready' : 'required'}`} aria-label="Additional template fields"><header><div><p className="eyebrow">Template fields</p><h3>Additional document values</h3><p>These inputs were detected from placeholders in your configured DOCX template.</p></div><span>{customReady ? 'Ready' : 'Required'}</span></header><div className="custom-template-field-grid">{customFields.map((field) => <TextField key={field.key} label={field.label} value={parsed.templateFields[field.key] || ''} onChange={(value) => onSourceFieldChange(`TEMPLATE FIELD ${field.key}`, value)} required={field.required} />)}</div></section>}
           {validationMessage && <p className="workflow-validation-message" role="alert">{validationMessage}</p>}
@@ -391,7 +391,7 @@ export default function GuidedSourceDataFlow({
 
       {stage === 'EVIDENCE' && (
         <section className="guided-evidence-stage source-progressive-evidence required-evidence-stage shared-stage-surface" style={{ viewTransitionName: 'source-work-stage' }}>
-          <SourceStageHeader eyebrow="Step 03 · Required evidence" title="Supporting documents" description="Upload and arrange evidence for packet position 02. The resulting PDF is included in every applicable final packet.">
+          <SourceStageHeader eyebrow="Step 03 · Supporting Documents" title="Supporting documents" description="Upload and arrange Supporting Documents for packet position 02. The resulting PDF is included in every applicable final packet.">
             <div className="source-stage-actions"><button type="button" className="secondary-button" onClick={() => showStage('REVIEW')}>Back to Review</button><button type="button" className="action-button" aria-describedby={generateDescribedBy} aria-disabled={!packetReady || busy} disabled={busy || !packetReady} onClick={confirmEvidence}>{busy ? 'Generating packet…' : 'Generate Ordered Review Package'}</button></div>
           </SourceStageHeader>
           {readinessAttempted && !packetReady && generationBlockReasons.length > 0 && <section id="generation-blocked-reasons" className="source-review generation-blocked-reasons" role="alert" aria-live="polite"><strong>Generation blocked</strong>{generationBlockReasons.map((reason, index) => <p key={`generation-blocker-${index}`}>{reason}</p>)}</section>}
