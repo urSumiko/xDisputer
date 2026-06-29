@@ -9,7 +9,7 @@ const OWNED_NOTIFICATION_DOCK_CSS = `
   .notification-dock[data-notification-dock="true"] { position: relative; z-index: 3; }
   .notification-dock-button { position: relative; display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(191, 219, 254, .9); border-radius: 15px; background: rgba(239, 246, 255, .96); color: #1d4ed8; font-weight: 950; cursor: pointer; box-shadow: 0 10px 24px rgba(29, 78, 216, .12); }
   .notification-dock-button.has-unread { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
-  .notification-dock-badge { position: absolute; top: -7px; right: -7px; min-width: 19px; height: 19px; display: grid; place-items: center; border-radius: 999px; background: #dc2626; color: #fff; font-size: 10px; padding-inline: 5px; }
+  .notification-dock-badge { position: absolute; top: -7px; right: -7px; min-width: 19px; height: 19px; display: grid; place-items: center; border-radius: 999px; background: #dc2626 !important; color: #fff; font-size: 10px; padding-inline: 5px; box-shadow: 0 0 0 3px #fff, 0 8px 18px rgba(220, 38, 38, .28); }
   .notification-dock-popover { position: absolute; top: 52px; right: 0; width: min(390px, calc(100vw - 32px)); display: grid; gap: 10px; padding: 14px; border: 1px solid rgba(203, 213, 225, .92); border-radius: 22px; background: rgba(255, 255, 255, .98); box-shadow: 0 24px 62px rgba(15, 23, 42, .18); }
   .notification-dock-header { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
   .notification-dock-header-copy { display: grid; gap: 2px; min-width: 0; }
@@ -64,7 +64,7 @@ function notificationActionLabel(item: NotificationRecord) {
   const href = item.href || '';
   if (href.includes('/admin/output-activity-v2')) return 'Review';
   if (href.includes('/workspace')) return 'Open';
-  return 'View';
+  return item.href ? 'View' : 'Mark read';
 }
 
 function groupLabel(item: NotificationRecord) {
@@ -99,7 +99,7 @@ function contextLines(item: NotificationRecord) {
       { label: 'Status', value: parts[2] || item.title }
     ];
   }
-  return parts.slice(0, 3).map((value, index) => ({ label: index === 0 ? 'Info' : 'Detail', value }));
+  return parts.slice(0, 3).map((value, index) => ({ label: index === 0 ? 'Info' : `Detail ${index}`, value }));
 }
 
 function summary(item: NotificationRecord) {
@@ -233,7 +233,7 @@ export default function OwnedNotificationDock() {
             <button type="button" className="notification-dock-detail-close" onClick={() => setSelectedId(null)} aria-label="Close notification details">×</button>
           </header>
           <div className="notification-dock-detail-context">
-            {selected.context.map((line) => <span key={`${selected.id}-${line.label}`} className="notification-dock-context-line"><b>{line.label}</b><span>{line.value}</span></span>)}
+            {selected.context.map((line, index) => <span key={`${selected.id}-${index}-${line.label}-${line.value}`} className="notification-dock-context-line"><b>{line.label}</b><span>{line.value}</span></span>)}
           </div>
           <footer className="notification-dock-detail-footer">
             <span className="notification-dock-time">{relativeTime(selected.created_at)} · {phDateTime(selected.created_at)} PH</span>
