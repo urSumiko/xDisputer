@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import type { NotificationRecord } from '../../lib/notifications/notification-types';
 import { useOwnedNotifications } from '../../src/features/notifications/useOwnedNotifications';
 
@@ -154,6 +154,8 @@ function phDateTime(value: string) {
 
 export default function OwnedNotificationDock() {
   const router = useRouter();
+  const pathname = usePathname();
+  const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const {
@@ -173,27 +175,74 @@ export default function OwnedNotificationDock() {
   const selected = useMemo(() => visibleNotifications.find((item) => item.id === selectedId) || null, [selectedId, visibleNotifications]);
   const headerText = useMemo(() => hasUnread ? `${unreadCount} unread` : 'All caught up', [hasUnread, unreadCount]);
 
+  function collapseDock() {
+    setSelectedId(null);
+    setOpen(false);
+  }
+
   useEffect(() => {
     if (open) void refresh();
   }, [open, refresh]);
 
   useEffect(() => {
+    collapseDock();
+  }, [pathname]);
+
+  useEffect(() => {
     if (selectedId && !selected) setSelectedId(null);
   }, [selectedId, selected]);
+
+  useEffect(() => {
+    if (!open) return;
+    function closeFromDocument(event: Event) {
+      const target = event.target as Node | null;
+      if (target && rootRef.current?.contains(target)) return;
+      collapseDock();
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') collapseDock();
+    }
+    document.addEventListener('pointerdown', closeFromDocument);
+    document.addEventListener('focusin', closeFromDocument);
+    document.addEventListener('submit', closeFromDocument, true);
+    document.addEventListener('input', closeFromDocument, true);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', closeFromDocument);
+      document.removeEventListener('focusin', closeFromDocument);
+      document.removeEventListener('submit', closeFromDocument, true);
+      document.removeEventListener('input', closeFromDocument, true);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  const refreshAndCollapse = () => {
+    collapseDock();
+    void refresh();
+  };
+
+  const markAllReadAndCollapse = () => {
+    collapseDock();
+    void markAllRead();
+  };
+
+  const clearReadOnlyAndCollapse = () => {
+    collapseDock();
+    void clearReadOnly();
+  };
 
   const openSelected = async (item: DisplayNotification) => {
     if (!item.href || item.href === '#') {
       await markOneRead(item.id);
-      setSelectedId(null);
+      collapseDock();
       return;
     }
     await markOneRead(item.id);
-    setSelectedId(null);
-    setOpen(false);
+    collapseDock();
     router.push(item.href);
   };
 
-  return <div className="notification-dock" data-notification-dock="true" data-notification-realtime="owned-hook-fetch-first-realtime-accelerated">
+  return <div ref={rootRef} className="notification-dock" data-notification-dock="true" data-notification-realtime="owned-hook-fetch-first-realtime-accelerated">
     <style data-notification-dock-owner="true">{OWNED_NOTIFICATION_DOCK_CSS}</style>
     <button type="button" className={`notification-dock-button ${hasUnread ? 'has-unread' : ''}`} aria-haspopup="dialog" aria-expanded={open} aria-label="Open notifications" onClick={() => setOpen((value) => !value)}>
       <span aria-hidden="true">🔔</span>
@@ -202,12 +251,12 @@ export default function OwnedNotificationDock() {
     {open && <section className="notification-dock-popover" role="dialog" aria-label="Notifications">
       <header className="notification-dock-header">
         <span className="notification-dock-header-copy"><strong>Notifications</strong><small>{loading ? 'Refreshing…' : headerText}</small></span>
-        <button type="button" className="notification-dock-close" onClick={() => { setSelectedId(null); setOpen(false); }} aria-label="Close notifications">×</button>
+        <button type="button" className="notification-dock-close" onClick={collapseDock} aria-label="Close notifications">×</button>
       </header>
       <div className="notification-dock-actions" aria-label="Notification actions">
-        <button type="button" className="notification-dock-action" onClick={() => void refresh()}>Refresh</button>
-        <button type="button" className="notification-dock-action" onClick={() => void markAllRead()}>Mark all read</button>
-        <button type="button" className="notification-dock-action danger" onClick={() => void clearReadOnly()}>Clear read only</button>
+        <button type="button" className="notification-dock-action" onClick={refreshAndCollapse}>Refresh</button>
+        <button type="button" className="notification-dock-action" onClick={markAllReadAndCollapse}>Mark all read</button>
+        <button type="button" className="notification-dock-action danger" onClick={clearReadOnlyAndCollapse}>Clear read only</button>
       </div>
       {syncErrorMessage && <p className="notification-dock-sync-warning">Sync warning: {syncErrorMessage}</p>}
       {errorMessage && <p className="notification-dock-empty">{errorMessage}</p>}
