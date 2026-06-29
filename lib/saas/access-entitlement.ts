@@ -78,7 +78,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
     return blocked(
       'ACCOUNT_DISABLED',
       'Account unavailable',
-      'Your account is disabled. Contact your manager for access.',
+      'Your Disputer account is disabled. Contact your manager for access.',
       'Contact manager'
     );
   }
@@ -87,7 +87,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
     return blocked(
       'ACCOUNT_SUSPENDED',
       'Account suspended',
-      'Your account is temporarily unavailable. Contact your manager.',
+      'Your Disputer account is temporarily unavailable. Contact your manager.',
       'Contact manager'
     );
   }
@@ -96,7 +96,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
     return blocked(
       'NO_MANAGER',
       'Waiting for manager invite',
-      'Your account was created, but it is not connected to a manager yet. Ask your manager to send you an invite link.',
+      'Your Disputer account was created, but it is not connected to a manager yet. Ask your manager to send you an invite link.',
       'Wait for manager invite'
     );
   }
@@ -112,7 +112,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
       allowed: false,
       reason: 'PENDING_MANAGER_APPROVAL',
       title: 'Waiting for manager approval',
-      detail: 'Your account is connected to a manager, but the manager has not approved workspace access yet.',
+      detail: 'Your Disputer account is connected to a manager, but the manager has not approved workspace access yet.',
       actionLabel: 'Wait for approval',
       managerEmail: manager?.email || null,
       status
@@ -123,7 +123,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
     return blocked(
       'PENDING_MANAGER_APPROVAL',
       'Waiting for approval',
-      'Your account is not active yet. Your manager must approve access before you can use the workspace.',
+      'Your Disputer account is not active yet. Your manager must approve access before you can use the workspace.',
       'Wait for approval'
     );
   }
@@ -142,7 +142,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
       allowed: false,
       reason: 'MANAGER_INACTIVE',
       title: 'Manager approval unavailable',
-      detail: 'Your manager account is not currently active. Contact your manager or platform owner.',
+      detail: 'Your manager profile is not currently active. Contact your manager or platform owner.',
       actionLabel: 'Contact manager',
       managerEmail: manager?.email || null,
       status
@@ -153,7 +153,7 @@ export async function getAccessEntitlement(): Promise<AccessEntitlement> {
     allowed: true,
     reason: 'ALLOWED',
     title: 'Workspace unlocked',
-    detail: 'Your account is active and approved by your manager.',
+    detail: 'Your Disputer account is active and approved by your manager.',
     actionLabel: 'Continue',
     managerEmail: manager.email,
     status
