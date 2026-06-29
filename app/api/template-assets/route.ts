@@ -13,10 +13,11 @@ import type { Round } from '../../../lib/reference-store';
 import { templateStoragePath, type TemplateKind } from '../../../lib/supabase/template-registry';
 import { jsonFromServiceResult } from '../../../src/server/http/api-response';
 import { readTemplateAssetsForRequest } from '../../../src/server/services/template-assets-service';
+import { isFtcEnabled } from '../../../lib/workflow-framework';
 
 const allowedRounds = ['1st Round', '2nd Round', '3rd Round', 'Final'];
 const allowedLetterTypes = ['DISPUTE', 'LATE_PAYMENT'];
-const allowedExhibitKinds = ['FCRA', 'AFFIDAVIT', 'ATTACHMENT', 'FTC'];
+function allowedExhibitKinds() { return isFtcEnabled() ? ['FCRA', 'AFFIDAVIT', 'ATTACHMENT', 'FTC'] : ['FCRA', 'AFFIDAVIT', 'ATTACHMENT']; }
 
 type SessionContext = Awaited<ReturnType<typeof getSessionContext>>;
 type ExistingTemplateAsset = { id: string; storage_bucket: string; storage_path: string; version_number: number | null; is_active: boolean | null; content_hash: string | null };
@@ -49,7 +50,8 @@ function validateSlot(input: { round: string; templateKind: string; letterType: 
   if (!allowedRounds.includes(input.round)) return 'Invalid round.';
   if (input.templateKind !== 'LETTER' && input.templateKind !== 'EXHIBIT') return 'Invalid template kind.';
   if (input.templateKind === 'LETTER' && !allowedLetterTypes.includes(input.letterType)) return 'Invalid letter type.';
-  if (input.templateKind === 'EXHIBIT' && !allowedExhibitKinds.includes(input.exhibitKind)) return 'Invalid exhibit kind.';
+  if (input.templateKind === 'EXHIBIT' && input.exhibitKind === 'FTC' && !isFtcEnabled()) return 'FTC templates are temporarily disabled and hidden from packet setup.';
+  if (input.templateKind === 'EXHIBIT' && !allowedExhibitKinds().includes(input.exhibitKind)) return 'Invalid exhibit kind.';
   return null;
 }
 function sha256FromArrayBuffer(buffer: ArrayBuffer) { return createHash('sha256').update(Buffer.from(buffer)).digest('hex'); }
