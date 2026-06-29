@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
     const inputPath = join(workDir, `${name}.docx`);
     const outputPath = join(outDir, `${name}.pdf`);
 
+    await mkdir(outDir, { recursive: true });
+    await mkdir(profileDir, { recursive: true });
     await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
-    await mkdtemp(outDir);
-    await mkdtemp(profileDir);
     await convertWithLibreOffice(inputPath, outDir, profileDir);
 
     const pdf = await readFile(outputPath);
