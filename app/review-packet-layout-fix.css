@@ -1,0 +1,248 @@
+/* Review packet layout repair
+   Keeps the editor header/toolbars sticky without covering document content. */
+
+.simple-editor-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: grid !important;
+  place-items: stretch !important;
+  overflow: hidden !important;
+  background: rgba(241, 245, 249, .98) !important;
+}
+
+.simple-editor-modal.focused-packet-editor,
+.simple-editor-modal.ordered-packet-modal {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  background: #eef2f7 !important;
+}
+
+.simple-editor-header.editor-command-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 40 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  min-height: 84px !important;
+  padding: .8rem 1rem !important;
+  border-bottom: 1px solid rgba(203, 213, 225, .9) !important;
+  background: rgba(255, 255, 255, .96) !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .08) !important;
+}
+
+.editor-command-identity {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, .9fr) auto minmax(240px, 1fr) !important;
+  gap: .9rem !important;
+  align-items: center !important;
+}
+
+.editor-packet-name,
+.editor-active-document {
+  min-width: 0 !important;
+}
+
+.editor-packet-name h2,
+.editor-active-document strong {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.editor-command-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: .65rem !important;
+  min-width: max-content !important;
+}
+
+.ordered-packet-body {
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: 272px minmax(0, 1fr) !important;
+  overflow: hidden !important;
+}
+
+.editor-packet-map.document-rail {
+  position: sticky !important;
+  top: 0 !important;
+  align-self: start !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  overflow: auto !important;
+  padding: 1rem !important;
+  border-right: 1px solid rgba(203, 213, 225, .9) !important;
+  background: linear-gradient(180deg, #ffffff, #f8fbff) !important;
+  box-shadow: 10px 0 28px rgba(15, 23, 42, .04) !important;
+}
+
+.editor-packet-map.document-rail ol {
+  display: grid !important;
+  gap: .55rem !important;
+  margin: .8rem 0 0 !important;
+  padding: 0 !important;
+}
+
+.editor-packet-map.document-rail li,
+.editor-packet-map.document-rail button {
+  min-width: 0 !important;
+}
+
+.editor-packet-map.document-rail button {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: .55rem !important;
+  text-align: left !important;
+}
+
+.editor-packet-map.document-rail strong,
+.editor-packet-map.document-rail small {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.packet-focus-workspace {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  background: #e8edf4 !important;
+}
+
+.packet-focus-scroll {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 1rem clamp(1rem, 3vw, 2.25rem) 4rem !important;
+  scroll-padding-top: 118px !important;
+}
+
+.packet-focus-section.packet-stack-editable {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  gap: 0 !important;
+  align-content: start !important;
+}
+
+.packet-document-toolbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 24 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: .75rem !important;
+  min-height: 56px !important;
+  padding: .65rem .85rem !important;
+  border: 1px solid rgba(203, 213, 225, .9) !important;
+  border-radius: 18px 18px 0 0 !important;
+  background: rgba(255, 255, 255, .96) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.docx-format-toolbar {
+  position: sticky !important;
+  top: 56px !important;
+  z-index: 23 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: end !important;
+  gap: .65rem !important;
+  min-height: 74px !important;
+  padding: .75rem .9rem !important;
+  border: 1px solid rgba(203, 213, 225, .9) !important;
+  border-top: 0 !important;
+  border-radius: 0 0 18px 18px !important;
+  background: rgba(248, 250, 252, .98) !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, .08) !important;
+}
+
+.docx-format-selection {
+  min-width: 140px !important;
+  max-width: 190px !important;
+}
+
+.docx-format-field select,
+.docx-format-field input,
+.docx-format-toggles button {
+  min-height: 42px !important;
+}
+
+.packet-inline-docx-host {
+  min-height: 100% !important;
+  padding: 1.6rem 0 5rem !important;
+  display: grid !important;
+  justify-items: center !important;
+}
+
+.packet-inline-docx-host .docx,
+.packet-inline-docx-host .packet-inline-docx.docx,
+.packet-inline-docx-host .packet-inline-docx .docx {
+  max-width: min(8.5in, calc(100vw - 360px)) !important;
+  margin: 0 auto 2rem !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .16) !important;
+}
+
+.packet-stack-insert {
+  min-height: 100% !important;
+}
+
+.packet-stack-insert .support-layout-editor {
+  min-height: calc(100dvh - 130px) !important;
+}
+
+.packet-header-evidence-slot:empty {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .ordered-packet-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  .editor-packet-map.document-rail {
+    position: static !important;
+    height: auto !important;
+    max-height: 190px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(203, 213, 225, .9) !important;
+  }
+
+  .editor-packet-map.document-rail ol {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  }
+
+  .editor-command-identity {
+    grid-template-columns: 1fr !important;
+  }
+
+  .editor-command-separator {
+    display: none !important;
+  }
+
+  .packet-inline-docx-host .docx,
+  .packet-inline-docx-host .packet-inline-docx.docx,
+  .packet-inline-docx-host .packet-inline-docx .docx {
+    max-width: calc(100vw - 2rem) !important;
+  }
+}
