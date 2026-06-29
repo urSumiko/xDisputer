@@ -1,0 +1,60 @@
+/* Restores the measured Supporting Documents page ratio after the temporary simplified layout. */
+
+.support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) .support-layout-grid.word-crop-grid {
+  grid-template-columns: minmax(520px, 760px) minmax(250px, 292px) !important;
+  grid-template-areas: 'page controls' !important;
+  align-items: start !important;
+  justify-content: center !important;
+  gap: clamp(.85rem, 1.25vw, 1.15rem) !important;
+  width: min(100%, 1080px) !important;
+  margin-inline: auto !important;
+}
+
+.support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) .support-page-frame {
+  grid-area: page !important;
+  width: min(100%, 760px) !important;
+  justify-self: center !important;
+}
+
+.support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) .support-layout-controls.word-crop-controls {
+  grid-area: controls !important;
+  width: min(100%, 292px) !important;
+  max-width: 292px !important;
+  position: sticky !important;
+  top: .85rem !important;
+  max-height: calc(100dvh - 210px) !important;
+  overflow: auto !important;
+}
+
+.support-layout-editor.word-crop-editor .support-page-canvas {
+  aspect-ratio: 8.5 / 11 !important;
+  width: min(100%, var(--supporting-canvas-width, 620px)) !important;
+  height: auto !important;
+  min-height: var(--supporting-canvas-height, 802px) !important;
+  max-height: none !important;
+}
+
+.support-layout-editor.word-crop-editor .support-cropped-preview {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 980px) {
+  .support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) .support-layout-grid.word-crop-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: 'page' 'controls' !important;
+  }
+
+  .support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) .support-page-frame,
+  .support-layout-editor.word-crop-editor:not(:has(.word-left-evidence-manager)) .support-layout-controls.word-crop-controls {
+    position: static !important;
+    width: min(100%, 760px) !important;
+    max-width: 760px !important;
+  }
+}
