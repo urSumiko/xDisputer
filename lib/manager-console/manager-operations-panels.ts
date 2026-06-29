@@ -2,9 +2,9 @@ export type ManagerOperationsPanel = 'monitoring' | 'access' | 'reports' | 'outp
 export type ManagerOperationsPanelInput = ManagerOperationsPanel | 'payroll' | 'output-activity';
 
 export const managerOperationsPanels: Array<{ id: ManagerOperationsPanel; label: string; href: string; purpose: string }> = [
-  { id: 'monitoring', label: 'Monitoring', href: '/admin?panel=monitoring', purpose: 'Monitor outputs and operational status of assigned users.' },
-  { id: 'access', label: 'Access Control', href: '/admin?panel=access', purpose: 'Manage account status, approval, and operational metadata.' },
-  { id: 'reports', label: 'Report', href: '/admin?panel=reports', purpose: 'Generate a clean operational report across users and outputs.' },
+  { id: 'monitoring', label: 'Monitoring', href: '/admin?panel=monitoring', purpose: 'Monitor outputs and operational status of assigned Disputers.' },
+  { id: 'access', label: 'Access Control', href: '/admin?panel=access', purpose: 'Manage Disputer account status, approval, and operational metadata.' },
+  { id: 'reports', label: 'Report', href: '/admin?panel=reports', purpose: 'Generate a clean operational report across Disputers and outputs.' },
   { id: 'output_activity', label: 'Output Activity', href: '/admin/output-activity-v2', purpose: 'Confirm generated outputs before they affect payday pay.' },
   { id: 'requests', label: 'Request', href: '/admin?panel=requests', purpose: 'Review pending confirmations and account requests.' }
 ];
