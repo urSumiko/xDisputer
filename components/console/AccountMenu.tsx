@@ -37,15 +37,21 @@ function displayNameFromIdentity(displayName?: string | null, email?: string | n
 }
 
 function roleLabel(role: ConsoleRole, mode: ConsoleMode) {
-  if (role === 'client') return 'Client workspace account';
-  if (role === 'master') return mode === 'workspace' ? 'Master UI workspace account' : 'Master governance account';
+  if (role === 'client') return 'Disputer workspace account';
+  if (role === 'master') return mode === 'workspace' ? 'Master workspace account' : 'Master governance account';
   return mode === 'workspace' ? 'Manager workspace account' : 'Manager operations account';
 }
 
 function surfaceLabel(role: ConsoleRole, mode: ConsoleMode) {
-  if (role === 'client') return 'Client packet workspace';
-  if (role === 'master') return mode === 'workspace' ? 'UI workspace control' : 'Governance monitoring';
+  if (role === 'client') return 'Disputer packet workspace';
+  if (role === 'master') return mode === 'workspace' ? 'Workspace control' : 'Governance monitoring';
   return mode === 'workspace' ? 'Workspace authoring' : 'Operations monitoring';
+}
+
+function roleDisplayLabel(role: ConsoleRole) {
+  if (role === 'client') return 'Disputer';
+  if (role === 'master') return 'Master';
+  return 'Manager';
 }
 
 function displayNameFromUrl() {
@@ -100,8 +106,8 @@ export default function AccountMenu({ role, mode, email, displayName, accountLab
       <div className="manager-account-popover-topline"><span>{email || accountLabel}</span><button type="button" className="manager-account-close" aria-label="Close account settings" onClick={() => setOpen(false)}>×</button></div>
       <section className="manager-account-identity-panel"><div className="manager-account-avatar-large" aria-hidden="true">{initial}</div><h2>{resolvedDisplayName}</h2><p>{roleLabel(role, mode)}</p></section>
       <section className="manager-account-function-panel" aria-label="Current account context">
-        <div><strong>Current surface</strong><span>{surfaceLabel(role, mode)}</span></div>
-        <div><strong>Access role</strong><span>{role}</span></div>
+        <div><strong>Current area</strong><span>{surfaceLabel(role, mode)}</span></div>
+        <div><strong>Workspace role</strong><span>{roleDisplayLabel(role)}</span></div>
         <div><strong>Account email</strong><span>{email || 'Not available'}</span></div>
       </section>
       <form className="manager-account-settings-form" action="/api/account/profile" method="post">
