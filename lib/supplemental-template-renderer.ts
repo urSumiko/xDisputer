@@ -66,13 +66,51 @@ function placeholders(ctx: MappedAppendixContext): PlaceholderValues {
   const date = s.ftcReportDate || ctx.documentDate;
   const accounts = ctx.kind === 'AFFIDAVIT' ? affidavitItems(s) : rows(s.dispute[ctx.bureau]);
   const ftc = s.ftcAccounts.slice(0, MAX_FTC_ACCOUNTS).map((account) => ({ account_name: account.accountName, account_number: account.accountNumber, fraud_began: ftcFraudMonthYearFromReportDate(date), date_discovered: account.dateDiscovered, fraudulent_amount: account.fraudulentAmount, fraud_amount: account.fraudulentAmount }));
-  return { consumer_name: s.name, client_name: s.name, name: s.name, consumer_first_name: s.firstName, consumer_middle_name: ctx.kind === 'FTC' ? '' : s.middleName, consumer_last_name: s.lastName, address: s.address.join('\n'), address_inline: s.address.join(' '), address_line_1: s.address[0] || '', address_line_2: s.address.slice(1).join(' '), country: s.country || 'USA', dob: s.dob, ssn: s.ssn, ssn_masked: s.ssn, phone: ctx.kind === 'FTC' ? phone(s.phone) : s.phone, email: ctx.kind === 'FTC' ? '' : s.email, date: ctx.documentDate, letter_date: ctx.documentDate, document_date: ctx.documentDate, affidavit_state: s.affidavitState, affidavit_county: s.affidavitCounty, ftc_report_number: s.ftcReportNumber, ftc_report_date: date, bureau_name: ctx.recipientName, bureau_address: ctx.recipientAddressLines.join('\n'), bureau_address_line_1: ctx.recipientAddressLines[0] || '', bureau_address_line_2: ctx.recipientAddressLines.slice(1).join(' '), accounts, dispute_accounts: accounts, ftc_accounts: ftc, hard_inquiries: s.inquiry[ctx.bureau].map((item) => ({ inquiry_line: item.displayText, display_text: item.displayText })), account_lines: (accounts as RenderRow[]).map((item) => item.account_line).filter(Boolean).join('\n'), ...s.templateFields };
+  return {
+    consumer_name: s.name,
+    client_name: s.name,
+    name: s.name,
+    printed_name: s.name,
+    signature_name: s.name,
+    affiant_name: s.name,
+    declarant_name: s.name,
+    consumer_signature_name: s.name,
+    consumer_first_name: s.firstName,
+    consumer_middle_name: ctx.kind === 'FTC' ? '' : s.middleName,
+    consumer_last_name: s.lastName,
+    address: s.address.join('\n'),
+    address_inline: s.address.join(' '),
+    address_line_1: s.address[0] || '',
+    address_line_2: s.address.slice(1).join(' '),
+    country: s.country || 'USA',
+    dob: s.dob,
+    ssn: s.ssn,
+    ssn_masked: s.ssn,
+    phone: ctx.kind === 'FTC' ? phone(s.phone) : s.phone,
+    email: ctx.kind === 'FTC' ? '' : s.email,
+    date: ctx.documentDate,
+    letter_date: ctx.documentDate,
+    document_date: ctx.documentDate,
+    affidavit_state: s.affidavitState,
+    affidavit_county: s.affidavitCounty,
+    ftc_report_number: s.ftcReportNumber,
+    ftc_report_date: date,
+    bureau_name: ctx.recipientName,
+    bureau_address: ctx.recipientAddressLines.join('\n'),
+    bureau_address_line_1: ctx.recipientAddressLines[0] || '',
+    bureau_address_line_2: ctx.recipientAddressLines.slice(1).join(' '),
+    accounts,
+    dispute_accounts: accounts,
+    ftc_accounts: ftc,
+    hard_inquiries: s.inquiry[ctx.bureau].map((item) => ({ inquiry_line: item.displayText, display_text: item.displayText })),
+    account_lines: (accounts as RenderRow[]).map((item) => item.account_line).filter(Boolean).join('\n'),
+    ...s.templateFields
+  };
 }
 
 function nodes(root: Element, name: string) { return Array.from(root.getElementsByTagNameNS(W, name)); }
 function paragraphs(root: Element) { return nodes(root, 'p'); }
 function topParagraphs(root: Element) { return Array.from(root.children).filter((node) => node.namespaceURI === W && node.localName === 'p') as Element[]; }
-function children(root: Element, name: string) { return Array.from(root.children).filter((node) => node.namespaceURI === W && node.localName === name) as Element[]; }
 function texts(root: Element) { return nodes(root, 't'); }
 function raw(root: Element) { return texts(root).map((node) => node.textContent || '').join(''); }
 function text(root: Element) { return raw(root).replace(/\s+/g, ' ').trim(); }
@@ -87,10 +125,16 @@ function insertAfter(reference: Element, node: Element) { reference.parentNode?.
 function boundaryParagraph(value: string) { return /^\s*(?:I\s+declare|\d+\.\s*Request|Request\s+for\s+Action|\d+\.\s*Oath|Oath\s+and\s+Signature|Sincerely|Date\s*:)/i.test(value); }
 function accountLinesForAffidavit(source: ParsedSource) { return affidavitItems(source).map((item) => item.account_line || item.display_text).filter(Boolean); }
 function normalizeSecurityNumberFormatting(paragraph: Element, ssn: string) { const safeSsn = ssn.replace(/-/g, '‑'); allMatches(paragraph, /Security\s+num\s*[-‐-‒–—]\s*ber/gi, 'Security number'); allMatches(paragraph, /(?:X{3}|\d{3})[-‐-‒–—](?:X{2}|\d{2})[-‐-‒–—](?:X{4}|\d{4})/gi, safeSsn); }
+function accountPlaceholderPattern() { return /\{\{\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*\}\}|\[\[\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*\]\]|«\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*»/i; }
+function rowValue(row: RenderRow, alias: string) { const key = alias.replace(/[{}\[\]«»]/g, '').replace(/\s+/g, '_').replace(/^account\./i, 'account_').toLowerCase(); if (key === 'account_name' || key === 'name') return row.account_name || row.account_line || row.display_text; if (key === 'account_number' || key === 'account_no' || key === 'account_#') return row.account_number; if (key === 'account_line' || key === 'display_text') return row.account_line || row.display_text; return row.account_line || row.display_text; }
+function replaceAccountTokens(paragraph: Element, row: RenderRow) { const pattern = /\{\{\s*([^{}]+?)\s*\}\}|\[\[\s*([^\[\]]+?)\s*\]\]|«\s*([^«»]+?)\s*»/g; Array.from(raw(paragraph).matchAll(pattern)).reverse().forEach((match) => { const alias = String(match[1] || match[2] || match[3] || '').trim(); if (!/^(?:account[._\s-]?)?(?:name|number|no\.?|#|line)$|^display_text$/i.test(alias)) return; if (typeof match.index === 'number') replaceRange(paragraph, match.index, match.index + match[0].length, rowValue(row, alias)); }); }
+function cloneAccountPrototype(prototype: Element, rows: RenderRow[]) { return rows.map((row) => { const paragraph = prototype.cloneNode(true) as Element; replaceAccountTokens(paragraph, row); if (accountPlaceholderPattern().test(raw(paragraph))) lines(paragraph, [row.account_line || row.display_text]); return paragraph; }); }
+function documentHasRenderedAccountData(root: Element, accountRows: RenderRow[]) { const value = raw(root).toUpperCase(); return accountRows.some((row) => [row.account_name, row.account_number, row.account_line].filter(Boolean).some((item) => value.includes(item.toUpperCase()))); }
+function patchSignatureName(paragraphsList: Element[], name: string) { const signatureAliases = ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'consumer_name', 'client_name']; paragraphsList.forEach((paragraph) => signatureAliases.forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name))); const exact = paragraphsList.find((p) => text(p).toUpperCase() === name.toUpperCase() || /^JAZZMINE\s+LAMBERT$/i.test(text(p))); if (exact) lines(exact, [name]); const tail = paragraphsList.slice(Math.max(0, paragraphsList.length - 12)); const candidate = tail.find((p) => /^[A-Z][A-Z\s.'-]{3,}$/.test(text(p)) && !/(STATE|COUNTY|ACCOUNT|INFORMATION|REQUEST|OATH|DATE|SIGNATURE)/i.test(text(p))); if (candidate) lines(candidate, [name]); }
 async function open(file: Blob, label: string, options: AppendixRenderOptions): Promise<Opened> { await checkpoint(options, `Opening ${label} template`, 0, 3); const zip = new PizZip(await file.arrayBuffer()); await checkpoint(options, `Reading ${label} document XML`, 1, 3); const xmlFile = zip.file('word/document.xml'); if (!xmlFile) throw new Error(`${label} DOCX document XML is unavailable.`); const xmlText = xmlFile.asText(), xml = new DOMParser().parseFromString(xmlText, 'application/xml'), body = xml.getElementsByTagNameNS(W, 'body')[0]; if (!body) throw new Error(`${label} DOCX body is unavailable.`); await checkpoint(options, `Template loaded: ${label}`, 2, 3); return { zip, xmlText, xml, body }; }
 async function save(opened: Opened, options: AppendixRenderOptions) { await checkpoint(options, 'Serializing DOCX output', 0, 2); opened.zip.file('word/document.xml', new XMLSerializer().serializeToString(opened.xml)); await checkpoint(options, 'Compressing DOCX output', 1, 2); assertActive(options); return hardenGeneratedDocx(opened.zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'STORE' })); }
 
-async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, options: AppendixRenderOptions) {
+async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, options: AppendixRenderOptions, mode: 'full' | 'repair-only' = 'full') {
   const s = ctx.source, all = topParagraphs(opened.body), street = s.address[0] || 'N/A';
   await checkpoint(options, 'Mapping affidavit identity and account anchors', 0, 4);
   const state = all.find((p) => /^State\s+of\s*:/i.test(text(p)));
@@ -101,32 +145,40 @@ async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, op
   if (county) captured(county, /^(County\s+of\s*:\s*)(.*)$/i, 2, (s.affidavitCounty || 'N/A').toUpperCase());
   if (opening) { captured(opening, /^(I,\s*)(.*?)(\s+residing\s+at\s+)/i, 2, s.name.toUpperCase()); captured(opening, /(\s+residing\s+at\s+)(.*?)(\s+being\s+duly)/i, 2, street); }
   if (personal) { captured(personal, /(current\s+address\s+is\s+)(.*?)(\.\s*My\s+(?:Social\s+)?Security)/i, 2, street); captured(personal, /((?:Social\s+)?Security\s+number\s+is\s*)(.*)$/i, 2, s.ssn); normalizeSecurityNumberFormatting(personal, s.ssn); }
-  const accountLines = accountLinesForAffidavit(s);
+  const accountRows = affidavitItems(s);
+  const accountLines = accountRows.map((item) => item.account_line || item.display_text).filter(Boolean);
   if (!accountLines.length) throw new Error('Affidavit account section cannot render because no dispute accounts were found in Source Data.');
-  const accountHeadingIndex = all.findIndex((p) => /^Account\s+Information\s*:?$/i.test(text(p)) || /Account\s+Information\s*:/i.test(text(p)));
-  if (accountHeadingIndex >= 0) {
-    const heading = all[accountHeadingIndex];
-    const existingAccountParagraphs: Element[] = [];
-    for (const paragraph of all.slice(accountHeadingIndex + 1)) {
-      const value = text(paragraph);
-      if (boundaryParagraph(value)) break;
-      existingAccountParagraphs.push(paragraph);
+  const accountAlreadyRendered = mode === 'repair-only' && documentHasRenderedAccountData(opened.body, accountRows);
+  if (!accountAlreadyRendered) {
+    const accountHeadingIndex = all.findIndex((p) => /^Account\s+Information\s*:?$/i.test(text(p)) || /Account\s+Information\s*:/i.test(text(p)));
+    if (accountHeadingIndex >= 0) {
+      const heading = all[accountHeadingIndex];
+      const existingAccountParagraphs: Element[] = [];
+      for (const paragraph of all.slice(accountHeadingIndex + 1)) {
+        const value = text(paragraph);
+        if (boundaryParagraph(value)) break;
+        existingAccountParagraphs.push(paragraph);
+      }
+      const prototype = existingAccountParagraphs.find((paragraph) => text(paragraph) || accountPlaceholderPattern().test(raw(paragraph))) || heading;
+      existingAccountParagraphs.forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
+      const rendered = accountPlaceholderPattern().test(raw(prototype)) ? cloneAccountPrototype(prototype, accountRows) : [cloneParagraphLike(prototype, accountLines)];
+      rendered.reverse().forEach((paragraph) => insertAfter(heading, paragraph));
+    } else {
+      const anchor = all.find((p) => /Account\s+Name\s*[-–—]\s*Account\s*(?:Number|#)/i.test(raw(p)) || accountPlaceholderPattern().test(raw(p)));
+      if (anchor && accountPlaceholderPattern().test(raw(anchor))) {
+        const rendered = cloneAccountPrototype(anchor, accountRows);
+        anchor.parentNode?.removeChild(anchor);
+        rendered.reverse().forEach((paragraph) => insertAfter(all[0], paragraph));
+      } else if (anchor) lines(anchor, accountLines);
+      else throw new Error('Affidavit template is missing an Account Information section or Account Name - Account number anchor.');
     }
-    const prototype = existingAccountParagraphs.find((paragraph) => text(paragraph)) || heading;
-    existingAccountParagraphs.forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
-    insertAfter(heading, cloneParagraphLike(prototype, accountLines));
-  } else {
-    const anchor = all.find((p) => /Account\s+Name\s*[-–—]\s*Account\s*(?:Number|#)/i.test(raw(p)));
-    if (anchor) lines(anchor, accountLines);
-    else throw new Error('Affidavit template is missing an Account Information section or Account Name - Account number anchor.');
   }
-  all.forEach((paragraph) => {
+  paragraphs(opened.body).forEach((paragraph) => {
     allMatches(paragraph, /Account\s+Name\s*[-–—]\s*Account\s*(?:Number|#)/gi, accountLines.join('\n'));
     allMatches(paragraph, /\{\{\s*account_lines\s*\}\}/gi, accountLines.join('\n'));
     allMatches(paragraph, /\{\{\s*accounts\.lines\s*\}\}/gi, accountLines.join('\n'));
   });
-  const signature = all.find((p) => text(p).toUpperCase() === s.name.toUpperCase() || /^JAZZMINE\s+LAMBERT$/i.test(text(p)));
-  if (signature) lines(signature, [s.name]);
+  patchSignatureName(paragraphs(opened.body), s.name);
   const date = all.find((p) => /^Date\s*:/i.test(text(p)));
   if (date) captured(date, /^(Date\s*:\s*)(.*)$/i, 2, ctx.documentDate);
   await checkpoint(options, 'Affidavit account anchors mapped in-place', 4, 4);
@@ -141,16 +193,16 @@ async function ftc(ctx: MappedAppendixContext, opened: Opened, options: Appendix
   const values = placeholders(ctx);
   paragraphs(opened.body).forEach((paragraph) => {
     Object.entries(values).forEach(([key, value]) => {
-      if (typeof value === 'string') allMatches(paragraph, new RegExp(`\\{\\{\\s*${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\}\\}`, 'gi'), value);
+      if (typeof value === 'string') allMatches(paragraph, new RegExp(`\{\{\s*${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\s*\}\}`, 'gi'), value);
     });
   });
   return save(opened, options);
 }
 
-async function postProcessAffidavit(blob: Blob, context: MappedAppendixContext, options: AppendixRenderOptions) {
+async function postProcessAffidavit(blob: Blob, context: MappedAppendixContext, options: AppendixRenderOptions, mode: 'full' | 'repair-only' = 'repair-only') {
   if (context.kind !== 'AFFIDAVIT') return blob;
   const opened = await open(blob, 'Affidavit generated output', options);
-  return normalizeAffidavit(context, opened, options);
+  return normalizeAffidavit(context, opened, options, mode);
 }
 
 export async function renderMappedAppendix(template: File, context: MappedAppendixContext, options: AppendixRenderOptions = {}) {
@@ -167,14 +219,14 @@ export async function renderMappedAppendix(template: File, context: MappedAppend
     const v2 = await tryRenderDynamicAppendixTemplateV2({ template, context, rendererMode: options.rendererMode });
     if (v2) {
       await checkpoint(effective, `${label} renderer-v2 complete (${v2.engine.quality.tier}/${v2.engine.quality.score})`, 2, 2);
-      return postProcessAffidavit(v2.blob, context, effective);
+      return postProcessAffidavit(v2.blob, context, effective, 'repair-only');
     }
     const opened = await open(template, label, effective);
     if (opened.xmlText.includes('{{')) {
       await checkpoint(effective, `Mapping ${label} placeholders`, 0, 2);
       const output = await renderDocxTemplate(template, placeholders(context));
       await checkpoint(effective, `${label} document complete`, 2, 2);
-      return postProcessAffidavit(output, context, effective);
+      return postProcessAffidavit(output, context, effective, 'repair-only');
     }
     return context.kind === 'AFFIDAVIT' ? affidavit(context, opened, effective) : ftc(context, opened, effective);
   } finally {
