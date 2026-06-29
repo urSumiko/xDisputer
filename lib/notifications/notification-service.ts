@@ -25,6 +25,8 @@ type OutputActivityNotificationRow = {
   output_count: number | null;
   status: string | null;
   is_per_output: boolean | null;
+  approved_at?: string | null;
+  rejected_at?: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -58,6 +60,52 @@ function uniqueIds(ids: unknown, limit = 40) {
   return Array.from(new Set(ids.filter((id) => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)) as string[])).slice(0, limit);
 }
 
+function outputActivityIdFromHref(href: string | null | undefined) {
+  if (!href) return '';
+  const outputActivity = href.match(/[?&]outputActivity=([0-9a-f-]{36})/i)?.[1];
+  const managerActivity = href.match(/[?&]activity=([0-9a-f-]{36})/i)?.[1];
+  return outputActivity || managerActivity || '';
+}
+
+function outputActivityIdFromVirtualId(id: string) {
+  return id.match(/^output-activity-(?:client|manager)-([0-9a-f-]{36})$/i)?.[1] || '';
+}
+
+function notificationDedupeKey(item: NotificationRecord) {
+  const activityId = outputActivityIdFromHref(item.href) || outputActivityIdFromVirtualId(item.id);
+  if (activityId) return `output-activity:${activityId}:${item.title}`;
+  return item.href || item.id;
+}
+
+function shouldHideClientOpen(item: NotificationRecord, role: NotificationAudienceRole) {
+  return role === 'client' && Boolean(outputActivityIdFromHref(item.href));
+}
+
+function presentationNotification(item: NotificationRecord, role: NotificationAudienceRole): NotificationRecord {
+  return shouldHideClientOpen(item, role) ? { ...item, href: null } : item;
+}
+
+function combineDuplicateNotification(previous: NotificationRecord | undefined, next: NotificationRecord) {
+  if (!previous) return next;
+  return {
+    ...next,
+    read_at: previous.read_at || next.read_at,
+    created_at: next.created_at || previous.created_at
+  };
+}
+
+function uniqueNotifications(input: NotificationRecord[], role: NotificationAudienceRole, limit: number) {
+  const map = new Map<string, NotificationRecord>();
+  for (const item of input) {
+    const key = notificationDedupeKey(item);
+    map.set(key, combineDuplicateNotification(map.get(key), item));
+  }
+  return Array.from(map.values())
+    .map((item) => presentationNotification(item, role))
+    .sort((left, right) => right.created_at.localeCompare(left.created_at))
+    .slice(0, limit);
+}
+
 function phDateTime(value: string | null | undefined) {
   if (!value) return 'time not recorded';
   try {
@@ -79,12 +127,18 @@ function roundText(row: OutputActivityNotificationRow) {
 }
 
 function clientText(row: OutputActivityNotificationRow) {
-  return row.client_name || 'Client user';
+  return row.client_name || 'Letter client not set';
 }
 
 function letterText(row: OutputActivityNotificationRow) {
   const raw = row.output_label || row.letter_route || 'Generated letter';
   return raw.replace(/^generated output task$/i, 'Generated letter').replace(/^generated letter$/i, 'Generated letter');
+}
+
+function decisionTime(row: OutputActivityNotificationRow) {
+  return row.status === 'approved'
+    ? row.approved_at || row.updated_at || row.created_at
+    : row.rejected_at || row.updated_at || row.created_at;
 }
 
 function managerBody(row: OutputActivityNotificationRow) {
@@ -93,7 +147,7 @@ function managerBody(row: OutputActivityNotificationRow) {
 
 function clientBody(row: OutputActivityNotificationRow) {
   const approved = row.status === 'approved';
-  return `${roundText(row)} · ${letterText(row)} · ${approved ? 'confirmed' : 'returned'} · ${phDateTime(row.updated_at || row.created_at)} PH`;
+  return `${roundText(row)} · ${letterText(row)} · ${approved ? 'confirmed' : 'returned'} · ${phDateTime(decisionTime(row))} PH`;
 }
 
 function virtualManagerNotification(row: OutputActivityNotificationRow): NotificationRecord {
@@ -114,10 +168,10 @@ function virtualClientNotification(row: OutputActivityNotificationRow): Notifica
     id: `output-activity-client-${row.id}`,
     title: approved ? 'Per-output letter confirmed' : 'Per-output letter returned',
     body: clientBody(row),
-    href: `/workspace?outputActivity=${row.id}`,
+    href: null,
     severity: approved ? 'success' : 'warning',
     read_at: null,
-    created_at: row.updated_at || row.created_at || new Date().toISOString()
+    created_at: decisionTime(row) || new Date().toISOString()
   };
 }
 
@@ -172,7 +226,7 @@ async function outputActivityFallbackNotifications(input: {
   role: NotificationAudienceRole;
   limit: number;
 }) {
-  const selectColumns = 'id,manager_id,disputer_id,client_name,round_label,output_label,letter_route,output_count,status,is_per_output,created_at,updated_at';
+  const selectColumns = 'id,manager_id,disputer_id,client_name,round_label,output_label,letter_route,output_count,status,is_per_output,approved_at,rejected_at,created_at,updated_at';
 
   if (input.role === 'manager') {
     const result = await input.supabase
@@ -243,11 +297,7 @@ export async function listNotifications({ supabase, userId, role, limit }: ListN
     ...(roleWide.data || []).map(toNotificationRecord)
   ];
   const fallbackNotifications = await outputActivityFallbackNotifications({ supabase, userId, role, limit: cappedLimit });
-  const merged = [...dbNotifications, ...fallbackNotifications];
-
-  const unique = Array.from(new Map(merged.map((item) => [item.href || item.id, item])).values())
-    .sort((left, right) => right.created_at.localeCompare(left.created_at))
-    .slice(0, cappedLimit);
+  const unique = uniqueNotifications([...dbNotifications, ...fallbackNotifications], role, cappedLimit);
 
   const directUnread = await unreadCount({ supabase, column: 'recipient_user_id', value: userId });
   const roleUnread = await unreadCount({ supabase, column: 'recipient_role', value: role });
