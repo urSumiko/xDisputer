@@ -1,6 +1,7 @@
 'use client';
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
+import { deterministicPdfConversionUnavailableMessage, pdfConversionPolicy } from './pdf-conversion-policy';
 
 export type PdfPacketPart = {
   label: string;
@@ -85,9 +86,10 @@ export async function createBlankPdf(label = 'Packet component') {
 
 async function convertDocxWithServer(blob: Blob, label: string) {
   if (typeof fetch !== 'function') throw new Error('Server conversion unavailable.');
+  const policy = pdfConversionPolicy();
   const formData = new FormData();
-  formData.set('file', new File([blob], `${label.replace(/[\\/:*?"<>|]+/g, '_') || 'document'}.docx`, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
-  const response = await fetch('/api/convert/docx-to-pdf', { method: 'POST', body: formData, cache: 'no-store' });
+  formData.set('file', new File([blob], `${label.replace(/[\/:*?"<>|]+/g, '_') || 'document'}.docx`, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+  const response = await fetch(policy.conversionEndpoint, { method: 'POST', body: formData, cache: 'no-store' });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     throw new Error(payload?.error || `Server DOCX conversion failed with HTTP ${response.status}.`);
@@ -138,9 +140,13 @@ async function renderDocxToPdfInBrowser(blob: Blob, label: string) {
 }
 
 async function renderDocxToPdf(blob: Blob, label: string) {
+  const policy = pdfConversionPolicy();
   try {
     return await convertDocxWithServer(blob, label);
-  } catch {
+  } catch (error) {
+    if (!policy.allowBrowserFallback) {
+      throw new Error(deterministicPdfConversionUnavailableMessage(label, error));
+    }
     return await renderDocxToPdfInBrowser(blob, label);
   }
 }
