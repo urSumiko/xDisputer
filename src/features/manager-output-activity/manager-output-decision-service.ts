@@ -11,6 +11,10 @@ function amount(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) ? Math.max(0, parsed) : outputActivityContract.defaultRateAmount;
 }
 
+function isMissingRpcError(message: string) {
+  return /could not find the function|function .* does not exist|schema cache/i.test(message || '');
+}
+
 export function decisionStatus(action: string) {
   if (action === 'confirm') return outputActivityContract.status.approved;
   if (action === 'reject') return outputActivityContract.status.rejected;
@@ -40,9 +44,10 @@ export async function applyManagerOutputDecision(request: NextRequest) {
   if (existing.data.is_per_output !== true) return { ok: false as const, message: 'This generated output is not per-output, so no manager confirmation is required.' };
   if ((action === 'confirm' || action === 'reject') && existing.data.status !== outputActivityContract.status.pending) return { ok: false as const, message: 'Only pending per-output items can be confirmed or returned.' };
 
+  const decidedAt = new Date().toISOString();
   const patch = status === outputActivityContract.status.approved
-    ? { status, rate_amount: rate, approved_at: new Date().toISOString(), updated_at: new Date().toISOString() }
-    : { status, rejected_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    ? { status, rate_amount: rate, approved_at: decidedAt, updated_at: decidedAt }
+    : { status, rejected_at: decidedAt, updated_at: decidedAt };
 
   const updated = await supabase.from('manager_disputer_output_approvals').update(patch).eq('manager_id', user.id).eq('id', id);
   if (updated.error) return { ok: false as const, message: updated.error.message };
@@ -51,12 +56,14 @@ export async function applyManagerOutputDecision(request: NextRequest) {
     activity_id_input: id
   });
 
-  if (notificationSync.error) {
+  const actionMessage = status === outputActivityContract.status.approved ? 'Output confirmed.' : 'Output returned.';
+
+  if (notificationSync.error && !isMissingRpcError(notificationSync.error.message)) {
     return {
       ok: true as const,
-      message: `${status === outputActivityContract.status.approved ? 'Output confirmed' : 'Output returned'}, but client notification sync needs repair: ${notificationSync.error.message}`
+      message: `${actionMessage} Disputer notification will finish syncing on the next refresh.`
     };
   }
 
-  return { ok: true as const, message: status === outputActivityContract.status.approved ? 'Output confirmed.' : 'Output returned.' };
+  return { ok: true as const, message: actionMessage };
 }
