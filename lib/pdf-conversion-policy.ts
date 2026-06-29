@@ -5,18 +5,10 @@ export type PdfConversionPolicy = {
   reason: string;
 };
 
-function envValue(name: string) {
-  try {
-    return process.env[name];
-  } catch {
-    return undefined;
-  }
-}
-
 export function pdfConversionPolicy(): PdfConversionPolicy {
-  const explicitMode = (envValue('NEXT_PUBLIC_PDF_CONVERSION_MODE') || envValue('PDF_CONVERSION_MODE') || '').trim().toLowerCase();
-  const deterministic = envValue('NEXT_PUBLIC_DETERMINISTIC_PDF_CONVERSION') === '1' || envValue('DETERMINISTIC_PDF_CONVERSION') === '1';
-  const productionStrict = envValue('NODE_ENV') === 'production' && envValue('NEXT_PUBLIC_ALLOW_BROWSER_PDF_FALLBACK') !== '1';
+  const explicitMode = (process.env.NEXT_PUBLIC_PDF_CONVERSION_MODE || '').trim().toLowerCase();
+  const deterministic = process.env.NEXT_PUBLIC_DETERMINISTIC_PDF_CONVERSION === '1';
+  const productionStrict = process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ALLOW_BROWSER_PDF_FALLBACK !== '1';
   const serverRequired = explicitMode === 'server_required' || deterministic || productionStrict;
 
   if (serverRequired) {
