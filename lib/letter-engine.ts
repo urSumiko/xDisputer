@@ -83,7 +83,7 @@ function displayAccount(lines: string[]) { const clean = cleanLines(lines); cons
 function lateDisplayText(lines: string[]) { const clean = cleanLines(lines); const base = displayAccount(clean); const relevant = clean.filter((line) => /late|payment|30\s*day|60\s*day|90\s*day|120\s*day/i.test(line)); return [base, ...relevant.filter((line) => !ACCOUNT_NAME.test(line) && !ACCOUNT_NUMBER.test(line))].filter(Boolean).join('\n'); }
 function inquiryDisplayText(lines: string[]) { const joined = cleanLines(lines).join(' - '); return DATE_PATTERN.test(joined) ? joined.replace(/\s*[-–—]\s*/g, ' - ').replace(/\s+/g, ' ').trim() : ''; }
 function createItem(type: ItemType, lines: string[]): SourceItem | null { const displayText = type === 'DISPUTE_ACCOUNT' ? displayAccount(lines) : type === 'HARD_INQUIRY' ? inquiryDisplayText(lines) : lateDisplayText(lines); return displayText ? { type, displayText } : null; }
-function appendUnique(target: SourceItem[], item: SourceItem | null, diagnostics: ParseDiagnostic[], bureau: Bureau) { if (!item) return; const key = `${item.type}|${normalized(item.displayText)}`; if (target.some((current) => `${current.type}|${normalized(current.displayText)}` === key)) { diagnostics.push({ level: 'info', message: `Duplicate ${item.type.toLowerCase().replaceAll('_', ' ')} removed for ${bureau}.` }); return; } target.push(item); }
+function appendSourceItem(target: SourceItem[], item: SourceItem | null) { if (item) target.push(item); }
 function headerField(lines: string[], label: RegExp) { const line = lines.find((entry) => label.test(entry)); return line ? line.replace(label, '').trim() : ''; }
 function looksLikeRecord(line: string) { return ACCOUNT_NAME.test(line) || ACCOUNT_NUMBER.test(line) || DATE_PATTERN.test(line); }
 function pushPreserved(parsed: ParsedSource, line: number, text: string, reason: string) { if (!parsed.preserved.some((item) => item.line === line && item.text === text)) parsed.preserved.push({ line, text, reason }); }
@@ -107,7 +107,7 @@ export function parseSource(text: string): ParsedSource {
       return;
     }
     const created = createItem(section === 'dispute' ? 'DISPUTE_ACCOUNT' : 'LATE_PAYMENT', buffer);
-    if (created) appendUnique(section === 'dispute' ? parsed.dispute[bureau] : parsed.late[bureau], created, parsed.diagnostics, bureau);
+    if (created) appendSourceItem(section === 'dispute' ? parsed.dispute[bureau] : parsed.late[bureau], created);
     else if (buffer.some(looksLikeRecord)) parsed.diagnostics.push({ level: 'warning', message: `${section === 'dispute' ? 'Dispute' : 'Late-payment'} record in ${bureau} is missing a usable account name or account number.`, line: bufferLine });
     buffer = [];
   };
@@ -134,7 +134,7 @@ export function parseSource(text: string): ParsedSource {
     if (section === 'ignore') { pushPreserved(parsed, lineNumber, line, 'Supplemental or unmapped source data: not inserted unless a document maps it.'); return; }
     if (section === 'inquiry') {
       if (!bureau) { if (DATE_PATTERN.test(line)) parsed.diagnostics.push({ level: 'warning', message: 'Hard inquiry ignored because no bureau heading was identified.', line: lineNumber }); else pushPreserved(parsed, lineNumber, line, 'Unrecognized hard-inquiry text.'); return; }
-      if (DATE_PATTERN.test(line)) appendUnique(parsed.inquiry[bureau], createItem('HARD_INQUIRY', [line]), parsed.diagnostics, bureau);
+      if (DATE_PATTERN.test(line)) appendSourceItem(parsed.inquiry[bureau], createItem('HARD_INQUIRY', [line]));
       else if (!isNoData(line)) { parsed.diagnostics.push({ level: 'warning', message: `Hard inquiry in ${bureau} must include a date on the same line: COMPANY - MM/DD/YYYY.`, line: lineNumber }); pushPreserved(parsed, lineNumber, line, 'Inquiry retained for manual review.'); }
       return;
     }
