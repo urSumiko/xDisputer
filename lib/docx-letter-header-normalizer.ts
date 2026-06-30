@@ -196,6 +196,34 @@ function blankParagraphLike(source: Element) {
   return paragraph;
 }
 
+function ensureRunProperty(run: Element, localName: string) {
+  const doc = run.ownerDocument;
+  let properties = Array.from(run.children).find((node) => node.namespaceURI === WORD_NS && node.localName === 'rPr') as Element | undefined;
+  if (!properties) {
+    properties = doc.createElementNS(WORD_NS, 'w:rPr');
+    run.insertBefore(properties, run.firstChild);
+  }
+
+  let property = Array.from(properties.children).find((node) => node.namespaceURI === WORD_NS && node.localName === localName) as Element | undefined;
+  if (!property) {
+    property = doc.createElementNS(WORD_NS, `w:${localName}`);
+    properties.appendChild(property);
+  }
+  property.setAttributeNS(WORD_NS, 'w:val', '1');
+}
+
+function forceBoldParagraph(paragraph: Element) {
+  Array.from(paragraph.getElementsByTagNameNS(WORD_NS, 'r')).forEach((run) => {
+    ensureRunProperty(run, 'b');
+    ensureRunProperty(run, 'bCs');
+  });
+  return paragraph;
+}
+
+function isBureauHeaderKind(kind: HeaderLineKind) {
+  return kind === 'BUREAU_NAME' || kind === 'BUREAU_ADDRESS';
+}
+
 function detectKindFromRenderedValue(value: string, values: CanonicalLetterHeaderValues): HeaderLineKind | null {
   if (values.consumerName && value.includes(values.consumerName)) return 'NAME';
   if (values.letterDate && value.includes(values.letterDate)) return 'DATE';
@@ -258,7 +286,8 @@ function paragraphForKind(input: {
     return blankParagraphLike(input.blank || input.fallback);
   }
 
-  return cloneParagraphWithText(styleSourceForKind(input.kind, input.map, input.fallback), input.lines);
+  const paragraph = cloneParagraphWithText(styleSourceForKind(input.kind, input.map, input.fallback), input.lines);
+  return isBureauHeaderKind(input.kind) ? forceBoldParagraph(paragraph) : paragraph;
 }
 
 function lineSpecs(values: CanonicalLetterHeaderValues): HeaderLineSpec[] {
@@ -343,5 +372,5 @@ export async function normalizeDisputeLetterHeader(blob: Blob, values: Canonical
 
   zip.file('word/document.xml', new XMLSerializer().serializeToString(xml));
   const output = await hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
-  return { blob: output, changed: true, reason: 'complete dispute header rebuilt once with manager template styles preferred' };
+  return { blob: output, changed: true, reason: 'complete dispute header rebuilt once with bureau lines forced bold' };
 }
