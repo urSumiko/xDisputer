@@ -43,6 +43,7 @@ const ACCOUNT_PROTOTYPE_PATTERN = /^(?:Account|Creditor|Furnisher|Company)\s*(?:
 const MASKED_ACCOUNT_LINE_PATTERN = /^[A-Z0-9][A-Z0-9\s&.,'()/\-]+\s+[–—-]\s*(?:[A-Z0-9*X]{2,}|\d{1,2}\/\d{1,2}\/\d{2,4})/i;
 const DATE_LIKE_PATTERN = /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b|\b20\d{2}\b/i;
 const BUREAU_LIKE_PATTERN = /\b(?:TransUnion|Experian|Equifax|Consumer\s+Dispute|PO\s+Box|P\.O\.\s*Box)\b/i;
+const STATIC_HEADER_PLACEHOLDER_PATTERN = /^(?:NAME|ADDRESS|CITY,?\s*STATE\s+ZIP|DOB:?|SSN:?|\[DATE\]|\[CREDIT\s+BUREAU\s+NAME\]|\[DISPUTE\s+ADDRESS\])$/i;
 
 export type TemplateValue = string | number | boolean | Array<Record<string, string>>;
 export type PlaceholderValues = Record<string, TemplateValue>;
@@ -476,7 +477,68 @@ function insertGeneratedHeader(body: Element, reference: Node | null, style: Ele
   preserveSsnDateBoundary(body, client, date);
 }
 
+function findStaticHeaderRegion(body: Element) {
+  const all = paragraphs(body);
+  const first = all.findIndex((paragraph) => /^NAME$/i.test(content(paragraph)));
+  if (first < 0) return null;
+
+  const region: Element[] = [];
+  for (let index = first; index < all.length; index += 1) {
+    const paragraph = all[index];
+    const value = content(paragraph);
+
+    if (!value) {
+      region.push(paragraph);
+      continue;
+    }
+
+    if (/^RE:/i.test(value) || ACCOUNT_SECTION_PATTERNS.some((pattern) => pattern.test(value))) break;
+
+    if (STATIC_HEADER_PLACEHOLDER_PATTERN.test(value)) {
+      region.push(paragraph);
+      continue;
+    }
+
+    break;
+  }
+
+  const keys = region
+    .map((paragraph) => content(paragraph).replace(/[\[\]]/g, '').replace(/\s+/g, ' ').replace(/:$/, '').trim().toUpperCase())
+    .filter(Boolean);
+
+  const hasClientBlock = keys.includes('NAME') && keys.includes('ADDRESS');
+  const hasDateBlock = keys.includes('DATE');
+  const hasBureauBlock = keys.includes('CREDIT BUREAU NAME') || keys.includes('DISPUTE ADDRESS');
+
+  return hasClientBlock && hasDateBlock && hasBureauBlock ? region : null;
+}
+
+function replaceStaticHeaderRegion(body: Element, region: Element[], values: ReferenceDisputeValues) {
+  const style = region.find((paragraph) => content(paragraph)) || region[0];
+  const reference = region[0];
+
+  const client = cloneWithText(style, [
+    values.consumerName,
+    ...disputeAddressLines(values),
+    `DOB: ${values.dob}`,
+    `SSN: ${values.ssn}`
+  ]);
+  const date = cloneWithText(style, [values.letterDate]);
+  const bureau = cloneWithText(style, [values.bureauName, ...values.bureauAddressLines]);
+  const spacer = blankParagraphLike(style);
+
+  [client, date, bureau, spacer].forEach((paragraph) => reference.parentNode?.insertBefore(paragraph, reference));
+  region.forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
+  preserveSsnDateBoundary(body, client, date);
+}
+
 function hydrateLegacyHeader(body: Element, values: ReferenceDisputeValues) {
+  const staticHeaderRegion = findStaticHeaderRegion(body);
+  if (staticHeaderRegion) {
+    replaceStaticHeaderRegion(body, staticHeaderRegion, values);
+    return;
+  }
+
   const all = paragraphs(body);
   const nonEmpty = all.filter((paragraph) => content(paragraph));
   const accountHeading = findParagraph(all, ACCOUNT_SECTION_PATTERNS);
