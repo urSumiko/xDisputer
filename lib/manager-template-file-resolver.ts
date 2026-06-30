@@ -15,6 +15,7 @@ export function managerTemplateFileUrl(input: { round: Round; templateKind: 'LET
   const params = new URLSearchParams();
   params.set('round', input.round);
   params.set('templateKind', input.templateKind);
+  params.set('sync', String(Date.now()));
   if (input.templateKind === 'LETTER' && input.letterType) params.set('letterType', input.letterType);
   if (input.templateKind === 'EXHIBIT' && input.exhibitKind) params.set('exhibitKind', input.exhibitKind);
   return `/api/template-assets/file?${params.toString()}`;
@@ -27,7 +28,10 @@ export function findManagerTemplateFileAsset(input: { assets: ManagerTemplateFil
 }
 
 export async function fetchManagerTemplateFile(input: { round: Round; asset: ManagerTemplateFileAsset }) {
-  const response = await fetch(managerTemplateFileUrl({ round: input.round, templateKind: input.asset.template_kind, letterType: input.asset.letter_type, exhibitKind: input.asset.exhibit_kind }));
+  const response = await fetch(managerTemplateFileUrl({ round: input.round, templateKind: input.asset.template_kind, letterType: input.asset.letter_type, exhibitKind: input.asset.exhibit_kind }), {
+    cache: 'no-store',
+    headers: { accept: 'application/octet-stream', 'cache-control': 'no-store' }
+  });
   if (!response.ok) throw new Error(`Manager template file could not be loaded: ${await response.text().catch(() => response.statusText)}`);
   return response.blob();
 }
