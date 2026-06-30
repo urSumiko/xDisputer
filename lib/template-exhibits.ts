@@ -1,7 +1,7 @@
 import { inspectTemplateContract, type TemplateContract } from './template-contracts';
 
 export type ExhibitKind = 'FCRA' | 'AFFIDAVIT' | 'ATTACHMENT' | 'FTC';
-export type ActiveExhibitKind = ExhibitKind;
+export type ActiveExhibitKind = Exclude<ExhibitKind, 'FTC'>;
 export type ExhibitMode = 'STATIC_PDF' | 'GENERATED_DOCX';
 export type TemplateAssetProvenanceSource = 'LOCAL_BROWSER' | 'SUPABASE_TEMPLATE_ASSET' | 'UNKNOWN';
 export type TemplateAssetProvenanceMetadata = { assetId?: string | null; source?: TemplateAssetProvenanceSource | string; versionNumber?: number | null; contentHash?: string | null; validationJson?: Record<string, unknown> | null; };
@@ -12,9 +12,9 @@ const DB_NAME = 'lettergenerator-private-templates';
 const STORE_NAME = 'files';
 const META_PREFIX = 'lettergenerator.template-exhibits.v2.';
 const LEGACY_PREFIX = 'lettergenerator.template-exhibits.v1.';
-export const exhibitKinds: ExhibitKind[] = ['FCRA', 'AFFIDAVIT', 'ATTACHMENT', 'FTC'];
+export const exhibitKinds: ActiveExhibitKind[] = ['FCRA', 'AFFIDAVIT', 'ATTACHMENT'];
 export const exhibitModes: Record<ExhibitKind, ExhibitMode> = { FCRA: 'STATIC_PDF', AFFIDAVIT: 'GENERATED_DOCX', ATTACHMENT: 'STATIC_PDF', FTC: 'GENERATED_DOCX' };
-export const exhibitTitles: Record<ExhibitKind, string> = { FCRA: 'FCRA Legal Exhibit', AFFIDAVIT: 'Affidavit', ATTACHMENT: 'Attachment', FTC: 'FTC Identity Theft Report' };
+export const exhibitTitles: Record<ExhibitKind, string> = { FCRA: 'FCRA Legal Exhibit', AFFIDAVIT: 'Affidavit', ATTACHMENT: 'Attachment', FTC: 'Inactive packet template' };
 export const exhibitAccept: Record<ExhibitKind, string> = { FCRA: '.pdf,application/pdf', AFFIDAVIT: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document', ATTACHMENT: '.pdf,application/pdf', FTC: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
 
 function emptyTemplates(): TemplateExhibits { return { FCRA: null, AFFIDAVIT: null, ATTACHMENT: null, FTC: null }; }
@@ -41,11 +41,12 @@ export function loadTemplateExhibits(round: string): TemplateExhibits {
     const raw = localStorage.getItem(metaKey(round)) || localStorage.getItem(legacyMetaKey(round));
     if (!raw) return emptyTemplates();
     const data = JSON.parse(raw) as Partial<TemplateExhibits>;
-    return { FCRA: normalizeAsset('FCRA', data.FCRA), AFFIDAVIT: normalizeAsset('AFFIDAVIT', data.AFFIDAVIT), ATTACHMENT: normalizeAsset('ATTACHMENT', data.ATTACHMENT), FTC: normalizeAsset('FTC', data.FTC) };
+    return { FCRA: normalizeAsset('FCRA', data.FCRA), AFFIDAVIT: normalizeAsset('AFFIDAVIT', data.AFFIDAVIT), ATTACHMENT: normalizeAsset('ATTACHMENT', data.ATTACHMENT), FTC: null };
   } catch { return emptyTemplates(); }
 }
 
 function assertFileType(kind: ExhibitKind, file: File) {
+  if (kind === 'FTC') throw new Error('This packet template type is inactive.');
   const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
   const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || /\.docx$/i.test(file.name);
   if (exhibitModes[kind] === 'STATIC_PDF' && !isPdf) throw new Error(`${exhibitTitles[kind]} accepts PDF files only.`);
@@ -53,6 +54,7 @@ function assertFileType(kind: ExhibitKind, file: File) {
 }
 
 async function readStoredExhibit(round: string, kind: ExhibitKind): Promise<File | null> {
+  if (kind === 'FTC') return null;
   const db = await openDb();
   const file = await new Promise<File | null>((resolve, reject) => { const request = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(fileKey(round, kind)); request.onsuccess = () => resolve((request.result as File | undefined) || null); request.onerror = () => reject(request.error); });
   db.close();
@@ -60,13 +62,14 @@ async function readStoredExhibit(round: string, kind: ExhibitKind): Promise<File
 }
 
 async function writeStoredExhibit(round: string, kind: ExhibitKind, file: File) {
+  if (kind === 'FTC') throw new Error('This packet template type is inactive.');
   const db = await openDb();
   await new Promise<void>((resolve, reject) => { const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(file, fileKey(round, kind)); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); });
   db.close();
 }
 
 async function readCloudExhibit(round: string, kind: ExhibitKind): Promise<File | null> {
-  if (typeof window === 'undefined' || typeof fetch !== 'function') return null;
+  if (kind === 'FTC' || typeof window === 'undefined' || typeof fetch !== 'function') return null;
   const response = await fetch(cloudExhibitUrl(round, kind), { cache: 'no-store', headers: { accept: exhibitModes[kind] === 'STATIC_PDF' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'cache-control': 'no-store' } });
   if (!response.ok) return null;
   const blob = await response.blob();
@@ -83,7 +86,7 @@ async function assetFromStoredFile(round: string, kind: ExhibitKind, file: File,
 
 export async function recoverTemplateExhibitsFromFiles(round: string, values: TemplateExhibits = loadTemplateExhibits(round)) {
   if (typeof window === 'undefined') return emptyTemplates();
-  const recovered = { ...emptyTemplates(), ...values } as TemplateExhibits;
+  const recovered = { ...emptyTemplates(), ...values, FTC: null } as TemplateExhibits;
   let changed = false;
   for (const kind of exhibitKinds) {
     const cloud = await readCloudExhibit(round, kind).catch(() => null);
@@ -97,11 +100,11 @@ export async function recoverTemplateExhibitsFromFiles(round: string, values: Te
       changed = true;
     }
   }
+  if (values.FTC) { recovered.FTC = null; changed = true; }
   if (changed) saveTemplateMeta(round, recovered);
   return recovered;
 }
-
 export async function recoverAllTemplateExhibitsFromFiles(rounds: string[]) { const entries = await Promise.all(rounds.map(async (round) => [round, await recoverTemplateExhibitsFromFiles(round)] as const)); return Object.fromEntries(entries); }
-export async function saveTemplateExhibit(round: string, kind: ExhibitKind, file: File) { assertFileType(kind, file); await writeStoredExhibit(round, kind, file); const current = loadTemplateExhibits(round); const next = { ...current, [kind]: await assetFromStoredFile(round, kind, file, current[kind]) } as TemplateExhibits; saveTemplateMeta(round, next); return next; }
-export async function removeTemplateExhibit(round: string, kind: ExhibitKind) { const db = await openDb(); await new Promise<void>((resolve, reject) => { const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(fileKey(round, kind)); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); }); db.close(); const current = loadTemplateExhibits(round); const next = { ...current, [kind]: null } as TemplateExhibits; saveTemplateMeta(round, next); return next; }
-export async function readTemplateExhibit(round: string, kind: ExhibitKind) { const cloud = await readCloudExhibit(round, kind).catch(() => null); if (cloud) return cloud; return readStoredExhibit(round, kind); }
+export async function saveTemplateExhibit(round: string, kind: ExhibitKind, file: File) { assertFileType(kind, file); await writeStoredExhibit(round, kind, file); const current = loadTemplateExhibits(round); const next = { ...current, [kind]: await assetFromStoredFile(round, kind, file, current[kind]), FTC: null } as TemplateExhibits; saveTemplateMeta(round, next); return next; }
+export async function removeTemplateExhibit(round: string, kind: ExhibitKind) { if (kind === 'FTC') return loadTemplateExhibits(round); const db = await openDb(); await new Promise<void>((resolve, reject) => { const request = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(fileKey(round, kind)); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); }); db.close(); const current = loadTemplateExhibits(round); const next = { ...current, [kind]: null, FTC: null } as TemplateExhibits; saveTemplateMeta(round, next); return next; }
+export async function readTemplateExhibit(round: string, kind: ExhibitKind) { if (kind === 'FTC') return null; const cloud = await readCloudExhibit(round, kind).catch(() => null); if (cloud) return cloud; return readStoredExhibit(round, kind); }
