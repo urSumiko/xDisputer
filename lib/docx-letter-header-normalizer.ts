@@ -30,6 +30,8 @@ export type CanonicalLetterHeaderResult = {
   reason: string;
 };
 
+const HEADER_STYLE_PRIORITY: HeaderLineKind[] = ['BUREAU_ADDRESS', 'BUREAU_NAME', 'CITY_STATE_ZIP', 'ADDRESS', 'NAME', 'DOB', 'SSN', 'DATE'];
+
 function paragraphs(body: Element) {
   return Array.from(body.getElementsByTagNameNS(WORD_NS, 'p')) as Element[];
 }
@@ -208,23 +210,41 @@ function detectKindFromRenderedValue(value: string, values: CanonicalLetterHeade
   return null;
 }
 
-function detectKind(paragraph: Element, values: CanonicalLetterHeaderValues): HeaderLineKind | null {
-  const value = textOf(paragraph);
-  const signals = staticHintSignals(value);
-  const priority: HeaderLineKind[] = ['BUREAU_ADDRESS', 'BUREAU_NAME', 'CITY_STATE_ZIP', 'ADDRESS', 'NAME', 'DOB', 'SSN', 'DATE'];
-  return priority.find((kind) => signals.has(kind)) || detectKindFromRenderedValue(value, values);
+function detectStaticKind(paragraph: Element): HeaderLineKind | null {
+  const signals = staticHintSignals(textOf(paragraph));
+  return HEADER_STYLE_PRIORITY.find((kind) => signals.has(kind)) || null;
 }
 
 function headerPrototypeMap(region: Element[], values: CanonicalLetterHeaderValues) {
   const map = new Map<HeaderLineKind, Element>();
   const blank = region.find((paragraph) => !textOf(paragraph));
 
+  // First pass: manager-uploaded template placeholders own the visual contract.
+  // This prevents an already-rendered non-bold bureau line from overriding the
+  // manager's bold [CREDIT BUREAU NAME] / [DISPUTE ADDRESS] prototype.
   region.forEach((paragraph) => {
-    const kind = detectKind(paragraph, values);
+    const kind = detectStaticKind(paragraph);
+    if (kind && !map.has(kind)) map.set(kind, paragraph);
+  });
+
+  // Second pass: rendered values are fallback prototypes only when the manager
+  // template did not provide a matching static placeholder style.
+  region.forEach((paragraph) => {
+    const kind = detectKindFromRenderedValue(textOf(paragraph), values);
     if (kind && !map.has(kind)) map.set(kind, paragraph);
   });
 
   return { map, blank };
+}
+
+function styleSourceForKind(kind: HeaderLineKind, map: Map<HeaderLineKind, Element>, fallback: Element) {
+  if (kind === 'BUREAU_ADDRESS') return map.get('BUREAU_ADDRESS') || map.get('BUREAU_NAME') || first(Array.from(map.values())) || fallback;
+  if (kind === 'BUREAU_NAME') return map.get('BUREAU_NAME') || map.get('BUREAU_ADDRESS') || first(Array.from(map.values())) || fallback;
+  if (kind === 'CITY_STATE_ZIP') return map.get('CITY_STATE_ZIP') || map.get('ADDRESS') || first(Array.from(map.values())) || fallback;
+  if (kind === 'ADDRESS') return map.get('ADDRESS') || map.get('CITY_STATE_ZIP') || first(Array.from(map.values())) || fallback;
+  if (kind === 'DOB' || kind === 'SSN') return map.get(kind) || map.get('NAME') || map.get('ADDRESS') || first(Array.from(map.values())) || fallback;
+  if (kind === 'DATE') return map.get('DATE') || map.get('NAME') || first(Array.from(map.values())) || fallback;
+  return map.get(kind) || map.get('NAME') || map.get('ADDRESS') || first(Array.from(map.values())) || fallback;
 }
 
 function paragraphForKind(input: {
@@ -238,8 +258,7 @@ function paragraphForKind(input: {
     return blankParagraphLike(input.blank || input.fallback);
   }
 
-  const source = input.map.get(input.kind) || input.map.get('NAME') || input.map.get('ADDRESS') || first(Array.from(input.map.values())) || input.fallback;
-  return cloneParagraphWithText(source, input.lines);
+  return cloneParagraphWithText(styleSourceForKind(input.kind, input.map, input.fallback), input.lines);
 }
 
 function lineSpecs(values: CanonicalLetterHeaderValues): HeaderLineSpec[] {
@@ -324,5 +343,5 @@ export async function normalizeDisputeLetterHeader(blob: Blob, values: Canonical
 
   zip.file('word/document.xml', new XMLSerializer().serializeToString(xml));
   const output = await hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
-  return { blob: output, changed: true, reason: 'complete dispute header rebuilt once with template spacing and styles' };
+  return { blob: output, changed: true, reason: 'complete dispute header rebuilt once with manager template styles preferred' };
 }
