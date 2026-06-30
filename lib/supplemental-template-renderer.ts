@@ -132,6 +132,48 @@ function insertAfter(reference: Element, node: Element) { reference.parentNode?.
 function insertManyAfter(reference: Element, items: Element[]) { items.slice().reverse().forEach((item) => insertAfter(reference, item)); }
 function replaceParagraphWithMany(reference: Element, items: Element[]) { const parent = reference.parentNode; if (!parent) return; items.forEach((item) => parent.insertBefore(item, reference)); parent.removeChild(reference); }
 function boundaryParagraph(value: string) { return /^\s*(?:I\s+declare|\d+\.\s*Request|Request\s+for\s+Action|\d+\.\s*Oath|Oath\s+and\s+Signature|Sincerely|Respectfully|Date\s*:)/i.test(value); }
+function paragraphProperties(paragraph: Element) {
+  const doc = paragraph.ownerDocument;
+  let properties = Array.from(paragraph.children).find((node) => node.namespaceURI === W && node.localName === 'pPr') as Element | undefined;
+  if (!properties) {
+    properties = doc.createElementNS(W, 'w:pPr');
+    paragraph.insertBefore(properties, paragraph.firstChild);
+  }
+  return properties;
+}
+function ensureParagraphProperty(paragraph: Element, localName: string) {
+  const doc = paragraph.ownerDocument;
+  const properties = paragraphProperties(paragraph);
+  if (!Array.from(properties.children).some((node) => node.namespaceURI === W && node.localName === localName)) {
+    const property = doc.createElementNS(W, `w:${localName}`);
+    property.setAttributeNS(W, 'w:val', '1');
+    properties.appendChild(property);
+  }
+}
+function hasVisualContent(paragraph: Element) { return Boolean(text(paragraph) || nodes(paragraph, 'drawing').length || nodes(paragraph, 'pict').length); }
+function notaryStartIndex(items: Element[], footerIndex: number) {
+  const limit = footerIndex >= 0 ? footerIndex + 1 : items.length;
+  const explicit = items.slice(0, limit).map((paragraph, index) => ({ paragraph, index })).findLast(({ paragraph }) => /\bNotary\b|Notary\s+Public/i.test(text(paragraph)));
+  if (explicit) return explicit.index;
+  if (footerIndex < 0) return -1;
+  const floor = Math.max(0, footerIndex - 8);
+  const visual = items.slice(floor, footerIndex + 1).map((paragraph, offset) => ({ paragraph, index: floor + offset })).find(({ paragraph }) => hasVisualContent(paragraph));
+  return visual?.index ?? footerIndex;
+}
+function applyAffidavitNotaryPagination(body: Element) {
+  const all = topParagraphs(body);
+  const footerIndex = all.findIndex((paragraph) => /Electronically\s+signed\s+and\s+notarized|Proof\s+platform/i.test(text(paragraph)));
+  const startIndex = notaryStartIndex(all, footerIndex);
+  if (startIndex < 0) return false;
+  const endIndex = footerIndex >= startIndex ? footerIndex : Math.min(all.length - 1, startIndex + 12);
+
+  ensureParagraphProperty(all[startIndex], 'pageBreakBefore');
+  all.slice(startIndex, endIndex + 1).forEach((paragraph, index, group) => {
+    ensureParagraphProperty(paragraph, 'keepLines');
+    if (index < group.length - 1) ensureParagraphProperty(paragraph, 'keepNext');
+  });
+  return true;
+}
 function accountLinesForAffidavit(source: ParsedSource) { return affidavitItems(source).map((item) => item.account_line || item.display_text).filter(Boolean); }
 function normalizeSecurityNumberFormatting(paragraph: Element, ssn: string) { const safeSsn = ssn.replace(/-/g, '‑'); allMatches(paragraph, /Security\s+num\s*[-‐-‒–—]\s*ber/gi, 'Security number'); allMatches(paragraph, /(?:X{3}|\d{3})[-‐-‒–—](?:X{2}|\d{2})[-‐-‒–—](?:X{4}|\d{4})/gi, safeSsn); }
 function accountPlaceholderPattern() { return /\{\{\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*\}\}|\[\[\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*\]\]|«\s*(?:account_name|account\.name|name|account_number|account\.number|account_no|account_line|display_text)\s*»/i; }
@@ -150,7 +192,7 @@ function accountSectionOutput(existing: Element[], prototype: Element, accountRo
 }
 function expandAccountLinePlaceholders(root: Element, accountLines: string[]) { paragraphs(root).forEach((paragraph) => { if (accountLinePlaceholderPattern().test(raw(paragraph))) replaceParagraphWithMany(paragraph, cloneOneParagraphPerValue(paragraph, accountLines)); }); }
 function documentHasRenderedAccountData(root: Element, accountRows: RenderRow[]) { const value = raw(root).toUpperCase(); return accountRows.some((row) => [row.account_name, row.account_number, row.account_line].filter(Boolean).some((item) => value.includes(item.toUpperCase()))); }
-function replaceSignatureAliases(paragraph: Element, name: string) { ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'affidavit_printed_name', 'signer_name', 'consumer_name', 'client_name'].forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name)); }
+function replaceSignatureAliases(paragraph: Element, name: string) { ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'affiant_printed_name', 'affidavit_printed_name', 'signer_name', 'consumer_name', 'client_name'].forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name)); }
 function looksLikeStandaloneName(value: string) { return /^[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){1,4}$/.test(value) && !/(STATE|COUNTY|ACCOUNT|INFORMATION|REQUEST|OATH|DATE|SIGNATURE|SINCERELY|RESPECTFULLY|CONSUMER|SOCIAL|SECURITY)/i.test(value); }
 function patchSignatureName(paragraphsList: Element[], name: string) {
   paragraphsList.forEach((paragraph) => replaceSignatureAliases(paragraph, name));
@@ -208,7 +250,8 @@ async function normalizeAffidavit(ctx: MappedAppendixContext, opened: Opened, op
   patchSignatureName(paragraphs(opened.body), s.name);
   const date = topParagraphs(opened.body).find((p) => /^Date\s*:/i.test(text(p)));
   if (date) captured(date, /^(Date\s*:\s*)(.*)$/i, 2, ctx.documentDate);
-  await checkpoint(options, 'Affidavit account anchors mapped with template spacing', 4, 4);
+  applyAffidavitNotaryPagination(opened.body);
+  await checkpoint(options, 'Affidavit account and notary anchors mapped with template spacing', 4, 4);
   return save(opened, options);
 }
 
