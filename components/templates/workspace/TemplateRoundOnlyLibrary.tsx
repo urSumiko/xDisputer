@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import TemplateProgressiveWorkspace from '../../TemplateProgressiveWorkspace';
 import ManagerTemplateWorkspaceChrome from '../../ManagerTemplateWorkspaceChrome';
+import ManagerTemplateProfilesPanel from './ManagerTemplateProfilesPanel';
 import { defaultReferences, type LetterReference, type Round } from '../../../lib/reference-store';
 import { exhibitModes, exhibitTitles, type ExhibitAsset, type ExhibitKind, type TemplateExhibits } from '../../../lib/template-exhibits';
 import type { ManagerTemplateScopeUi } from '../../../lib/manager-template-ui';
@@ -155,6 +156,7 @@ export default function TemplateRoundOnlyLibrary() {
         <span>{message}</span>
       </div>
     </section> : null}
+    <ManagerTemplateProfilesPanel round={round} slots={slots} exhibits={exhibits} assets={activeAssets} canManageTemplates={Boolean(managerTemplateScope?.canManageTemplates)} onMessage={setMessage} />
     <TemplateProgressiveWorkspace
       round={round}
       slots={slots}
