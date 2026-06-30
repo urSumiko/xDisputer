@@ -3,10 +3,10 @@ set -Eeuo pipefail
 
 # xDisputer active sync runner.
 # Purpose:
-#   - bind every local/Codespace run to Arisu-art/xDisputer main
-#   - reset or stash local modifications intentionally
+#   - bind every local/Codespace run to urSumiko/xDisputer main
+#   - reset or stash local tracked modifications intentionally
 #   - verify Supabase/connector contracts before build
-#   - keep database push explicit
+#   - keep database changes explicit through a generated SQL bundle
 
 RESET_LOCAL=false
 STASH_LOCAL=false
@@ -25,9 +25,9 @@ Recommended:
   npm run active:sync -- --reset-local --sync-db --verify --strict-env
 
 Options:
-  --reset-local  Discard tracked local modifications and clean known generated caches before pulling main.
+  --reset-local  Discard tracked local modifications before pulling main.
   --stash-local  Stash local modifications before pulling main.
-  --sync-db      Run Supabase migration status and `supabase db push`.
+  --sync-db      Prepare a reviewed manual SQL bundle under .xdisputer-reports; does not call Supabase CLI.
   --verify       Run the full xDisputer guard after sync.
   --strict-env   Fail when local runtime env files are missing required public keys.
   --ship         Run deployment scripts only if they exist in package.json.
@@ -63,7 +63,7 @@ fi
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$ROOT_DIR"
 
-EXPECTED_REMOTE_KEY='github.com/arisu-art/xdisputer'
+EXPECTED_REMOTE_KEY='github.com/ursumiko/xdisputer'
 EXPECTED_BRANCH='main'
 
 log() {
@@ -113,12 +113,12 @@ fi
 
 remote_url="$(git remote get-url origin 2>/dev/null || true)"
 if [[ -z "$remote_url" ]]; then
-  fail "Git remote origin is missing. Reconnect origin to https://github.com/Arisu-art/xDisputer.git"
+  fail "Git remote origin is missing. Reconnect origin to https://github.com/urSumiko/xDisputer.git"
 fi
 
 remote_key="$(normalize_remote_url "$remote_url")"
 if [[ "$remote_key" != "$EXPECTED_REMOTE_KEY" ]]; then
-  fail "Refusing to sync unexpected remote: $remote_url. Expected Arisu-art/xDisputer from github.com."
+  fail "Refusing to sync unexpected remote: $remote_url. Expected urSumiko/xDisputer from github.com."
 fi
 log "Git remote verified: $remote_url"
 
@@ -138,15 +138,14 @@ if [[ -n "$(git status --short)" ]]; then
   git status --short
 
   if [[ "$RESET_LOCAL" == true ]]; then
-    log "Resetting tracked local modifications and known generated caches."
+    log "Resetting tracked local modifications. Generated caches are not deleted by this script."
     git restore --source=HEAD --staged --worktree .
-    git clean -fd -- .next .turbo node_modules/.cache .local-backups
   elif [[ "$STASH_LOCAL" == true ]]; then
     stash_name="xdisputer-active-sync auto stash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
     log "Stashing local modifications as: $stash_name"
     git stash push -u -m "$stash_name"
   else
-    fail "Local modifications exist. Re-run with --stash-local to preserve them or --reset-local to discard them."
+    fail "Local modifications exist. Re-run with --stash-local to preserve them or --reset-local to discard tracked modifications."
   fi
 else
   log "No local modifications detected."
@@ -167,22 +166,17 @@ else
 fi
 
 if [[ "$SYNC_DB" == true ]]; then
-  need_command supabase
-  log "Checking Supabase project link and migration status"
-  supabase status
-  supabase migration list
+  log "Preparing manual Supabase SQL bundle. This does not call Supabase CLI."
+  npm run supabase:push:no-cli
 
-  log "Applying pending Supabase migrations"
-  supabase db push
-
-  log "Re-checking connection contracts after database push"
+  log "Re-checking connection contracts after SQL bundle preparation"
   if [[ "$STRICT_ENV" == true ]]; then
     npm run connections:doctor -- --strict-env
   else
     npm run connections:doctor
   fi
 else
-  log "Database push skipped. Add --sync-db only after confirming the linked Supabase target."
+  log "Database SQL bundle skipped. Add --sync-db to generate the reviewed manual SQL bundle."
 fi
 
 if [[ "$VERIFY" == true ]]; then
@@ -205,7 +199,7 @@ if [[ "$SHIP" == true ]]; then
 fi
 
 log "Active sync completed."
-log "Expected state: main is current, dependencies are locked, connection inheritance passes, optional Supabase migrations are applied, and verification status is known."
+log "Expected state: main is current, dependencies are locked, connection inheritance passes, optional manual SQL bundle is prepared, and verification status is known."
 
 if git stash list | grep -q 'xdisputer-active-sync auto stash'; then
   log "A safety stash exists. Inspect it with: git stash list"
