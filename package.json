@@ -81,7 +81,7 @@
     "supabase:doctor": "npm run connections:doctor",
     "supabase:push:no-cli": "node scripts/active-sync-db-no-cli.mjs",
     "active:sync": "bash scripts/xdisputer-active-sync.sh",
-    "active:sync:db": "npm run active:sync -- --reset-local && npm run supabase:push:no-cli && npm run xdisputer:guard && echo active:sync:db applied --sync-db --verify via no-global-cli fallback",
+    "active:sync:db": "npm run active:sync -- --reset-local --sync-db --verify --strict-env && echo active:sync:db prepared manual SQL bundle and verified repo",
     "notification-ui:guard": "node scripts/notification-ui-frontend-guard.mjs",
     "assistant-chip-retirement:guard": "node scripts/assistant-chip-retirement-guard.mjs",
     "repo-rearchitecture:guard": "node scripts/repo-rearchitecture-roadmap-guard.mjs",
