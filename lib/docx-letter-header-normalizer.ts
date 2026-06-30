@@ -4,8 +4,9 @@ import { hardenGeneratedDocx } from './docx-safety';
 const WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const XML_NS = 'http://www.w3.org/XML/1998/namespace';
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-const BODY_START = /^(?:RE\s*:|SUBJECT\s*:|Dear\b|To\s+Whom\b|Account\s+Information\b|Disputed\s+Accounts?\b|Hard\s+Inquir(?:y|ies)\b)/i;
+const BODY_START = /^(?:RE\b\s*:?.*|SUBJECT\b\s*:?.*|Dear\b|To\s+Whom\b|Account\s+Information\b|Disputed\s+Accounts?\b|Fraudulent\s+Accounts?\b|Hard\s+Inquir(?:y|ies)\b|Legal\s+(?:Demand|Basis|Notice)\b|Sincerely\b|Respectfully\b|CC\s*:)/i;
 const STATIC_HEADER_PLACEHOLDER = /^(?:NAME|ADDRESS|CITY,?\s*STATE\s+ZIP|DOB:?|SSN:?|\[DATE\]|\[CREDIT\s+BUREAU\s+NAME\]|\[DISPUTE\s+ADDRESS\])$/i;
+const MAX_HEADER_REGION_PARAGRAPHS = 16;
 
 type HeaderLineKind = 'NAME' | 'ADDRESS' | 'CITY_STATE_ZIP' | 'DOB' | 'SSN' | 'DATE' | 'BUREAU_NAME' | 'BUREAU_ADDRESS' | 'BLANK';
 
@@ -87,6 +88,7 @@ function containsAny(text: string, values: string[]) {
 }
 
 function isStrongHeaderSignal(value: string, values: CanonicalLetterHeaderValues) {
+  if (!value || BODY_START.test(value)) return false;
   const candidates = [
     values.consumerName,
     values.letterDate,
@@ -115,16 +117,16 @@ function regionHasEnoughHeaderEvidence(values: string[], source: CanonicalLetter
 }
 
 function findHeaderRegion(all: Element[], values: CanonicalLetterHeaderValues) {
-  const limit = bodyStartIndex(all);
-  if (limit <= 0) return [];
+  const explicitBodyStart = bodyStartIndex(all);
+  if (explicitBodyStart <= 0) return [];
 
-  const beforeBody = all.slice(0, limit);
-  const firstSignal = beforeBody.findIndex((paragraph) => isStrongHeaderSignal(textOf(paragraph), values));
+  const scanLimit = explicitBodyStart;
+  const firstSignal = all.slice(0, scanLimit).findIndex((paragraph) => isStrongHeaderSignal(textOf(paragraph), values));
   if (firstSignal < 0) return [];
 
   let start = firstSignal;
   while (start > 0) {
-    const previous = textOf(beforeBody[start - 1]);
+    const previous = textOf(all[start - 1]);
     if (!previous) {
       start -= 1;
       continue;
@@ -138,7 +140,23 @@ function findHeaderRegion(all: Element[], values: CanonicalLetterHeaderValues) {
     break;
   }
 
-  const region = beforeBody.slice(start, limit);
+  const maxEnd = Math.min(scanLimit, start + MAX_HEADER_REGION_PARAGRAPHS);
+  let end = firstSignal;
+  for (let index = firstSignal; index < maxEnd; index += 1) {
+    const value = textOf(all[index]);
+    if (BODY_START.test(value)) break;
+
+    if (!value || isStrongHeaderSignal(value, values)) {
+      end = index + 1;
+      continue;
+    }
+
+    const candidateValues = all.slice(start, Math.max(end, index)).map(textOf).filter(Boolean);
+    if (regionHasEnoughHeaderEvidence(candidateValues, values)) break;
+    return [];
+  }
+
+  const region = all.slice(start, end);
   const valuesInRegion = region.map(textOf).filter(Boolean);
   return regionHasEnoughHeaderEvidence(valuesInRegion, values) ? region : [];
 }
@@ -247,16 +265,11 @@ function headerPrototypeMap(region: Element[], values: CanonicalLetterHeaderValu
   const map = new Map<HeaderLineKind, Element>();
   const blank = region.find((paragraph) => !textOf(paragraph));
 
-  // First pass: manager-uploaded template placeholders own the visual contract.
-  // This prevents an already-rendered non-bold bureau line from overriding the
-  // manager's bold [CREDIT BUREAU NAME] / [DISPUTE ADDRESS] prototype.
   region.forEach((paragraph) => {
     const kind = detectStaticKind(paragraph);
     if (kind && !map.has(kind)) map.set(kind, paragraph);
   });
 
-  // Second pass: rendered values are fallback prototypes only when the manager
-  // template did not provide a matching static placeholder style.
   region.forEach((paragraph) => {
     const kind = detectKindFromRenderedValue(textOf(paragraph), values);
     if (kind && !map.has(kind)) map.set(kind, paragraph);
@@ -326,8 +339,9 @@ function replaceRegionWithStyledHeader(region: Element[], values: CanonicalLette
 
 function assertNoHeaderConflict(body: Element, values: CanonicalLetterHeaderValues) {
   const all = paragraphs(body);
-  const limit = bodyStartIndex(all);
-  const beforeBody = all.slice(0, limit).map(textOf).filter(Boolean);
+  const headerRegion = findHeaderRegion(all, values);
+  const limit = Math.min(bodyStartIndex(all), MAX_HEADER_REGION_PARAGRAPHS);
+  const beforeBody = (headerRegion.length ? headerRegion : all.slice(0, limit)).map(textOf).filter(Boolean);
   const remainingHints = beforeBody.filter(isStaticHint);
   const nameCount = values.consumerName ? beforeBody.filter((line) => line.includes(values.consumerName)).length : 0;
   const addressLines = cleanLines(values.addressLines);
@@ -372,5 +386,5 @@ export async function normalizeDisputeLetterHeader(blob: Blob, values: Canonical
 
   zip.file('word/document.xml', new XMLSerializer().serializeToString(xml));
   const output = await hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
-  return { blob: output, changed: true, reason: 'complete dispute header rebuilt once with bureau lines forced bold' };
+  return { blob: output, changed: true, reason: 'complete dispute header rebuilt once without consuming letter body' };
 }
