@@ -9,6 +9,9 @@ function notHas(path, text) { const source = read(path); if (source && source.in
 has('lib/template-execution/canonical-source-model.ts', 'class CanonicalSourceModel');
 has('lib/template-execution/manager-template-resolver.ts', 'class ManagerTemplateResolver');
 has('lib/template-execution/dynamic-template-engine.ts', 'renderWithBestTemplateEngine');
+has('lib/dynamic-template/render-orchestrator.ts', 'repairDynamicDisputeHeader');
+has('lib/dynamic-template/render-orchestrator.ts', 'repairDisputeStaticHeaderDuplication(input.renderResult.blob, values)');
+has('lib/dynamic-template/render-orchestrator.ts', "input.kind !== 'DISPUTE_LETTER'");
 has('lib/template-execution/legacy-renderer-adapter.ts', 'renderLegacyLetterAdapter');
 has('lib/template-execution/legacy-renderer-adapter.ts', 'repairDisputeStaticHeaderDuplication(rendered, values)');
 has('lib/docx-dispute-header-repair.ts', 'repairDisputeStaticHeaderDuplication');
