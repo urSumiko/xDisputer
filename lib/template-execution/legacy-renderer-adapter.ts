@@ -1,6 +1,7 @@
 import type { Bureau, LetterRoute, ParsedSource } from '../letter-engine';
 import type { Round } from '../reference-store';
 import { DOCX_MIME, renderReferenceDisputeDocx } from '../docx-renderer';
+import { repairDisputeStaticHeaderDuplication } from '../docx-dispute-header-repair';
 import { renderLatePaymentReference } from '../late-reference-renderer';
 import { renderMappedAppendix, type MappedAppendixKind } from '../supplemental-template-renderer';
 import { createCanonicalSourceModel } from './canonical-source-model';
@@ -22,7 +23,9 @@ export async function renderLegacyLetterAdapter(input: {
   const templateFile = toTemplateFile(input.template, input.route.type === 'DISPUTE' ? 'dispute-template.docx' : 'late-payment-template.docx');
 
   if (input.route.type === 'DISPUTE') {
-    return renderReferenceDisputeDocx(templateFile, model.legacyDisputeValues(input.route, input.documentDate));
+    const values = model.legacyDisputeValues(input.route, input.documentDate);
+    const rendered = await renderReferenceDisputeDocx(templateFile, values);
+    return repairDisputeStaticHeaderDuplication(rendered, values);
   }
 
   return renderLatePaymentReference(templateFile, model.legacyLateValues(input.route, input.documentDate));
