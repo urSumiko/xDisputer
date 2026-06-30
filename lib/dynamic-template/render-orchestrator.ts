@@ -1,8 +1,10 @@
 import type { LetterRoute, ParsedSource } from '../letter-engine';
 import type { Round } from '../reference-store';
 import type { TemplateDocumentKind } from '../template-contracts';
+import type { ReferenceDisputeValues } from '../docx-renderer';
+import { repairDisputeStaticHeaderDuplication } from '../docx-dispute-header-repair';
 import { inspectDynamicTemplateContractV2, type DynamicTemplateContractV2 } from './contract-v2';
-import { buildDynamicTemplateRenderPlan, dynamicRenderPlanSummary, type DynamicRenderPlan } from './mapping-engine';
+import { buildDynamicTemplateRenderPlan, dynamicRenderPlanSummary, type DynamicRenderPlan, type DynamicRenderPlanValue } from './mapping-engine';
 import { renderDocxLayoutV2, type DocxLayoutRendererV2Result } from './docx-layout-renderer-v2';
 import { validateDynamicTemplateRender, dynamicTemplateRenderValidationManifest, type DynamicTemplateRenderValidationResult } from './render-validation';
 import { gradeDynamicTemplateRender, dynamicTemplateQualityManifest, type DynamicTemplateQualityGrade } from './quality-framework';
@@ -26,6 +28,63 @@ export type DynamicTemplateEngineV2Result = {
 
 export function shouldUseDynamicDocxLayoutV2(mode?: DynamicTemplateRendererMode | string | null) {
   return resolveDynamicTemplateRendererMode({ explicitMode: mode }) === 'DOCX_LAYOUT_V2';
+}
+
+function planField(plan: DynamicRenderPlan, canonicalKey: string): DynamicRenderPlanValue | undefined {
+  return plan.fieldValues.find((field) => field.canonicalKey === canonicalKey);
+}
+
+function fieldText(plan: DynamicRenderPlan, canonicalKey: string) {
+  const value = planField(plan, canonicalKey)?.value;
+  if (typeof value === 'string') return value.trim();
+  if (Array.isArray(value) && typeof value[0] === 'string') return value.join('\n').trim();
+  return '';
+}
+
+function fieldLines(plan: DynamicRenderPlan, canonicalKey: string) {
+  const value = planField(plan, canonicalKey)?.value;
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) return value.map((item) => item.trim()).filter(Boolean) as string[];
+  if (typeof value === 'string') return value.split('\n').map((line) => line.trim()).filter(Boolean);
+  return [];
+}
+
+function disputeRepairValues(plan: DynamicRenderPlan): ReferenceDisputeValues | null {
+  const consumerName = fieldText(plan, 'client.name');
+  const letterDate = fieldText(plan, 'letter.date');
+  const bureauName = fieldText(plan, 'bureau.name');
+  if (!consumerName || !letterDate || !bureauName) return null;
+
+  return {
+    consumerName,
+    addressLines: fieldLines(plan, 'client.addressLines'),
+    dob: fieldText(plan, 'client.dob'),
+    ssn: fieldText(plan, 'client.ssnMasked'),
+    letterDate,
+    bureauName,
+    bureauAddressLines: fieldLines(plan, 'bureau.addressLines'),
+    disputeItems: [],
+    hardInquiryItems: []
+  };
+}
+
+async function repairDynamicDisputeHeader(input: {
+  kind: TemplateDocumentKind;
+  plan: DynamicRenderPlan;
+  renderResult: DocxLayoutRendererV2Result;
+}) {
+  if (input.kind !== 'DISPUTE_LETTER') return input.renderResult;
+  const values = disputeRepairValues(input.plan);
+  if (!values) return input.renderResult;
+
+  const blob = await repairDisputeStaticHeaderDuplication(input.renderResult.blob, values);
+  return {
+    ...input.renderResult,
+    blob,
+    proof: {
+      ...input.renderResult.proof,
+      warnings: [...input.renderResult.proof.warnings, 'Dynamic dispute header cleanup checked for stale static client/bureau placeholders.']
+    }
+  };
 }
 
 export async function renderDynamicDocxTemplateV2(input: {
@@ -60,11 +119,12 @@ export async function renderDynamicDocxTemplateV2(input: {
     throw new Error(`Dynamic Template Engine v2 blocked rendering. ${reason}`.trim());
   }
 
-  const renderResult = await renderDocxLayoutV2({
+  const rawRenderResult = await renderDocxLayoutV2({
     template: input.template,
     plan: advancedZones.warnings.length ? { ...plan, warnings: [...plan.warnings, ...advancedZones.warnings] } : plan,
     rendererMode
   });
+  const renderResult = await repairDynamicDisputeHeader({ kind: input.kind, plan, renderResult: rawRenderResult });
   const validation = await validateDynamicTemplateRender({ plan, renderResult });
   const quality = gradeDynamicTemplateRender({ contract, plan, validation });
 
