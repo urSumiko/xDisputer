@@ -7,6 +7,8 @@ const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingm
 const BODY_START = /^(?:RE\s*:|SUBJECT\s*:|Dear\b|To\s+Whom\b|Account\s+Information\b|Disputed\s+Accounts?\b|Hard\s+Inquir(?:y|ies)\b)/i;
 const STATIC_HEADER_PLACEHOLDER = /^(?:NAME|ADDRESS|CITY,?\s*STATE\s+ZIP|DOB:?|SSN:?|\[DATE\]|\[CREDIT\s+BUREAU\s+NAME\]|\[DISPUTE\s+ADDRESS\])$/i;
 
+type HeaderPlaceholderKind = 'NAME' | 'ADDRESS' | 'CITY_STATE_ZIP' | 'DOB' | 'SSN' | 'DATE' | 'BUREAU_NAME' | 'BUREAU_ADDRESS';
+
 export type CanonicalLetterHeaderValues = {
   consumerName: string;
   addressLines: string[];
@@ -68,7 +70,7 @@ function canonicalHeaderLines(values: CanonicalLetterHeaderValues) {
 function staticHintSignals(value: string) {
   const key = keyOf(value);
   const compact = compactKey(value);
-  const signals = new Set<string>();
+  const signals = new Set<HeaderPlaceholderKind>();
   if (!key) return signals;
 
   if (/^NAME$/.test(key) || /\bNAME\b/.test(key)) signals.add('NAME');
@@ -84,6 +86,12 @@ function staticHintSignals(value: string) {
 
 function isStaticHint(value: string) {
   return STATIC_HEADER_PLACEHOLDER.test(value) || staticHintSignals(value).size >= 2;
+}
+
+function preferredStaticKind(value: string): HeaderPlaceholderKind | null {
+  const signals = staticHintSignals(value);
+  const priority: HeaderPlaceholderKind[] = ['BUREAU_ADDRESS', 'BUREAU_NAME', 'CITY_STATE_ZIP', 'ADDRESS', 'NAME', 'DOB', 'SSN', 'DATE'];
+  return priority.find((kind) => signals.has(kind)) || null;
 }
 
 function containsAny(text: string, values: string[]) {
@@ -106,7 +114,7 @@ function isStrongHeaderSignal(value: string, values: CanonicalLetterHeaderValues
 
 function regionHasEnoughHeaderEvidence(values: string[], source: CanonicalLetterHeaderValues) {
   const joined = values.join('\n');
-  const staticSignals = new Set<string>();
+  const staticSignals = new Set<HeaderPlaceholderKind>();
   values.forEach((value) => staticHintSignals(value).forEach((signal) => staticSignals.add(signal)));
 
   const hasStaticTemplateHeader = staticSignals.has('NAME') && (staticSignals.has('ADDRESS') || staticSignals.has('CITY_STATE_ZIP')) && (staticSignals.has('DATE') || staticSignals.has('DOB') || staticSignals.has('SSN') || staticSignals.has('BUREAU_NAME') || staticSignals.has('BUREAU_ADDRESS'));
@@ -192,19 +200,76 @@ function blankParagraphLike(source: Element) {
   return paragraph;
 }
 
-function replaceRegionWithCanonicalHeader(region: Element[], values: CanonicalLetterHeaderValues) {
+function staticHintSlice(region: Element[]) {
+  const first = region.findIndex((paragraph) => isStaticHint(textOf(paragraph)));
+  if (first < 0) return [];
+  let last = first;
+  for (let index = first + 1; index < region.length; index += 1) {
+    const value = textOf(region[index]);
+    if (!value || isStaticHint(value)) {
+      last = index;
+      continue;
+    }
+    break;
+  }
+  return region.slice(first, last + 1);
+}
+
+function valuesForPlaceholder(kind: HeaderPlaceholderKind, values: CanonicalLetterHeaderValues, hasCityStateZipPlaceholder: boolean, used: Set<HeaderPlaceholderKind>) {
+  if (used.has(kind)) return [];
+  used.add(kind);
+
+  const addressLines = cleanLines(values.addressLines);
+  if (kind === 'NAME') return [values.consumerName].filter(Boolean);
+  if (kind === 'ADDRESS') return hasCityStateZipPlaceholder ? addressLines.slice(0, 1) : addressLines;
+  if (kind === 'CITY_STATE_ZIP') return addressLines.slice(1).length ? addressLines.slice(1) : addressLines.slice(0, 1);
+  if (kind === 'DOB') return values.dob ? [`DOB: ${values.dob}`] : [];
+  if (kind === 'SSN') return values.ssn ? [`SSN: ${values.ssn}`] : [];
+  if (kind === 'DATE') return [values.letterDate].filter(Boolean);
+  if (kind === 'BUREAU_NAME') return [values.bureauName].filter(Boolean);
+  if (kind === 'BUREAU_ADDRESS') return cleanLines(values.bureauAddressLines);
+  return [];
+}
+
+function replaceRegionUsingTemplateHints(region: Element[], values: CanonicalLetterHeaderValues) {
+  const hintSlice = staticHintSlice(region);
+  if (!hintSlice.length) return false;
+
   const reference = region[0];
   const parent = reference?.parentNode;
   if (!reference || !parent) return false;
 
-  const style = region.find((paragraph) => textOf(paragraph)) || reference;
+  const used = new Set<HeaderPlaceholderKind>();
+  const hasCityStateZipPlaceholder = hintSlice.some((paragraph) => staticHintSignals(textOf(paragraph)).has('CITY_STATE_ZIP'));
+  const replacements = hintSlice.map((paragraph) => {
+    const value = textOf(paragraph);
+    if (!value) return blankParagraphLike(paragraph);
+    const kind = preferredStaticKind(value);
+    if (!kind) return blankParagraphLike(paragraph);
+    const lines = valuesForPlaceholder(kind, values, hasCityStateZipPlaceholder, used);
+    return lines.length ? cloneParagraphWithText(paragraph, lines) : blankParagraphLike(paragraph);
+  });
+
+  replacements.forEach((paragraph) => parent.insertBefore(paragraph, reference));
+  region.forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
+  return true;
+}
+
+function replaceRegionWithCanonicalHeader(region: Element[], values: CanonicalLetterHeaderValues) {
+  if (replaceRegionUsingTemplateHints(region, values)) return true;
+
+  const reference = region[0];
+  const parent = reference?.parentNode;
+  if (!reference || !parent) return false;
+
+  const styles = region.filter((paragraph) => textOf(paragraph));
+  const fallback = styles[0] || reference;
   const lines = canonicalHeaderLines(values);
-  const replacements = [
-    cloneParagraphWithText(style, lines.client),
-    cloneParagraphWithText(style, lines.date),
-    cloneParagraphWithText(style, lines.bureau),
-    blankParagraphLike(style)
-  ];
+  const flat = [...lines.client, ...lines.date, '', ...lines.bureau, ''];
+  const replacements = flat.map((line, index) => {
+    const source = styles[index] || styles.at(-1) || fallback;
+    return line ? cloneParagraphWithText(source, [line]) : blankParagraphLike(source);
+  });
 
   replacements.forEach((paragraph) => parent.insertBefore(paragraph, reference));
   region.forEach((paragraph) => paragraph.parentNode?.removeChild(paragraph));
@@ -223,7 +288,7 @@ function assertNoHeaderConflict(body: Element, values: CanonicalLetterHeaderValu
   }
 
   if (nameCount > 1) {
-    throw new Error(`Generated dispute letter still contains duplicated client header information before the body.`);
+    throw new Error('Generated dispute letter still contains duplicated client header information before the body.');
   }
 }
 
@@ -244,5 +309,5 @@ export async function normalizeDisputeLetterHeader(blob: Blob, values: Canonical
 
   zip.file('word/document.xml', new XMLSerializer().serializeToString(xml));
   const output = await hardenGeneratedDocx(zip.generate({ type: 'blob', mimeType: DOCX_MIME, compression: 'DEFLATE' }));
-  return { blob: output, changed: true, reason: 'canonical header written once before letter body' };
+  return { blob: output, changed: true, reason: 'canonical header written once using template header styles and spacing' };
 }
