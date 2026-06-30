@@ -43,21 +43,22 @@ function rows(items: SourceItem[]): RenderRow[] {
   }).filter((row) => row.account_line || row.display_text);
 }
 function phone(value: string) { const clean = value.trim(); if (!clean) return 'N/A'; const digits = clean.replace(/\D/g, ''); return digits.length === 10 ? `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}` : clean; }
+function dedupeKey(value: string) { return value.replace(/[\W_]+/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase(); }
+function inquiryCreditor(value: string) { return value.replace(/\s+[-–—]\s+.*$/, '').trim(); }
+function affidavitDedupeKey(row: RenderRow) { return dedupeKey(row.account_name || inquiryCreditor(row.account_line || row.display_text)); }
+function pushAffidavitRow(target: RenderRow[], seen: Set<string>, row: RenderRow) {
+  const key = affidavitDedupeKey(row);
+  if (!key || seen.has(key)) return;
+  seen.add(key);
+  target.push(row);
+}
 function affidavitItems(source: ParsedSource) {
   const chosen: RenderRow[] = [];
   const seen = new Set<string>();
-  bureaus.forEach((bureau) => rows(source.dispute[bureau]).forEach((item) => {
-    const key = item.account_line.toUpperCase();
-    if (!key || seen.has(key)) return;
-    seen.add(key);
-    chosen.push(item);
-  }));
+  bureaus.forEach((bureau) => rows(source.dispute[bureau]).forEach((item) => pushAffidavitRow(chosen, seen, item)));
   bureaus.forEach((bureau) => source.inquiry[bureau].forEach((item) => {
     const line = item.displayText.replace(/\s+[-–—]\s+/g, ' — ');
-    const key = line.toUpperCase();
-    if (!key || seen.has(key)) return;
-    seen.add(key);
-    chosen.push({ account_name: '', account_number: '', account_line: line, display_text: line });
+    pushAffidavitRow(chosen, seen, { account_name: inquiryCreditor(line), account_number: '', account_line: line, display_text: line });
   }));
   return chosen;
 }
@@ -149,7 +150,7 @@ function accountSectionOutput(existing: Element[], prototype: Element, accountRo
 }
 function expandAccountLinePlaceholders(root: Element, accountLines: string[]) { paragraphs(root).forEach((paragraph) => { if (accountLinePlaceholderPattern().test(raw(paragraph))) replaceParagraphWithMany(paragraph, cloneOneParagraphPerValue(paragraph, accountLines)); }); }
 function documentHasRenderedAccountData(root: Element, accountRows: RenderRow[]) { const value = raw(root).toUpperCase(); return accountRows.some((row) => [row.account_name, row.account_number, row.account_line].filter(Boolean).some((item) => value.includes(item.toUpperCase()))); }
-function replaceSignatureAliases(paragraph: Element, name: string) { ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'affiant_printed_name', 'signer_name', 'consumer_name', 'client_name'].forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name)); }
+function replaceSignatureAliases(paragraph: Element, name: string) { ['printed_name', 'signature_name', 'affiant_name', 'declarant_name', 'consumer_signature_name', 'affidavit_printed_name', 'signer_name', 'consumer_name', 'client_name'].forEach((alias) => allMatches(paragraph, new RegExp(`\\{\\{\\s*${alias}\\s*\\}\\}|\\[\\[\\s*${alias}\\s*\\]\\]|«\\s*${alias}\\s*»`, 'gi'), name)); }
 function looksLikeStandaloneName(value: string) { return /^[A-Z][A-Za-z.'-]+(?:\s+[A-Z][A-Za-z.'-]+){1,4}$/.test(value) && !/(STATE|COUNTY|ACCOUNT|INFORMATION|REQUEST|OATH|DATE|SIGNATURE|SINCERELY|RESPECTFULLY|CONSUMER|SOCIAL|SECURITY)/i.test(value); }
 function patchSignatureName(paragraphsList: Element[], name: string) {
   paragraphsList.forEach((paragraph) => replaceSignatureAliases(paragraph, name));
