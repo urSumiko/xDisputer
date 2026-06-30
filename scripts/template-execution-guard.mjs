@@ -10,6 +10,10 @@ has('lib/template-execution/canonical-source-model.ts', 'class CanonicalSourceMo
 has('lib/template-execution/manager-template-resolver.ts', 'class ManagerTemplateResolver');
 has('lib/template-execution/dynamic-template-engine.ts', 'renderWithBestTemplateEngine');
 has('lib/template-execution/legacy-renderer-adapter.ts', 'renderLegacyLetterAdapter');
+has('lib/template-execution/legacy-renderer-adapter.ts', 'repairDisputeStaticHeaderDuplication(rendered, values)');
+has('lib/docx-dispute-header-repair.ts', 'repairDisputeStaticHeaderDuplication');
+has('lib/docx-dispute-header-repair.ts', 'STATIC_HEADER_PLACEHOLDER');
+has('lib/docx-dispute-header-repair.ts', "keys.includes('CREDIT BUREAU NAME')");
 has('lib/template-execution/template-execution-guards.ts', 'assertTemplateExecutionReady');
 has('lib/template-execution/template-execution-orchestrator.ts', 'executeTemplateGeneration');
 has('lib/dynamic-template/mapping-engine.ts', 'createCanonicalSourceModel');
