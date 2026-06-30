@@ -31,6 +31,7 @@ type Section = 'header' | 'dispute' | 'inquiry' | 'late' | 'ignore' | 'discard';
 type ItemStore = Record<Bureau, SourceItem[]>;
 
 const DATE_PATTERN = /\b(?:0?[1-9]|1[0-2])[\/-](?:0?[1-9]|[12]\d|3[01])[\/-](?:\d{2}|\d{4})\b/;
+const WORD_MONTH_DATE_PATTERN = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+([0-3]?\d)(?:st|nd|rd|th)?\s*,?\s*(\d{2}|\d{4})\b/gi;
 const ACCOUNT_NAME = /^(?:ACCOUNT|CREDITOR|FURNISHER|COMPANY)(?:\s*(?:OR\s+ORGANIZATION))?\s*(?:NAME)?\s*[:#-]\s*(.+)$/i;
 const ACCOUNT_NUMBER = /^(?:ACCOUNT|ACCT)\s*(?:NUMBER|NO\.?|#)\s*[:#-]\s*(.*)$/i;
 const TEMPLATE_FIELD = /^TEMPLATE\s+FIELD\s+([\w.-]+)\s*:\s*(.*)$/i;
@@ -38,6 +39,7 @@ const PHONE_FIELD = /^(?:PHONE(?:\s+NO\.?)?|TELEPHONE|MOBILE)\s*:\s*/i;
 const KNOWN_HEADER = /^(NAME|CLIENT|CONSUMER(?:\s+NAME)?|FIRST\s+NAME|MIDDLE\s+NAME|LAST\s+NAME|ADDRESS|COUNTRY|DOB|SSN|PHONE(?:\s+NO\.?)?|TELEPHONE|MOBILE|EMAIL|E-?MAIL|AFFIDAVIT\s+STATE|AFFIDAVIT\s+COUNTY|FTC\s+REPORT\s+NUMBER|FTC\s+REPORT\s+DATE|TEMPLATE\s+FIELD\s+[\w.-]+)\s*:/i;
 const RESERVED_HEADER = /^(PHONE(?:\s+NO\.?)?|TELEPHONE|MOBILE|EMAIL|E-?MAIL|COUNTRY|FTC\s+REPORT\s+NUMBER|FTC\s+REPORT\s+DATE)\s*:/i;
 const FTC_HEADING = /^(FTC\s+IDENTITY\s+THEFT\s+REPORT|FTC\s+AFFECTED\s+ACCOUNTS?|AFFECTED\s+ACCOUNTS?)$/;
+const MONTH_NUMBER: Record<string, number> = { JAN: 1, JANUARY: 1, FEB: 2, FEBRUARY: 2, MAR: 3, MARCH: 3, APR: 4, APRIL: 4, MAY: 5, JUN: 6, JUNE: 6, JUL: 7, JULY: 7, AUG: 8, AUGUST: 8, SEP: 9, SEPT: 9, SEPTEMBER: 9, OCT: 10, OCTOBER: 10, NOV: 11, NOVEMBER: 11, DEC: 12, DECEMBER: 12 };
 
 function itemMap(): ItemStore { return { TRANSUNION: [], EQUIFAX: [], EXPERIAN: [] }; }
 function normalized(value: string) { return value.replace(/[\[\]{}()=*#_]+/g, ' ').replace(/[:\-|/]+$/g, '').replace(/[\-_]+/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase(); }
@@ -81,11 +83,27 @@ function cleanLines(lines: string[]) { return lines.map(safeLine).filter(Boolean
 function fieldValue(lines: string[], pattern: RegExp) { for (const line of lines) { const match = line.match(pattern); if (match && match[1] !== undefined) return safeLine(match[1]); } return ''; }
 function displayAccount(lines: string[]) { const clean = cleanLines(lines); const name = fieldValue(clean, ACCOUNT_NAME); const number = maskedAccountNumber(fieldValue(clean, ACCOUNT_NUMBER)); return name || number ? [name ? `Account Name: ${name}` : '', number ? `Account Number: ${number}` : ''].filter(Boolean).join('\n') : ''; }
 function lateDisplayText(lines: string[]) { const clean = cleanLines(lines); const base = displayAccount(clean); const relevant = clean.filter((line) => /late|payment|30\s*day|60\s*day|90\s*day|120\s*day/i.test(line)); return [base, ...relevant.filter((line) => !ACCOUNT_NAME.test(line) && !ACCOUNT_NUMBER.test(line))].filter(Boolean).join('\n'); }
-function inquiryDisplayText(lines: string[]) { const joined = cleanLines(lines).join(' - '); return DATE_PATTERN.test(joined) ? joined.replace(/\s*[-–—]\s*/g, ' - ').replace(/\s+/g, ' ').trim() : ''; }
+function normalizeYear(value: string) { return value.length === 2 ? `20${value}` : value; }
+function normalizeWordMonthDates(value: string) {
+  return value.replace(WORD_MONTH_DATE_PATTERN, (_match, month: string, day: string, year: string) => {
+    const number = MONTH_NUMBER[String(month).replace(/\.$/, '').toUpperCase()];
+    return number ? `${number}/${Number(day)}/${normalizeYear(String(year))}` : String(_match);
+  });
+}
+function normalizeNumericDates(value: string) {
+  return value.replace(DATE_PATTERN, (match) => {
+    const parts = match.split(/[\/-]/);
+    if (parts.length !== 3) return match;
+    return `${Number(parts[0])}/${Number(parts[1])}/${normalizeYear(parts[2])}`;
+  });
+}
+function normalizeHardInquiryDates(value: string) { return normalizeNumericDates(normalizeWordMonthDates(value)); }
+function hasHardInquiryDate(value: string) { return DATE_PATTERN.test(value) || new RegExp(WORD_MONTH_DATE_PATTERN.source, 'i').test(value); }
+function inquiryDisplayText(lines: string[]) { const joined = cleanLines(lines).join(' - '); return hasHardInquiryDate(joined) ? normalizeHardInquiryDates(joined).replace(/\s*[-–—]\s*/g, ' - ').replace(/\s+/g, ' ').trim() : ''; }
 function createItem(type: ItemType, lines: string[]): SourceItem | null { const displayText = type === 'DISPUTE_ACCOUNT' ? displayAccount(lines) : type === 'HARD_INQUIRY' ? inquiryDisplayText(lines) : lateDisplayText(lines); return displayText ? { type, displayText } : null; }
 function appendSourceItem(target: SourceItem[], item: SourceItem | null) { if (item) target.push(item); }
 function headerField(lines: string[], label: RegExp) { const line = lines.find((entry) => label.test(entry)); return line ? line.replace(label, '').trim() : ''; }
-function looksLikeRecord(line: string) { return ACCOUNT_NAME.test(line) || ACCOUNT_NUMBER.test(line) || DATE_PATTERN.test(line); }
+function looksLikeRecord(line: string) { return ACCOUNT_NAME.test(line) || ACCOUNT_NUMBER.test(line) || hasHardInquiryDate(line); }
 function pushPreserved(parsed: ParsedSource, line: number, text: string, reason: string) { if (!parsed.preserved.some((item) => item.line === line && item.text === text)) parsed.preserved.push({ line, text, reason }); }
 function splitName(name: string) { const parts = safeLine(name).split(' ').filter(Boolean); return { firstName: parts[0] || '', middleName: parts.length > 2 ? parts.slice(1, -1).join(' ') : '', lastName: parts.length > 1 ? parts[parts.length - 1] : '' }; }
 function emptyParsed(): ParsedSource { return { name: '', firstName: '', middleName: '', lastName: '', address: [], country: '', dob: '', ssn: '', phone: '', email: '', affidavitState: '', affidavitCounty: '', ftcReportNumber: '', ftcReportDate: '', ftcAccounts: [], templateFields: {}, dispute: itemMap(), inquiry: itemMap(), late: itemMap(), preserved: [], diagnostics: [] }; }
@@ -133,9 +151,9 @@ export function parseSource(text: string): ParsedSource {
     if (section === 'discard') return;
     if (section === 'ignore') { pushPreserved(parsed, lineNumber, line, 'Supplemental or unmapped source data: not inserted unless a document maps it.'); return; }
     if (section === 'inquiry') {
-      if (!bureau) { if (DATE_PATTERN.test(line)) parsed.diagnostics.push({ level: 'warning', message: 'Hard inquiry ignored because no bureau heading was identified.', line: lineNumber }); else pushPreserved(parsed, lineNumber, line, 'Unrecognized hard-inquiry text.'); return; }
-      if (DATE_PATTERN.test(line)) appendSourceItem(parsed.inquiry[bureau], createItem('HARD_INQUIRY', [line]));
-      else if (!isNoData(line)) { parsed.diagnostics.push({ level: 'warning', message: `Hard inquiry in ${bureau} must include a date on the same line: COMPANY - MM/DD/YYYY.`, line: lineNumber }); pushPreserved(parsed, lineNumber, line, 'Inquiry retained for manual review.'); }
+      if (!bureau) { if (hasHardInquiryDate(line)) parsed.diagnostics.push({ level: 'warning', message: 'Hard inquiry ignored because no bureau heading was identified.', line: lineNumber }); else pushPreserved(parsed, lineNumber, line, 'Unrecognized hard-inquiry text.'); return; }
+      if (hasHardInquiryDate(line)) appendSourceItem(parsed.inquiry[bureau], createItem('HARD_INQUIRY', [line]));
+      else if (!isNoData(line)) { parsed.diagnostics.push({ level: 'warning', message: `Hard inquiry in ${bureau} must include a date on the same line: COMPANY - MM/DD/YYYY or COMPANY - Month D, YYYY.`, line: lineNumber }); pushPreserved(parsed, lineNumber, line, 'Inquiry retained for manual review.'); }
       return;
     }
     if ((section === 'dispute' || section === 'late') && bureau) { if (ACCOUNT_NAME.test(line) && buffer.length) flush(); if (!buffer.length) bufferLine = lineNumber; buffer.push(line); return; }
@@ -200,4 +218,4 @@ export function createNormalizedSourceCopy(source: string): NormalizedSourceCopy
   return { text: sections.filter((line, index, all) => line || all[index - 1] !== '').join('\n').trim(), usedFields: ['Name', 'Address', 'DOB', 'SSN', parsed.affidavitState ? 'Affidavit state' : '', parsed.affidavitCounty ? 'Affidavit county' : '', 'Dispute accounts', 'Hard inquiries', 'Late payments'].filter(Boolean), reservedFields: [parsed.phone ? 'Phone' : '', parsed.email ? 'Email' : '', parsed.country ? 'Country' : ''].filter(Boolean), preservedLines: parsed.preserved };
 }
 
-export const recommendedSourceFormat = `NAME: CLIENT FULL NAME\nFIRST NAME:\nMIDDLE NAME:\nLAST NAME:\nADDRESS: STREET ADDRESS\nCITY, STATE ZIP\nCOUNTRY: USA\nDOB: MM/DD/YYYY\nSSN: XXX-XX-1234\nPHONE:\nEMAIL:\n\nDISPUTE ACCOUNTS\nTRANSUNION\nAccount Name: EXAMPLE BANK\nAccount Number: XXXX1234\n\nHARD INQUIRIES\nTRANSUNION\nEXAMPLE LENDER - 08/08/2024\n\nLATE PAYMENTS\nTRANSUNION\nAccount Name: EXAMPLE BANK\nAccount Number: XXXX1234\nLate payment details`;
+export const recommendedSourceFormat = `NAME: CLIENT FULL NAME\nFIRST NAME:\nMIDDLE NAME:\nLAST NAME:\nADDRESS: STREET ADDRESS\nCITY, STATE ZIP\nCOUNTRY: USA\nDOB: MM/DD/YYYY\nSSN: XXX-XX-1234\nPHONE:\nEMAIL:\n\nDISPUTE ACCOUNTS\nTRANSUNION\nAccount Name: EXAMPLE BANK\nAccount Number: XXXX1234\n\nHARD INQUIRIES\nTRANSUNION\nEXAMPLE LENDER - 08/08/2024\nONEMAIN - Jan 29, 2025\nONEMAIN - January 29, 2025\n\nLATE PAYMENTS\nTRANSUNION\nAccount Name: EXAMPLE BANK\nAccount Number: XXXX1234\nLate payment details`;
