@@ -77,7 +77,7 @@
     "safe:sync": "bash scripts/safe-sync-guard.sh",
     "init:connections": "npm run connections:doctor",
     "connections:doctor": "node scripts/check-env-contract.mjs && npm run connection-inheritance:guard",
-    "connection-inheritance:guard": "node scripts/connector-inheritance-guard.mjs",
+    "connection-inheritance:guard": "node scripts/active-contract-guard.mjs",
     "supabase:doctor": "npm run connections:doctor",
     "supabase:push:no-cli": "node scripts/active-sync-db-no-cli.mjs",
     "active:sync": "bash scripts/xdisputer-active-sync.sh",
