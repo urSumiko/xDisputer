@@ -51,10 +51,10 @@ function RotateInvite({ managerId }: { managerId: string }) {
 }
 
 function LinkBadge({ account }: { account: ManagedAccount }) {
-  if (isManager(account)) return <span className="admin-relation-badge ready">Manager</span>;
-  if (account.role === 'client' && account.manager_id) return <span className="admin-relation-badge linked">Linked</span>;
-  if (account.role === 'client') return <span className="admin-relation-badge open">Unassigned</span>;
-  return <span className="admin-relation-badge owner">Owner</span>;
+  if (isManager(account)) return <span className="account-directory-pill ready">Manager</span>;
+  if (account.role === 'client' && account.manager_id) return <span className="account-directory-pill linked">Linked</span>;
+  if (account.role === 'client') return <span className="account-directory-pill open">Unassigned</span>;
+  return <span className="account-directory-pill owner">Owner</span>;
 }
 
 function ManagerLimitSnapshot({ limit, assigned }: { limit?: EntitlementLimitRow; assigned: AssignedDisputerPreview[] }) {
@@ -96,12 +96,14 @@ function AccountTrigger({ account, limit, assigned }: { account: ManagedAccount;
   const saved = savedManagerLimits(limit);
   const live = activeAssignedCount(account, limit, assigned);
   const clientAccount = account.role === 'client';
+  const bossLabel = account.manager_id ? 'Boss assigned' : 'Needs boss';
+  const bossDetail = account.manager_id ? 'Manager linked' : 'Assign manager';
 
   if (clientAccount) {
-    return <span className="account-control-trigger-grid master-account-trigger-v3 compact-master-account-trigger compact-client-account-trigger"><span className="account-control-identity master-account-identity"><strong>{account.full_name || account.email || 'Unnamed Disputer'}</strong><small>{account.email || 'Disputer account'}</small></span><span className="master-account-status-cluster compact-status-cluster compact-client-status"><span className={`admin-role-badge ${account.role}`}>Disputer</span><span className={`admin-status-badge ${account.account_status || 'pending'}`}>{statusText(account.account_status)}</span><LinkBadge account={account} /></span><span className="compact-client-assignment-state"><strong>{account.manager_id ? 'Boss assigned' : 'Needs boss'}</strong><small>{account.manager_id ? 'Manager linked' : 'Assign manager'}</small></span><span className="account-control-meta compact-meta compact-client-updated"><small>Updated</small><strong>{dateText(account.updated_at)}</strong></span><span className="master-account-open compact-open-button">Open</span></span>;
+    return <span className="account-directory-row account-directory-row-client"><span className="account-directory-identity"><strong>{account.full_name || account.email || 'Unnamed Disputer'}</strong><small>{account.email || 'Disputer account'} · Updated {dateText(account.updated_at)}</small></span><span className="account-directory-pills"><span className="account-directory-pill role">Disputer</span><span className={`account-directory-pill ${account.account_status || 'pending'}`}>{statusText(account.account_status)}</span><LinkBadge account={account} /></span><span className="account-directory-state"><strong>{bossLabel}</strong><small>{bossDetail}</small></span><span className="account-directory-open">Open</span></span>;
   }
 
-  return <span className="account-control-trigger-grid master-account-trigger-v3 compact-master-account-trigger"><span className="account-control-identity master-account-identity"><strong>{account.full_name || account.email || `Unnamed ${displayAccountRoleLower(account.role)}`}</strong><small>{account.email || `${displayAccountRole(account.role)} account`}</small></span><span className="master-account-status-cluster compact-status-cluster"><span className={`admin-role-badge ${account.role}`}>{roleLabel(account)}</span><span className={`admin-status-badge ${account.account_status || 'pending'}`}>{statusText(account.account_status)}</span><LinkBadge account={account} /></span><span className="account-control-agreement master-account-limit compact-master-limit"><strong>{agreementSummary(account, limit, assigned)}</strong><small>{isManager(account) ? `${live} assigned · ${saved.maxClients ?? 'no'} seat cap` : 'protected'}</small></span><span className="account-control-meta compact-meta"><small>Invite</small><strong>{isManager(account) ? account.manager_invite_code || 'Not created' : '—'}</strong></span><span className="account-control-meta compact-meta"><small>Updated</small><strong>{dateText(account.updated_at)}</strong></span><span className="master-account-open compact-open-button">Open</span></span>;
+  return <span className="account-directory-row account-directory-row-manager"><span className="account-directory-identity"><strong>{account.full_name || account.email || `Unnamed ${displayAccountRoleLower(account.role)}`}</strong><small>{account.email || `${displayAccountRole(account.role)} account`} · Updated {dateText(account.updated_at)}</small></span><span className="account-directory-pills"><span className={`account-directory-pill ${account.role}`}>{roleLabel(account)}</span><span className={`account-directory-pill ${account.account_status || 'pending'}`}>{statusText(account.account_status)}</span><LinkBadge account={account} /></span><span className="account-directory-state manager-limit"><strong>{agreementSummary(account, limit, assigned)}</strong><small>{live} assigned · {saved.maxClients ?? 'no'} seat cap</small></span><span className="account-directory-state invite"><strong>{isManager(account) ? account.manager_invite_code || 'Not created' : '—'}</strong><small>Invite</small></span><span className="account-directory-open">Open</span></span>;
 }
 
 function AccountControlCard({ account, currentUserId, limit, bossOptions, assigned }: { account: ManagedAccount; currentUserId: string; limit?: EntitlementLimitRow; bossOptions: BossOption[]; assigned: AssignedDisputerPreview[] }) {
@@ -109,11 +111,11 @@ function AccountControlCard({ account, currentUserId, limit, bossOptions, assign
   const managerAccount = isManager(account);
   const saveAction = canEditLimits(account) ? <button key={`save-limits-${account.id}`} type="submit" form={formId} className="admin-action-button primary flyout-save-button compact-action">Save limits</button> : null;
 
-  return <TableFlyout eyebrow="Account controls" title={account.full_name || account.email || 'Account'} summary={agreementSummary(account, limit, assigned)} actionLabel="Open" triggerClassName="account-control-row-trigger master-account-row-v3 compact-master-account-row" trigger={<AccountTrigger account={account} limit={limit} assigned={assigned} />} headerAction={saveAction}>
+  return <TableFlyout eyebrow="Account controls" title={account.full_name || account.email || 'Account'} summary={agreementSummary(account, limit, assigned)} actionLabel="Open" triggerClassName="account-directory-row-trigger" trigger={<AccountTrigger account={account} limit={limit} assigned={assigned} />} headerAction={saveAction}>
     <div className="account-control-flyout-content compact-account-flyout" data-account-control-flyout-content="key-safe-wrapper">
       {managerAccount && <section className="table-flyout-section compact-limit-section"><LimitForm account={account} limit={limit} formId={formId} assigned={assigned} /></section>}
       {managerAccount && <AssignedDisputersPanel assigned={assigned} />}
-      {account.role === 'client' && <section className="table-flyout-section"><strong>Boss assignment</strong><BossAssignmentForm account={account} bossOptions={bossOptions} /></section>}
+      {account.role === 'client' && <section className="table-flyout-section compact-boss-section"><strong>Boss assignment</strong><BossAssignmentForm account={account} bossOptions={bossOptions} /></section>}
       <section className="table-flyout-section compact-actions-section"><strong>Actions</strong><ActionForms account={account} currentUserId={currentUserId} limit={limit} assigned={assigned} /></section>
     </div>
   </TableFlyout>;
@@ -121,5 +123,5 @@ function AccountControlCard({ account, currentUserId, limit, bossOptions, assign
 
 export default function MasterAccountTableV2({ accounts, currentUserId, emptyText, entitlements = {}, bossOptions = [], assignedDisputersByManager = {} }: { accounts: ManagedAccount[]; currentUserId: string; emptyText: string; entitlements?: EntitlementLimitMap; bossOptions?: BossOption[]; assignedDisputersByManager?: AssignedDisputersByManager }) {
   if (!accounts.length) return <div className="admin-monitor-empty">{emptyText}</div>;
-  return <div className="account-control-list master-account-list-v3 compact-master-account-list">{accounts.map((item) => <AccountControlCard key={item.id} account={item} currentUserId={currentUserId} limit={entitlements[item.id]} bossOptions={bossOptions} assigned={assignedDisputersByManager[item.id] || []} />)}</div>;
+  return <div className="account-control-list account-directory-list">{accounts.map((item) => <AccountControlCard key={item.id} account={item} currentUserId={currentUserId} limit={entitlements[item.id]} bossOptions={bossOptions} assigned={assignedDisputersByManager[item.id] || []} />)}</div>;
 }
