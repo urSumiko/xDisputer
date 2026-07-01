@@ -8,6 +8,9 @@ type SupabaseLike = {
 
 type TemplateAssetRow = {
   id: string;
+  manager_user_id?: string | null;
+  owner_id?: string | null;
+  uploaded_by_user_id?: string | null;
   round_label: TemplateRound | string | null;
   original_filename: string | null;
   template_kind: string | null;
@@ -16,12 +19,14 @@ type TemplateAssetRow = {
   version_number: number | null;
   content_hash: string | null;
   validation_json: Record<string, unknown> | null;
+  rule_json?: Record<string, unknown> | null;
   updated_at: string | null;
   created_at: string | null;
 };
 
 type TemplateAssetQuery<T> = {
   eq(column: string, value: unknown): TemplateAssetQuery<T>;
+  or(filter: string): TemplateAssetQuery<T>;
   order(column: string, options?: { ascending?: boolean }): Promise<{ data: T[] | null; error: { message: string } | null }>;
 };
 
@@ -39,6 +44,24 @@ const rounds: TemplateRound[] = ['1st Round', '2nd Round', '3rd Round', 'Final']
 
 function asQuery<T>(value: unknown) {
   return value as TemplateAssetQuery<T>;
+}
+
+function stringValue(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function nestedManagerId(value: Record<string, unknown> | null | undefined) {
+  return stringValue(value?.managerUserId) || stringValue(value?.manager_user_id) || null;
+}
+
+function belongsToManager(asset: TemplateAssetRow, managerId: string) {
+  if (asset.manager_user_id !== managerId) return false;
+  if (asset.owner_id && asset.owner_id !== managerId) return false;
+  const validationManager = nestedManagerId(asset.validation_json);
+  const ruleManager = nestedManagerId(asset.rule_json || null);
+  if (validationManager && validationManager !== managerId) return false;
+  if (ruleManager && ruleManager !== managerId) return false;
+  return true;
 }
 
 function validationList(asset: TemplateAssetRow, key: string) {
@@ -74,10 +97,10 @@ export async function getManagerTemplateLibraryContext(input: {
   const activeRound = input.round || '1st Round';
   let assets: TemplateAssetRow[] = [];
   try {
-    const base = asQuery<TemplateAssetRow>(input.supabase.from('template_assets').select('id, round_label, original_filename, template_kind, letter_type, exhibit_kind, version_number, content_hash, validation_json, updated_at, created_at'));
-    const query = base.eq('manager_user_id', input.managerId).eq('is_active', true).order('created_at', { ascending: false });
+    const base = asQuery<TemplateAssetRow>(input.supabase.from('template_assets').select('id, manager_user_id, owner_id, uploaded_by_user_id, round_label, original_filename, template_kind, letter_type, exhibit_kind, version_number, content_hash, validation_json, rule_json, updated_at, created_at'));
+    const query = base.eq('manager_user_id', input.managerId).or(`owner_id.eq.${input.managerId},owner_id.is.null`).eq('is_active', true).order('created_at', { ascending: false });
     const result = await query;
-    assets = result.error ? [] : result.data || [];
+    assets = result.error ? [] : (result.data || []).filter((asset) => belongsToManager(asset, input.managerId));
   } catch {
     assets = [];
   }
