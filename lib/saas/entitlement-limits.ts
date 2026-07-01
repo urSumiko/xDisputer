@@ -1,4 +1,5 @@
 import type { createSupabaseServerClient } from '../supabase/server';
+import { listLiveManagerSeatCounts } from './live-manager-seat-counts';
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -102,6 +103,10 @@ function mergeRow(base: EntitlementLimitRow | undefined, incoming: EntitlementLi
     output_remaining_today: effectiveLimit === null ? incomingRemaining : Math.max(effectiveLimit - outputUsedToday, 0),
     updated_at: incoming.updated_at || current.updated_at
   } satisfies EntitlementLimitRow;
+}
+
+function setCurrentClients(base: EntitlementLimitRow | undefined, profileId: string, count: number) {
+  return { ...(base || emptyRow(profileId)), profile_id: profileId, current_clients: count } satisfies EntitlementLimitRow;
 }
 
 async function callEntitlementRpc(
@@ -221,6 +226,9 @@ export async function listEntitlementLimits(
 
   const activityRows = await readTodayOutputUsageRows(supabase, ids);
   for (const row of activityRows) merged.set(row.profile_id, mergeRow(merged.get(row.profile_id), row));
+
+  const liveSeatCounts = await listLiveManagerSeatCounts(supabase, ids);
+  for (const [profileId, count] of liveSeatCounts) merged.set(profileId, setCurrentClients(merged.get(profileId), profileId, count));
 
   for (const id of ids) if (!merged.has(id)) merged.set(id, emptyRow(id));
 
