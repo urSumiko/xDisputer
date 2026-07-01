@@ -15,8 +15,8 @@ has('lib/dynamic-template/render-orchestrator.ts', "input.kind !== 'DISPUTE_LETT
 has('lib/template-execution/legacy-renderer-adapter.ts', 'renderLegacyLetterAdapter');
 has('lib/template-execution/legacy-renderer-adapter.ts', 'repairDisputeStaticHeaderDuplication(rendered, values)');
 has('lib/docx-dispute-header-repair.ts', 'repairDisputeStaticHeaderDuplication');
-has('lib/docx-dispute-header-repair.ts', 'STATIC_HEADER_PLACEHOLDER');
-has('lib/docx-dispute-header-repair.ts', "keys.includes('CREDIT BUREAU NAME')");
+has('lib/docx-letter-header-normalizer.ts', 'STATIC_HEADER_PLACEHOLDER');
+has('lib/docx-letter-header-normalizer.ts', 'BUREAU_NAME');
 has('lib/template-execution/template-execution-guards.ts', 'assertTemplateExecutionReady');
 has('lib/template-execution/template-execution-orchestrator.ts', 'executeTemplateGeneration');
 has('lib/dynamic-template/mapping-engine.ts', 'createCanonicalSourceModel');
