@@ -4,12 +4,14 @@ import { createSupabaseAdminClient } from '../../../lib/supabase/admin';
 import { workspaceAccessErrorResponse } from '../../../lib/saas/access-entitlement';
 import { recordGenerationIntegrity } from '../../../lib/saas/integrity-ledger';
 import { logSystemEvent, requestIdFrom, safeErrorMessage } from '../../../lib/saas/system-observability';
+import { outputActivityContract } from '../../../src/features/manager-output-activity/output-activity-contract';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const allowedRounds = ['1st Round', '2nd Round', '3rd Round', 'Final'];
 const allowedStatuses = ['generated', 'downloaded', 'failed'];
+const defaultOutputActivityRate = outputActivityContract.defaultRateAmount;
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -144,6 +146,7 @@ async function syncGeneratedOutputEverywhere(input: { generationRunId: string; d
     activityId: activityRow?.activity_id || null,
     notificationId: activityRow?.notification_id || null,
     notification: activityRow?.sync_status || (managerId ? 'synced' as const : 'no-manager' as const),
+    defaultRateAmount: defaultOutputActivityRate,
     managerId
   };
 }
@@ -197,11 +200,11 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     const outputActivity = status === 'generated'
-      ? await syncGeneratedOutputEverywhere({ generationRunId: data.id, disputerId: userResult.user.id }).catch((error) => ({ activityId: null, notificationId: null, notification: 'failed' as const, errorMessage: safeErrorMessage(error) }))
+      ? await syncGeneratedOutputEverywhere({ generationRunId: data.id, disputerId: userResult.user.id }).catch((error) => ({ activityId: null, notificationId: null, notification: 'failed' as const, defaultRateAmount: defaultOutputActivityRate, errorMessage: safeErrorMessage(error) }))
       : null;
 
-    const integrityError = await recordGenerationIntegrity(supabase, { generationRunId: data.id, eventType: 'generation_run_recorded', manifest, rules: { allowedRounds, allowedStatuses, selectedRound: round, selectedStatus: status, perOutputPay }, status: status === 'failed' ? 'failed' : 'recorded', metadata: { clientName, round, status, perOutputPay, outputActivity } });
-    await logSystemEvent(supabase, { requestId, routePath: '/api/generation-runs', eventType: 'generation_run_create', eventStatus: integrityError || (outputActivity && 'errorMessage' in outputActivity && outputActivity.errorMessage) ? 'warning' : 'success', durationMs: Date.now() - startedAt, safeMessage: integrityError || (outputActivity && 'errorMessage' in outputActivity ? outputActivity.errorMessage : null), metadata: { generationRunId: data.id, round, status, perOutputPay, outputActivity } });
+    const integrityError = await recordGenerationIntegrity(supabase, { generationRunId: data.id, eventType: 'generation_run_recorded', manifest, rules: { allowedRounds, allowedStatuses, selectedRound: round, selectedStatus: status, perOutputPay, defaultOutputActivityRate }, status: status === 'failed' ? 'failed' : 'recorded', metadata: { clientName, round, status, perOutputPay, outputActivity } });
+    await logSystemEvent(supabase, { requestId, routePath: '/api/generation-runs', eventType: 'generation_run_create', eventStatus: integrityError || (outputActivity && 'errorMessage' in outputActivity && outputActivity.errorMessage) ? 'warning' : 'success', durationMs: Date.now() - startedAt, safeMessage: integrityError || (outputActivity && 'errorMessage' in outputActivity ? outputActivity.errorMessage : null), metadata: { generationRunId: data.id, round, status, perOutputPay, outputActivity, defaultOutputActivityRate } });
     const afterLimit = status === 'failed' ? null : await readDailyEntitlement(supabase, userResult.user.id);
     const entitlement = afterLimit && !afterLimit.error && Array.isArray(afterLimit.data) ? normalizeDailyEntitlement(afterLimit.data[0]) : beforeAllowance?.entitlement || null;
     return noStoreJson({ run: data, entitlement, outputActivity });
