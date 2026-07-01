@@ -81,10 +81,11 @@ export default function ConsoleShell({ role, mode, email, accountName, accountLa
   const shellClassName = join('admin-monitor-page native-console', shellModeClass(role, mode), className);
   const finalSwitchTarget = cleanSwitchValue(switchTarget);
   const finalSwitchLabel = cleanSwitchValue(switchTargetLabel);
-  const hasSwitchCard = Boolean(finalSwitchTarget && finalSwitchLabel);
+  const masterSwitchSuppressed = role === 'master';
+  const hasSwitchCard = !masterSwitchSuppressed && Boolean(finalSwitchTarget && finalSwitchLabel);
   const switchMode = hasSwitchCard ? switchModeContract(role, mode, finalSwitchLabel as string) : null;
 
-  return <main className={shellClassName} data-console-shell="true" data-console-component="ConsoleShell" data-console-role={role} data-console-mode={mode} data-console-layout-ratio="75/25" data-console-contract={navContract} data-master-console-shell={role === 'master' ? 'true' : undefined} data-manager-console-mode={role === 'manager' ? mode : undefined} data-master-console-mode={role === 'master' ? mode : undefined} data-console-has-switch-card={hasSwitchCard ? 'true' : 'false'}>
+  return <main className={shellClassName} data-console-shell="true" data-console-component="ConsoleShell" data-console-role={role} data-console-mode={mode} data-console-layout-ratio="75/25" data-console-contract={navContract} data-master-console-shell={role === 'master' ? 'true' : undefined} data-manager-console-mode={role === 'manager' ? mode : undefined} data-master-console-mode={role === 'master' ? mode : undefined} data-console-has-switch-card={hasSwitchCard ? 'true' : 'false'} data-master-switch-card-suppressed={masterSwitchSuppressed ? 'true' : undefined}>
     <aside className="admin-monitor-sidebar native-console-sidebar" data-layout-contract="console-sidebar" data-console-sidebar="true" data-console-component="ConsoleSidebar">
       <div className="admin-monitor-brand"><span>xD</span><div><strong>{brandTitle}</strong><small>{brandSubtitle}</small></div></div>
       <div className="admin-sidebar-section-title">{sidebarSectionTitle}</div>
