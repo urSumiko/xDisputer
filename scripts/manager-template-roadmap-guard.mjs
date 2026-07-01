@@ -33,27 +33,23 @@ has(managerPage, 'TemplateWorkspaceShell', 'manager workspace uses template work
 has(managerPage, 'TemplateLibraryHub', 'manager workspace uses Template Library source-of-truth hub');
 has(managerPage, 'getManagerTemplateLibraryContext', 'manager workspace hydrates template library context');
 has(templateShell, 'ManagerConsoleShell', 'template workspace shell delegates to shared manager shell');
-has(templateShell, 'templateWorkspaceNavForPath', 'template workspace shell owns three-hub navigation');
-has(templateLibraryHub, 'ManagerTemplateWorkspaceClient', 'Template Library hub preserves progressive template flow');
+has(templateShell, 'templateWorkspaceNavForPath', 'template workspace shell owns workspace navigation');
+has(templateLibraryHub, 'TemplateRoundOnlyLibrary', 'Template Library hub preserves progressive template flow');
 notHas(managerPage, 'TemplateUploadCard', 'manager workspace has no raw upload cards');
 notHas(managerPage, 'encType="multipart/form-data"', 'manager workspace has no raw multipart upload forms');
-
 has(managerClient, 'TemplateProgressiveWorkspace', 'manager upload flow reuses progressive client template workflow');
 has(managerClient, 'MANAGER_TEMPLATE_ASSET', 'manager upload flow uses manager template source');
 has(managerClient, 'managerTemplateScope={managerTemplateScope}', 'manager client passes verified template scope');
 notHas(managerClient, 'canManageTemplates: true', 'manager client has no fake writable fallback scope');
 has(managerClient, 'handleTemplateMutation', 'manager client reloads assets only after template mutation');
-
 has(packet, 'ManagerTemplateScopeUi', 'packet configurator accepts manager scope');
 has(packet, 'canManageTemplates', 'packet configurator gates upload controls');
 has(packet, 'resolveTemplateAuthority', 'packet configurator uses authority model');
 has(packet, 'onTemplateMutation?.()', 'packet configurator refreshes parent after upload/remove mutation');
 notHas(packet, 'template-manager-policy-inline', 'packet configurator does not render duplicate authority banner');
-
 has(progressive, 'data-template-authority-mode', 'progressive template UX exposes authority mode');
 has(progressive, 'onTemplateMutation?', 'progressive template UX wires mutation callback');
 notHas(progressive, 'template-manager-policy-banner', 'progressive template UX does not render duplicate authority banner');
-
 has(authority, "'CLIENT_READONLY'", 'authority model defines client read-only mode');
 has(authority, "'MANAGER_EDIT'", 'authority model defines manager edit mode');
 has(resolver, 'resolveManagerTemplateFile', 'legacy-compatible file resolver exists');
@@ -69,7 +65,7 @@ notHas(pkg, 'apply-manager-template-workspace-state-wiring.mjs', 'package script
 has(pkg, 'template-execution:guard', 'package uses template execution guard');
 has(pkg, 'template-workspace:guard', 'package uses template workspace guard');
 
-checks.forEach((check) => console.log(`${check.ok ? '✅' : '❌'} ${check.label}`));
+checks.forEach((check) => console.log(`${check.ok ? 'OK' : 'FAIL'} ${check.label}`));
 const failed = checks.filter((check) => !check.ok);
 if (failed.length) {
   console.error(`\nManager template roadmap guard failed: ${failed.length} check(s) failed.`);
