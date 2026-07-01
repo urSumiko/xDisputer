@@ -2,7 +2,8 @@
    Owns instant client-side salary lock, red no-circle close button, card-click open, and compact metadata tile retirement. */
 
 :root {
-  --manager-payroll-modal-contract: portal-card-click-no-visible-tile;
+  --manager-payroll-modal-contract: instant-salary-lock-red-x;
+  --manager-payroll-trigger-contract: portal-card-click-no-visible-tile;
 }
 
 .manager-metadata-card-trigger {
