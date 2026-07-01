@@ -21,9 +21,11 @@ const accountMenu = read('components/console/AccountMenu.tsx');
 const metadataEditor = read('components/manager/ManagerPayrollSettingsEditor.tsx');
 const payrollModalCss = read('app/manager-payroll-modal.css');
 
-for (const label of ['Monitoring', 'Access control of user', 'Report', 'Output Activity', 'Request']) {
+for (const label of ['Monitoring', 'Access Control', 'Report', 'Output Activity', 'Request']) {
   must(panels, label, `manager panel missing: ${label}`);
 }
+
+mustNot(panels, 'Access control of user', 'manager panel label must not regress to Access control of user');
 
 for (const marker of ['MonitoringPanel', 'AccessPanel', 'ReportPanel', 'OutputActivityPanel', 'RequestsPanel']) {
   must(admin, marker, `manager console section missing: ${marker}`);
@@ -81,7 +83,8 @@ mustNot(outputActivityPage, 'ManagerPayrollSettingsEditor', 'output activity row
 mustNot(outputActivityPage, 'data-metadata-profile-id', 'output activity rows must not expose metadata click hook');
 mustNot(metadataEditor, 'metadata-tile-copy', 'manager metadata editor must not render the retired visible metadata tile copy');
 mustNot(metadataEditor, 'metadata-tile-plus', 'manager metadata editor must not render the retired visible metadata plus button');
-must(payrollModalCss, '--manager-payroll-modal-contract: portal-card-click-no-visible-tile;', 'manager metadata CSS contract must document no-visible-tile portal behavior');
+must(payrollModalCss, '--manager-payroll-modal-contract: instant-salary-lock-red-x;', 'manager metadata CSS contract must keep instant salary lock and red close X');
+must(payrollModalCss, '--manager-payroll-trigger-contract: portal-card-click-no-visible-tile;', 'manager metadata CSS contract must document no-visible-tile portal behavior');
 must(payrollModalCss, '.manager-user-settings-modal-backdrop', 'manager metadata CSS must own the backdrop');
 must(payrollModalCss, 'position: fixed !important;', 'manager metadata backdrop must stay viewport-fixed');
 mustNotMatch(payrollModalCss, /\.manager-metadata-card-trigger:hover\s*{[^}]*transform\s*:/s, 'manager metadata card hover must not transform the fixed-modal ancestor');
