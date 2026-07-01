@@ -123,8 +123,6 @@ export default async function MasterAccountsPage({ searchParams }: PageProps) {
     brandSubtitle="Accounts"
     sidebarSectionTitle="Operations"
     navItems={masterAccountNavItems}
-    switchTarget="/admin"
-    switchTargetLabel="Manager console"
     navAriaLabel="Master navigation"
     activeNavUsesConsoleLink
     header={{ eyebrow: 'Master account directory', title: headerTitle, description: headerDescription }}
