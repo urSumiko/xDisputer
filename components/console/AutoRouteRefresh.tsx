@@ -31,6 +31,7 @@ export default function AutoRouteRefresh() {
     window.addEventListener('focus', refresh);
     window.addEventListener('online', refresh);
     window.addEventListener('xdisputer:route-refresh', refresh);
+    window.addEventListener('xdisputer:notifications-refreshed', refresh);
     window.addEventListener('xdisputer:output-entitlement-updated', refresh);
     window.addEventListener('xdisputer:output-entitlement-refresh', refresh);
     document.addEventListener('visibilitychange', visibilityHandler);
@@ -40,6 +41,7 @@ export default function AutoRouteRefresh() {
       window.removeEventListener('focus', refresh);
       window.removeEventListener('online', refresh);
       window.removeEventListener('xdisputer:route-refresh', refresh);
+      window.removeEventListener('xdisputer:notifications-refreshed', refresh);
       window.removeEventListener('xdisputer:output-entitlement-updated', refresh);
       window.removeEventListener('xdisputer:output-entitlement-refresh', refresh);
       document.removeEventListener('visibilitychange', visibilityHandler);
