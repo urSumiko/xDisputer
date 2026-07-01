@@ -14,13 +14,17 @@ type ControlIntent =
   | 'reactivate'
   | 'clear_manager';
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
+const ACTIVE_ASSIGNED_DISPUTER_STATUSES = ['active', 'pending_manager_approval'];
+
 function redirectBack(request: NextRequest, status: 'ok' | 'error', message?: string) {
   const fallback = new URL('/admin?panel=access', request.url);
   const referer = request.headers.get('referer');
   const target = referer ? new URL(referer) : fallback;
 
   target.searchParams.set('control', status);
-  if (message) target.searchParams.set('message', message.slice(0, 180));
+  if (message) target.searchParams.set('message', message.slice(0, 240));
 
   return NextResponse.redirect(target, 303);
 }
@@ -43,7 +47,7 @@ function revalidateAccountControlViews() {
 }
 
 async function callWorkspaceFirstControl(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: SupabaseServerClient,
   primaryRpc: string,
   fallbackRpc: string,
   targetProfileId: string,
@@ -68,7 +72,7 @@ async function callWorkspaceFirstControl(
 }
 
 async function callManagerPauseControl(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: SupabaseServerClient,
   targetProfileId: string
 ) {
   const pause = await supabase.rpc('access_workspace_manager_suspend_v1', {
@@ -122,6 +126,49 @@ function isManagerIntent(intent: ControlIntent) {
   );
 }
 
+async function countActiveAssignedDisputers(supabase: SupabaseServerClient, managerId: string) {
+  const { count, error } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('role', 'client')
+    .eq('manager_id', managerId)
+    .in('account_status', ACTIVE_ASSIGNED_DISPUTER_STATUSES);
+
+  if (error) throw new Error(`Could not verify manager demotion safety: ${error.message}`);
+  return count || 0;
+}
+
+async function assertSafeManagerDemotion(supabase: SupabaseServerClient, targetProfileId: string) {
+  const { data: target, error } = await supabase
+    .from('profiles')
+    .select('id,role,email,full_name')
+    .eq('id', targetProfileId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Could not verify target account before demotion: ${error.message}`);
+  if (!target) throw new Error('Target account was not found.');
+  if (target.role !== 'manager' && target.role !== 'admin') return;
+
+  const activeAssigned = await countActiveAssignedDisputers(supabase, targetProfileId);
+  if (activeAssigned > 0) {
+    const label = target.full_name || target.email || 'This manager';
+    throw new Error(`${label} still has ${activeAssigned} active assigned Disputer${activeAssigned === 1 ? '' : 's'}. Reassign or unlink them first, or Suspend the manager while cleanup is pending.`);
+  }
+}
+
+async function clearDemotedManagerInviteCode(supabase: SupabaseServerClient, targetProfileId: string) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ manager_invite_code: null })
+    .eq('id', targetProfileId)
+    .in('role', ['client', 'disputer']);
+
+  if (error) {
+    // Do not undo a completed role change because of an invite cleanup failure. The demotion guard already protected assignments.
+    console.warn('[access-control] Demoted manager invite cleanup skipped:', error.message);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -149,6 +196,10 @@ export async function POST(request: NextRequest) {
         return redirectBack(request, 'error', 'This action is not available to master control.');
       }
 
+      if (intent === 'demote_client') {
+        await assertSafeManagerDemotion(supabase, targetProfileId);
+      }
+
       const errorMessage = await callWorkspaceFirstControl(
         supabase,
         'access_workspace_master_control_v1',
@@ -159,8 +210,12 @@ export async function POST(request: NextRequest) {
 
       if (errorMessage) return redirectBack(request, 'error', errorMessage);
 
+      if (intent === 'demote_client') {
+        await clearDemotedManagerInviteCode(supabase, targetProfileId);
+      }
+
       revalidateAccountControlViews();
-      return redirectBack(request, 'ok');
+      return redirectBack(request, 'ok', intent === 'demote_client' ? 'Manager demoted only after active Disputer assignment safety check passed.' : undefined);
     }
 
     if (actorRole === 'manager') {
