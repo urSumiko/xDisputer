@@ -82,7 +82,7 @@ export default function TemplateProgressiveWorkspace({
     <div className={`templates-progressive-workspace authority-${authority.mode.toLowerCase()}`} data-template-authority-mode={authority.mode} data-client-template-handoff="enabled">
       {stage === 'ROUND' ? (
         <section className="panel template-selection-stage template-round-stage" aria-label="Select packet round">
-          <header className="template-stage-heading">
+          <header className="template-stage-heading compact-command-header" data-layout-contract="command-header">
             <p className="eyebrow">Manager-approved reusable templates</p>
             <h2>Select a round</h2>
             <p>Choose the filing round. Every assigned client uses the active manager default template for that round and slot.</p>
@@ -101,7 +101,7 @@ export default function TemplateProgressiveWorkspace({
 
       {stage === 'PACKET' ? (
         <section className="panel template-selection-stage template-packet-stage" aria-label="Select packet template">
-          <header className="template-stage-command">
+          <header className="template-stage-command compact-command-header" data-layout-contract="command-header">
             <div className="template-stage-heading">
               <p className="eyebrow">{round}</p>
               <h2>Choose a packet template</h2>
@@ -111,7 +111,7 @@ export default function TemplateProgressiveWorkspace({
               <button type="button" className="secondary-button" onClick={chooseDifferentRound}>Change round</button>
               {onUseRoundForSourceData ? (
                 <button type="button" className="primary-action-button client-template-source-handoff" data-client-template-source-handoff="round" onClick={useSelectedTemplateForSourceData}>
-                  Use this round for Source Data
+                  Use for Source Data
                 </button>
               ) : null}
             </div>
@@ -136,7 +136,7 @@ export default function TemplateProgressiveWorkspace({
 
       {stage === 'EDITOR' && packet ? (
         <section className="template-selected-editor" aria-label={`${packetTitle(packet)} configuration`} data-client-template-selected-packet={packet}>
-          <header className="panel template-selected-command template-merged-command">
+          <header className="panel template-selected-command template-merged-command compact-command-header" data-layout-contract="command-header">
             <div className="template-selected-identity">
               <p className="eyebrow">{round} · {packetType(packet)}</p>
               <h2>{packetTitle(packet)}</h2>
@@ -148,7 +148,7 @@ export default function TemplateProgressiveWorkspace({
               <button type="button" className="secondary-button" onClick={chooseDifferentRound}>Change round</button>
               {onUseRoundForSourceData ? (
                 <button type="button" className="primary-action-button client-template-source-handoff" data-client-template-source-handoff="selected-template" onClick={useSelectedTemplateForSourceData}>
-                  Use selected template for Source Data
+                  Use for Source Data
                 </button>
               ) : null}
             </div>
