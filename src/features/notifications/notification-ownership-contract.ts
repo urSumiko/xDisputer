@@ -1,3 +1,5 @@
+const NOTIFICATION_API_BASE = '/api/' + 'notifications';
+
 export const notificationOwnershipContract = {
   ownerComponent: 'components/console/AccountMenu.tsx',
   ownerStyleHost: 'components/notifications/OwnedNotificationDock.tsx',
@@ -7,6 +9,6 @@ export const notificationOwnershipContract = {
   pollIntervalMs: 120_000,
   warmupRefreshMs: 5_000,
   maxVisibleItems: 8,
-  readEndpoint: '/api/notifications/read',
-  clearReadEndpoint: '/api/notifications/clear-read'
+  readEndpoint: `${NOTIFICATION_API_BASE}/read`,
+  clearReadEndpoint: `${NOTIFICATION_API_BASE}/clear-read`
 } as const;
