@@ -86,7 +86,7 @@ function ManagerAccountCard({ account, entitlements, settings }: { account: Acco
   const entitlement = entitlements[account.id];
   const outputActivityPay = payrollAmount(setting, entitlement?.output_used_today || 0);
   return <article className="manager-console-user-card" data-compact-account-record="true" data-output-used-today={entitlement?.output_used_today || 0} data-output-limit={entitlement?.effective_output_limit ?? 'default'}>
-    <header className="manager-console-user-header-v2"><div><strong>{account.full_name || account.email || 'Unnamed Disputer'}</strong><span>{account.email || 'No email'} • Updated {formatDate(account.updated_at)}</span></div><div className="manager-console-status-actions"><AccountStatusActions account={account} /><span className={`admin-status-badge ${account.account_status || 'pending'}`}>{statusText(account.account_status)}</span></div></header>
+    <header className="manager-console-user-header-v2"><div><strong>{account.full_name || account.email || 'Unnamed Disputer'}</strong><span>{account.email || 'No email'} • Updated {formatDate(account.updated_at)}{account.assignment_status === 'direct_manager_id' ? ' • Direct manager assignment' : ''}</span></div><div className="manager-console-status-actions"><AccountStatusActions account={account} /><span className={`admin-status-badge ${account.account_status || 'pending'}`}>{statusText(account.account_status)}</span></div></header>
     <div className="manager-console-user-metrics"><span>{outputUsage(entitlements, account.id)}</span><span>{employmentTypeLabel(setting)}</span><span>{employmentTypeFor(setting) === 'full_time' ? `Fixed salary ${money(outputActivityPay)}` : `Output estimate ${money(outputActivityPay)}`}</span></div>
     <ManagerPayrollSettingsEditor profileId={account.id} initialEmploymentType={employmentTypeFor(setting)} initialBaseSalary={setting?.base_salary || setting?.salary || 0} initialPerOutputRate={setting?.per_output_rate || setting?.rate || 0} initialNotes={setting?.notes || ''} />
   </article>;
@@ -147,10 +147,10 @@ export default async function AdminPage({ searchParams }: PageProps) {
   let allPromise: Promise<AccountDirectoryListResult> = Promise.resolve(emptyDirectoryResult);
   let invitePromise: Promise<string> = Promise.resolve('');
 
-  if (activePanel === 'monitoring') { pendingPromise = listManagerClientDirectory(supabase, { view: 'pending', page: 1, pageSize: COMPACT_PAGE_SIZE }); activePromise = listManagerClientDirectory(supabase, { view: 'active', page: 1, pageSize: COMPACT_PAGE_SIZE }); }
-  else if (activePanel === 'access' || activePanel === 'reports') allPromise = listManagerClientDirectory(supabase, { view: 'all', page: 1, pageSize: PANEL_PAGE_SIZE });
-  else if (activePanel === 'output_activity') activePromise = listManagerClientDirectory(supabase, { view: 'active', page: 1, pageSize: PANEL_PAGE_SIZE });
-  else if (activePanel === 'requests') { pendingPromise = listManagerClientDirectory(supabase, { view: 'pending', page: 1, pageSize: COMPACT_PAGE_SIZE }); blockedPromise = listManagerClientDirectory(supabase, { view: 'blocked', page: 1, pageSize: COMPACT_PAGE_SIZE }); invitePromise = ensureManagerInviteCode(supabase, user.id); }
+  if (activePanel === 'monitoring') { pendingPromise = listManagerClientDirectory(supabase, { view: 'pending', page: 1, pageSize: COMPACT_PAGE_SIZE }, user.id); activePromise = listManagerClientDirectory(supabase, { view: 'active', page: 1, pageSize: COMPACT_PAGE_SIZE }, user.id); }
+  else if (activePanel === 'access' || activePanel === 'reports') allPromise = listManagerClientDirectory(supabase, { view: 'all', page: 1, pageSize: PANEL_PAGE_SIZE }, user.id);
+  else if (activePanel === 'output_activity') activePromise = listManagerClientDirectory(supabase, { view: 'active', page: 1, pageSize: PANEL_PAGE_SIZE }, user.id);
+  else if (activePanel === 'requests') { pendingPromise = listManagerClientDirectory(supabase, { view: 'pending', page: 1, pageSize: COMPACT_PAGE_SIZE }, user.id); blockedPromise = listManagerClientDirectory(supabase, { view: 'blocked', page: 1, pageSize: COMPACT_PAGE_SIZE }, user.id); invitePromise = ensureManagerInviteCode(supabase, user.id); }
 
   const [summaryResult, pendingResult, activeResult, blockedResult, allResult, inviteCode, reportResult] = await Promise.all([getManagerClientSummary(supabase), pendingPromise, activePromise, blockedPromise, allPromise, invitePromise, activePanel === 'reports' ? listManagerReportData(supabase, user.id, reportInput) : Promise.resolve(null)]);
   const panelAccounts = accountsForPanel(activePanel, pendingResult, activeResult, blockedResult, allResult);
