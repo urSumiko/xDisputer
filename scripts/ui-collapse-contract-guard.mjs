@@ -19,14 +19,17 @@ function requireIncludes(path, value, message) {
 
 requireFile('app/ui-collapse-recovery.css');
 requireFile('app/layout.tsx');
+requireFile('app/root-css-contracts.css');
 
 if (!failures.length) {
   const layout = read('app/layout.tsx');
+  const rootContracts = read('app/root-css-contracts.css');
   const recoveryImport = "import './ui-collapse-recovery.css';";
-  const clientLockImport = "import './client-workspace-layout-lock.css';";
+  const recoveryBundleImport = "@import './ui-collapse-recovery.css';";
+  const clientLockBundleImport = "@import './client-workspace-layout-lock.css';";
 
-  if (!layout.includes(recoveryImport)) failures.push('layout.tsx must import ui-collapse-recovery.css.');
-  if (layout.indexOf(recoveryImport) < layout.indexOf(clientLockImport)) failures.push('ui-collapse-recovery.css must import after client-workspace-layout-lock.css.');
+  if (!layout.includes(recoveryImport) && !rootContracts.includes(recoveryBundleImport)) failures.push('layout.tsx must import ui-collapse-recovery.css directly or through root-css-contracts.css.');
+  if (rootContracts.includes(recoveryBundleImport) && rootContracts.includes(clientLockBundleImport) && rootContracts.indexOf(recoveryBundleImport) < rootContracts.indexOf(clientLockBundleImport)) failures.push('ui-collapse-recovery.css must import after client-workspace-layout-lock.css.');
 
   const css = read('app/ui-collapse-recovery.css');
   const requiredSelectors = [
