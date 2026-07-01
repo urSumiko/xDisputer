@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 const failures = [];
 const read = (file) => existsSync(file) ? readFileSync(file, 'utf8') : (failures.push(`missing ${file}`), '');
 const must = (file, marker, label) => { if (!read(file).includes(marker)) failures.push(`${file}: ${label}`); };
+const mustAny = (file, markers, label) => { const source = read(file); if (!markers.some((marker) => source.includes(marker))) failures.push(`${file}: ${label}`); };
 const mustNot = (file, marker, label) => { if (read(file).includes(marker)) failures.push(`${file}: ${label}`); };
 
 for (const file of [
@@ -55,12 +56,12 @@ must('app/api/template-registration/route.ts', 'workflowAnchorPolicy', 'registra
 must('lib/templates/intelligence/dynamic-template-inspector.ts', 'natural-anchor-account-name-account-number', 'inspector must detect account in-place anchors');
 must('lib/templates/intelligence/dynamic-template-inspector.ts', 'do not append or increment', 'inspector must explain wrong-location prevention');
 must('lib/supplemental-template-renderer.ts', 'normalizeAffidavit', 'affidavit renderer must normalize account anchors');
-must('lib/supplemental-template-renderer.ts', 'Affidavit account anchors mapped in-place', 'affidavit renderer must report in-place mapping');
+mustAny('lib/supplemental-template-renderer.ts', ['Affidavit account anchors mapped in-place', 'Affidavit account and notary anchors mapped with template spacing'], 'affidavit renderer must report in-place mapping');
 must('lib/supplemental-template-renderer.ts', 'accountLinesForAffidavit', 'affidavit renderer must use source account lines');
 must('lib/final-pdf-packet.ts', 'mergePdfBlobs', 'final PDF helper must merge PDFs');
 must('components/LetterGeneratorWorkspace.tsx', '_FINAL_MERGED_PACKET.pdf', 'letter workspace must produce one merged PDF');
-must('components/OutputReviewWorkspace.tsx', 'Generate merged PDF', 'review stage must generate merged PDF');
-must('components/OutputReviewWorkspace.tsx', 'Download merged PDF', 'review stage must download merged PDF');
+must('components/OutputReviewWorkspace.tsx', 'buildFinalMergedPdfPackage', 'review stage must generate merged PDF');
+mustAny('components/OutputReviewWorkspace.tsx', ['Merged PDF ZIP', 'onMergedPdfDownload'], 'review stage must download merged PDF');
 must('lib/templates/workspace/template-test-lab-service.ts', 'buildTemplateTestLabContext', 'test service missing');
 must('lib/templates/workspace/template-test-lab-service.ts', 'previewGenerationPlan', 'preview plan missing');
 must('components/templates/workspace/TemplateTestLabHub.tsx', 'template-test-side-panel', 'side panel missing');
