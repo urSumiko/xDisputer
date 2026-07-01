@@ -52,7 +52,7 @@ must(files.notificationService, ".select('id,title,body,href,severity,read_at,cr
 
 must(files.ownedHook, 'useSyncExternalStore', 'owned notification hook must use a shared external store');
 must(files.ownedHook, 'xdisputer:notifications-refreshed', 'owned notification hook must emit data-change event');
-must(files.ownedHook, 'removeChannel(channel)', 'owned notification hook must clean only its own channel');
+must(files.ownedHook, 'removeChannel(owned)', 'owned notification hook must clean only its own channel');
 must(files.ownedHook, 'warmupTimer', 'owned notification hook must include short warmup polling');
 must(files.ownedHook, 'steadyTimer', 'owned notification hook must include slow fallback polling');
 must(files.dock, 'useOwnedNotifications', 'notification dock must use owned notification hook');
