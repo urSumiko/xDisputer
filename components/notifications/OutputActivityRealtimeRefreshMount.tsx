@@ -36,10 +36,12 @@ export default function OutputActivityRealtimeRefreshMount() {
     }
 
     const focusHandler = () => scheduleRefresh('focus');
+    const notificationHandler = () => scheduleRefresh('xdisputer:notifications-refreshed');
     const visibilityHandler = () => { if (!document.hidden) scheduleRefresh('visibility'); };
 
     window.addEventListener('focus', focusHandler);
     window.addEventListener('online', focusHandler);
+    window.addEventListener('xdisputer:notifications-refreshed', notificationHandler);
     document.addEventListener('visibilitychange', visibilityHandler);
 
     void supabase.auth.getUser().then(({ data }) => {
@@ -60,6 +62,7 @@ export default function OutputActivityRealtimeRefreshMount() {
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
       window.removeEventListener('focus', focusHandler);
       window.removeEventListener('online', focusHandler);
+      window.removeEventListener('xdisputer:notifications-refreshed', notificationHandler);
       document.removeEventListener('visibilitychange', visibilityHandler);
       if (channel) void supabase.removeChannel(channel);
     };
