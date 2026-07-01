@@ -59,6 +59,11 @@ function cleanSwitchValue(value?: string | null) {
   return trimmed || null;
 }
 
+function resolvedSwitchTarget(role: ConsoleShellRole, fallback: string | null) {
+  if (role === 'master') return fallback;
+  return fallback;
+}
+
 function switchModeContract(role: ConsoleShellRole, mode: ConsoleShellMode, switchTargetLabel: string): SwitchModeContract {
   if (role === 'manager' && mode === 'workspace') {
     return { currentLabel: 'Workspace authoring', targetLabel: switchTargetLabel || 'Operations console', intent: 'Switch to monitoring', helper: 'Review clients, outputs, access, reports, and audit queues.', icon: 'up-right' };
@@ -79,7 +84,7 @@ function switchIcon(value: string) {
 export default function ConsoleShell({ role, mode, email, accountName, accountLabel, brandTitle = 'xDisputer', brandSubtitle, sidebarSectionTitle, navItems, switchTarget, switchTargetLabel, className, navAriaLabel, navContract = 'console-shell-v2', activeNavUsesConsoleLink = false, header, children }: Props) {
   const visibleNavItems = navItems.filter((item) => item.kind !== 'workspace-switch' && item.href);
   const shellClassName = join('admin-monitor-page native-console', shellModeClass(role, mode), className);
-  const finalSwitchTarget = cleanSwitchValue(switchTarget);
+  const finalSwitchTarget = resolvedSwitchTarget(role, cleanSwitchValue(switchTarget));
   const finalSwitchLabel = cleanSwitchValue(switchTargetLabel);
   const masterSwitchSuppressed = role === 'master';
   const hasSwitchCard = !masterSwitchSuppressed && Boolean(finalSwitchTarget && finalSwitchLabel);
