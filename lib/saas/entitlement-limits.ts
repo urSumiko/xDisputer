@@ -29,6 +29,14 @@ type RawManagerLimitRow = {
   updated_at?: unknown;
 };
 
+type RawOutputUsageRow = {
+  disputer_id?: unknown;
+  owner_id?: unknown;
+  output_count?: unknown;
+  status?: unknown;
+  output_status?: unknown;
+};
+
 function isMissingRpc(message: string) {
   return message.includes('Could not find the function')
     || message.includes('does not exist')
@@ -80,15 +88,18 @@ function normalizeRow(row: RawEntitlementRow): EntitlementLimitRow {
 
 function mergeRow(base: EntitlementLimitRow | undefined, incoming: EntitlementLimitRow) {
   const current = base || emptyRow(incoming.profile_id);
+  const effectiveLimit = incoming.effective_output_limit ?? current.effective_output_limit;
+  const outputUsedToday = Math.max(current.output_used_today || 0, incoming.output_used_today || 0);
+  const incomingRemaining = incoming.output_remaining_today ?? current.output_remaining_today;
   return {
     profile_id: current.profile_id || incoming.profile_id,
     max_clients: incoming.max_clients ?? current.max_clients,
     current_clients: Math.max(current.current_clients || 0, incoming.current_clients || 0),
     default_client_output_limit: incoming.default_client_output_limit ?? current.default_client_output_limit,
     client_output_limit: incoming.client_output_limit ?? current.client_output_limit,
-    effective_output_limit: incoming.effective_output_limit ?? current.effective_output_limit,
-    output_used_today: Math.max(current.output_used_today || 0, incoming.output_used_today || 0),
-    output_remaining_today: incoming.output_remaining_today ?? current.output_remaining_today,
+    effective_output_limit: effectiveLimit,
+    output_used_today: outputUsedToday,
+    output_remaining_today: effectiveLimit === null ? incomingRemaining : Math.max(effectiveLimit - outputUsedToday, 0),
     updated_at: incoming.updated_at || current.updated_at
   } satisfies EntitlementLimitRow;
 }
@@ -128,6 +139,63 @@ async function readManagerLimitTableRows(supabase: SupabaseServerClient, ids: st
   }).filter((row) => row.profile_id);
 }
 
+function todayUtcWindow() {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function outputStatusCounts(status: unknown) {
+  const value = String(status || '').toLowerCase();
+  return !value || value === 'generated' || value === 'downloaded' || value === 'recorded' || value === 'pending' || value === 'approved' || value === 'paid';
+}
+
+function addUsage(map: Map<string, number>, profileId: string, amount: unknown) {
+  if (!profileId) return;
+  const count = Math.max(1, nonnegativeOrNull(amount) ?? 1);
+  map.set(profileId, (map.get(profileId) || 0) + count);
+}
+
+async function readTodayOutputUsageRows(supabase: SupabaseServerClient, ids: string[]) {
+  const { start, end } = todayUtcWindow();
+  const approvalUsage = new Map<string, number>();
+  const generationUsage = new Map<string, number>();
+
+  const approvals = await supabase
+    .from('manager_disputer_output_approvals')
+    .select('disputer_id,output_count,status,created_at')
+    .in('disputer_id', ids)
+    .gte('created_at', start)
+    .lt('created_at', end);
+
+  if (!approvals.error && Array.isArray(approvals.data)) {
+    for (const row of approvals.data as RawOutputUsageRow[]) {
+      if (outputStatusCounts(row.status)) addUsage(approvalUsage, String(row.disputer_id || ''), row.output_count);
+    }
+  }
+
+  const runs = await supabase
+    .from('generation_runs')
+    .select('owner_id,output_status,created_at')
+    .in('owner_id', ids)
+    .gte('created_at', start)
+    .lt('created_at', end);
+
+  if (!runs.error && Array.isArray(runs.data)) {
+    for (const row of runs.data as RawOutputUsageRow[]) {
+      if (outputStatusCounts(row.output_status)) addUsage(generationUsage, String(row.owner_id || ''), 1);
+    }
+  }
+
+  const rows: EntitlementLimitRow[] = [];
+  for (const id of ids) {
+    const used = Math.max(approvalUsage.get(id) || 0, generationUsage.get(id) || 0);
+    if (used > 0) rows.push({ ...emptyRow(id), output_used_today: used });
+  }
+  return rows;
+}
+
 export async function listEntitlementLimits(
   supabase: SupabaseServerClient,
   profileIds: string[]
@@ -150,6 +218,9 @@ export async function listEntitlementLimits(
 
   const tableRows = await readManagerLimitTableRows(supabase, ids);
   for (const row of tableRows) merged.set(row.profile_id, mergeRow(merged.get(row.profile_id), row));
+
+  const activityRows = await readTodayOutputUsageRows(supabase, ids);
+  for (const row of activityRows) merged.set(row.profile_id, mergeRow(merged.get(row.profile_id), row));
 
   for (const id of ids) if (!merged.has(id)) merged.set(id, emptyRow(id));
 
