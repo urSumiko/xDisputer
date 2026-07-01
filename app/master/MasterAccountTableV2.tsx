@@ -70,11 +70,19 @@ function BossAssignmentForm({ account, bossOptions }: { account: ManagedAccount;
   return <form action="/api/master/assign-manager" method="post" className="boss-assignment-form flyout-form"><input type="hidden" name="clientId" value={account.id} /><label><span>Boss / manager</span><select name="managerId" defaultValue={account.manager_id || ''}><option value="" disabled>Choose manager boss</option>{bossOptions.map((boss) => <option key={boss.id} value={boss.id}>{boss.label}{boss.email ? ` · ${boss.email}` : ''}</option>)}</select></label><button type="submit" className="admin-action-button primary">Save boss</button></form>;
 }
 
-function ActionForms({ account, currentUserId }: { account: ManagedAccount; currentUserId: string }) {
+function ManagerDemotionAction({ account, limit }: { account: ManagedAccount; limit?: EntitlementLimitRow }) {
+  const activeAssigned = savedManagerLimits(limit).active;
+  if (activeAssigned > 0) {
+    return <span className="flyout-action-group"><button type="button" className="admin-action-button" aria-disabled="true">Demote requires cleanup</button><span className="flyout-muted">{activeAssigned} active assigned Disputer{activeAssigned === 1 ? '' : 's'}. Reassign or unlink first.</span></span>;
+  }
+  return <ControlForm profileId={account.id} intent="demote_client" label="Demote" />;
+}
+
+function ActionForms({ account, currentUserId, limit }: { account: ManagedAccount; currentUserId: string; limit?: EntitlementLimitRow }) {
   if (account.role === 'master') return <p className="flyout-muted">Master account is protected.</p>;
   if (account.id === currentUserId) return <p className="flyout-muted">Current signed-in account.</p>;
   const blocked = account.account_status === 'disabled' || account.account_status === 'suspended';
-  return <div className="admin-actions-row flyout-actions">{account.role === 'client' && <ControlForm key="promote" profileId={account.id} intent="make_manager" label="Promote" primary />}{isManager(account) && <span key="manager-actions" className="flyout-action-group"><ControlForm profileId={account.id} intent="demote_client" label="Demote" /><RotateInvite managerId={account.id} /></span>}{blocked ? <ControlForm key="reactivate" profileId={account.id} intent="reactivate" label="Reactivate" primary /> : <span key="block-actions" className="flyout-action-group"><ControlForm profileId={account.id} intent="suspend" label="Suspend" /><ControlForm profileId={account.id} intent="disable" label="Disable" /></span>}{account.role === 'client' && account.manager_id && <ControlForm key="unlink" profileId={account.id} intent="clear_manager" label="Unlink" />}</div>;
+  return <div className="admin-actions-row flyout-actions">{account.role === 'client' && <ControlForm key="promote" profileId={account.id} intent="make_manager" label="Promote" primary />}{isManager(account) && <span key="manager-actions" className="flyout-action-group"><ManagerDemotionAction account={account} limit={limit} /><RotateInvite managerId={account.id} /></span>}{blocked ? <ControlForm key="reactivate" profileId={account.id} intent="reactivate" label="Reactivate" primary /> : <span key="block-actions" className="flyout-action-group"><ControlForm profileId={account.id} intent="suspend" label="Suspend" /><ControlForm profileId={account.id} intent="disable" label="Disable" /></span>}{account.role === 'client' && account.manager_id && <ControlForm key="unlink" profileId={account.id} intent="clear_manager" label="Unlink" />}</div>;
 }
 
 function AccountTrigger({ account, limit }: { account: ManagedAccount; limit?: EntitlementLimitRow }) {
@@ -90,7 +98,7 @@ function AccountControlCard({ account, currentUserId, limit, bossOptions }: { ac
     <div className="account-control-flyout-content" data-account-control-flyout-content="key-safe-wrapper">
       {managerAccount && <section className="table-flyout-section"><LimitForm account={account} limit={limit} formId={formId} /></section>}
       {account.role === 'client' && <section className="table-flyout-section"><strong>Boss assignment</strong><BossAssignmentForm account={account} bossOptions={bossOptions} /></section>}
-      <section className="table-flyout-section"><strong>Actions</strong><ActionForms account={account} currentUserId={currentUserId} /></section>
+      <section className="table-flyout-section"><strong>Actions</strong><ActionForms account={account} currentUserId={currentUserId} limit={limit} /></section>
     </div>
   </TableFlyout>;
 }
