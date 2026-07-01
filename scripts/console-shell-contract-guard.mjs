@@ -36,6 +36,7 @@ const shell = read('components/console/ConsoleShell.tsx');
 const wrapper = read('components/ManagerConsoleShell.tsx');
 const admin = read('app/admin/page.tsx');
 const master = read('app/master/MasterConsoleHome.tsx');
+const masterAccounts = read('app/master/accounts/page.tsx');
 const access = read('app/admin/access/page.tsx');
 const clients = read('app/admin/clients/page.tsx');
 const menu = read('components/console/AccountMenu.tsx');
@@ -50,6 +51,9 @@ must(shell, 'data-console-layout-ratio="75/25"', 'ratio marker missing');
 must(shell, '<AccountMenu', 'account menu placement missing');
 must(shell, 'switchModeContract', 'switch mode contract missing');
 must(shell, 'data-console-mode-switch="sidebar-bottom"', 'bottom switch missing');
+must(shell, 'data-console-has-switch-card={hasSwitchCard', 'shell must expose optional switch-card state');
+must(shell, '{hasSwitchCard && switchMode ?', 'shell must not render switch link when target is missing');
+must(shell, 'finalSwitchTarget as string', 'switch link must only use a proven string target');
 mustNot(shell, wrapperTag, 'canonical shell must not mount wrapper');
 
 must(wrapper, tag, 'manager wrapper must render canonical shell');
@@ -58,12 +62,18 @@ must(wrapper, 'activeNavUsesConsoleLink', 'manager wrapper must use canonical na
 
 pageUsesShell('/admin', admin, wrapper);
 pageUsesShell('/master', master, wrapper);
+pageUsesShell('/master/accounts', masterAccounts, wrapper);
 pageUsesShell('/admin/access', access, wrapper);
 pageUsesShell('/admin/clients', clients, wrapper);
+must(masterAccounts, 'navItems={masterAccountNavItems}', 'master accounts must keep master navigation');
+mustNot(masterAccounts, 'switchTarget="/admin"', 'master accounts must not render the Manager-console switch card');
+mustNot(masterAccounts, 'switchTargetLabel="Manager console"', 'master accounts must not render removed switch label');
 
 must(menu, 'data-console-account-menu="true"', 'account menu marker missing');
 must(menu, 'data-manager-account-anchor="header-ratio-grid"', 'account anchor marker missing');
 must(menu, 'manager-account-settings-form', 'account settings form missing');
+mustNot(menu, 'switchTarget:', 'account menu must not require unused switch props');
+mustNot(menu, 'switchTargetLabel:', 'account menu must not require unused switch-label props');
 must(layout, '<RenderDebuggerMount />', 'lazy runtime debugger mount missing');
 must(debuggerMount, "dynamic(() => import('./RenderDebugger')", 'RenderDebugger must load through dynamic import');
 must(debuggerMount, 'ssr: false', 'RenderDebugger mount must stay client-only');
