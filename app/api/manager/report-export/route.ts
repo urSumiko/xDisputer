@@ -32,10 +32,18 @@ function reportTypeName(report: ManagerReportData) {
   return 'Summary';
 }
 
-function filenameReportType(report: ManagerReportData) {
-  if (report.input.type === 'salary_outputs') return 'salary';
-  if (report.input.type === 'per_boss') return 'per-boss';
-  return report.input.type;
+function filenameDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(date);
+}
+
+function downloadFilename(report: ManagerReportData) {
+  const raw = `${reportTypeName(report)} ${filenameDate(report.input.range.fromDate)} to ${filenameDate(report.input.range.toDate)}.xlsx`;
+  return raw.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
 }
 
 function styleId(style?: CellStyle) {
@@ -60,8 +68,7 @@ function columnName(index: number) {
 
 function cellXml(cell: SheetRow[number], rowIndex: number, columnIndex: number) {
   const reference = `${columnName(columnIndex)}${rowIndex + 1}`;
-  const style = styleId(cell.style);
-  const styleAttr = ` s="${style}"`;
+  const styleAttr = ` s="${styleId(cell.style)}"`;
   const value = cell.value;
   if (typeof value === 'number' && Number.isFinite(value)) return `<c r="${reference}"${styleAttr}><v>${value}</v></c>`;
   return `<c r="${reference}" t="inlineStr"${styleAttr}><is><t>${escapeXml(value ?? '')}</t></is></c>`;
@@ -73,20 +80,10 @@ function sheetDimension(sheet: SheetSpec) {
   return `A1:${columnName(maxColumns - 1)}${maxRows}`;
 }
 
-function tableRange(sheet: SheetSpec) {
-  const headerIndex = sheet.rows.findIndex((row) => row.length > 1 && row.every((cell) => cell.style === 'header'));
-  if (headerIndex < 0) return null;
-  const width = sheet.rows[headerIndex].length;
-  const lastDataIndex = Math.max(headerIndex, sheet.rows.length - 1);
-  return `A${headerIndex + 1}:${columnName(width - 1)}${lastDataIndex + 1}`;
-}
-
 function sheetXml(sheet: SheetSpec, active = false) {
   const widthXml = sheet.widths?.length ? `<cols>${sheet.widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join('')}</cols>` : '';
   const rowXml = sheet.rows.map((row, rowIndex) => `<row r="${rowIndex + 1}">${row.map((cell, columnIndex) => cellXml(cell, rowIndex, columnIndex)).join('')}</row>`).join('');
-  const filter = tableRange(sheet);
-  const filterXml = filter ? `<autoFilter ref="${filter}"/>` : '';
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="${sheetDimension(sheet)}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"${active ? ' tabSelected="1"' : ''}/></sheetViews><sheetFormatPr defaultRowHeight="18"/>${widthXml}<sheetData>${rowXml}</sheetData>${filterXml}</worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="${sheetDimension(sheet)}"/><sheetViews><sheetView workbookViewId="0" showGridLines="1"${active ? ' tabSelected="1"' : ''}/></sheetViews><sheetFormatPr defaultRowHeight="18"/>${widthXml}<sheetData>${rowXml}</sheetData></worksheet>`;
 }
 
 function workbookXml(sheets: SheetSpec[]) {
@@ -105,13 +102,13 @@ function rootRelsXml() {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
 }
 
-function xf(fontId: number, fillId: number, borderId = 1, extra = '') {
-  return `<xf numFmtId="0" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"${extra}><alignment horizontal="center" vertical="center" wrapText="1"/></xf>`;
+function xf(fontId: number, fillId: number, borderId: number, horizontal = 'left', extra = '') {
+  return `<xf numFmtId="0" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"${extra}><alignment horizontal="${horizontal}" vertical="center" wrapText="1"/></xf>`;
 }
 
 function stylesXml() {
-  const tableBorder = '<border><left style="thin"><color rgb="FF475569"/></left><right style="thin"><color rgb="FF475569"/></right><top style="thin"><color rgb="FF475569"/></top><bottom style="thin"><color rgb="FF475569"/></bottom><diagonal/></border>';
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFB91C1C"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1D4ED8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>${tableBorder}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellStyleXfs><cellXfs count="6">${xf(0, 0)}${xf(1, 2)}${xf(2, 0)}${xf(3, 0)}${xf(4, 0)}${xf(0, 3)}</cellXfs></styleSheet>`;
+  const visibleTableBorder = '<border><left style="thin"><color rgb="FF111827"/></left><right style="thin"><color rgb="FF111827"/></right><top style="thin"><color rgb="FF111827"/></top><bottom style="thin"><color rgb="FF111827"/></bottom><diagonal/></border>';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFB91C1C"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1D4ED8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>${visibleTableBorder}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"><alignment horizontal="left" vertical="center" wrapText="1"/></xf></cellStyleXfs><cellXfs count="6">${xf(0, 0, 1)}${xf(1, 2, 1, 'center')} ${xf(2, 0, 1, 'center')}${xf(3, 0, 1, 'center')}${xf(4, 0, 0, 'left')}${xf(0, 0, 0, 'left')}</cellXfs></styleSheet>`;
 }
 
 function cell(value: CellValue, style: CellStyle = 'text') { return { value, style }; }
@@ -211,11 +208,12 @@ export async function GET(request: NextRequest) {
   const input = parseManagerReportInput({ reportType: params.get('reportType') || undefined, from: params.get('from') || undefined, to: params.get('to') || undefined });
   const report = await listManagerReportData(supabase, user.id, input);
   const workbook = await createWorkbook(report, profile?.email || user.email || 'Manager');
-  const filename = `xdisputer-${filenameReportType(report)}-report-${input.range.fromDate}-to-${input.range.toDate}.xlsx`;
+  const filename = downloadFilename(report);
+  const dispositionFilename = filename.replace(/"/g, '');
   return new NextResponse(workbook, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Disposition': `attachment; filename="${dispositionFilename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
     }
   });
