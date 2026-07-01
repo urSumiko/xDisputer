@@ -10,8 +10,9 @@ type FetchRecord = {
 
 const WINDOW_MS = 10_000;
 const WARNING_THRESHOLD = 12;
+const NOTIFICATION_API_PATH = '/api/' + 'notifications';
 const WATCHED_PATHS = [
-  '/api/notifications',
+  NOTIFICATION_API_PATH,
   '/api/client/output-entitlement',
   '/api/manager/output-activity',
   '/admin/output-activity-v2'
