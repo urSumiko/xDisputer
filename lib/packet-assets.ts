@@ -28,12 +28,14 @@ function supportSlot(index: number, total: number): Pick<SupportingPlacement, 'x
   const count = Math.max(1, Math.min(total || 1, 12));
   const safeIndex = Math.max(0, Math.min(index, count - 1));
 
-  if (count === 1) return { x: 0.04, y: 0.14, width: 0.92, height: 0.48 };
-  if (count === 2) return { x: 0.04, y: 0.08 + safeIndex * 0.44, width: 0.92, height: 0.4 };
-  if (count === 3) return { x: 0.04, y: 0.06 + safeIndex * 0.3, width: 0.92, height: 0.28 };
+  if (count === 1) return { x: 0.13, y: 0.17, width: 0.74, height: 0.38 };
+  if (count === 2) return { x: 0.11, y: 0.1 + safeIndex * 0.4, width: 0.78, height: 0.34 };
+  if (count === 3) return { x: 0.12, y: 0.07 + safeIndex * 0.29, width: 0.76, height: 0.24 };
 
-  const height = 0.92 / count;
-  return { x: 0.04, y: 0.04 + safeIndex * height, width: 0.92, height };
+  const usableTop = 0.06;
+  const usableHeight = 0.86;
+  const height = usableHeight / count;
+  return { x: 0.11, y: usableTop + safeIndex * height, width: 0.78, height };
 }
 
 export function standardSupportingPlacement(index: number, count: number): SupportingPlacement {
@@ -65,7 +67,11 @@ export function normalizeSupportingLayout(value: PacketAssets): PacketAssets {
           cropWidth: existing?.cropWidth ?? 1,
           cropHeight: existing?.cropHeight ?? 1,
           rotation: existing?.rotation ?? 0,
-          fit: existing?.fit ?? 'contain'
+          fit: existing?.fit ?? 'contain',
+          x: existing?.x ?? slot.x,
+          y: existing?.y ?? slot.y,
+          width: existing?.width ?? slot.width,
+          height: existing?.height ?? slot.height
         }
       };
     })
@@ -127,7 +133,7 @@ export async function addSupportingAssets(round: string, files: File[]) {
   for (const file of files.filter((item) => /^image\/(png|jpeg|webp)$/i.test(item.type) || /\.(png|jpe?g|webp)$/i.test(item.name))) {
     const id = `support-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     await storeFile(round, id, file);
-    added.push({ id, name: file.name, type: file.type || 'image', size: file.size, pages: 1 });
+    added.push({ id, name: file.name, type: file.type || 'image', size: file.size, pages: 1, placement: standardSupportingPlacement(value.supporting.length + added.length, value.supporting.length + files.length) });
   }
   const next = { ...value, supporting: [...value.supporting, ...added] };
   savePacketAssets(round, next);
@@ -159,7 +165,7 @@ export function saveSupportingPlacement(round: string, id: string, placement: Su
 }
 export function resetSupportingPlacements(round: string) {
   const value = loadPacketAssets(round);
-  const next = { ...value, supporting: value.supporting.map(({ placement, ...asset }) => asset) };
+  const next = { ...value, supporting: value.supporting.map((asset, index) => ({ ...asset, placement: standardSupportingPlacement(index, value.supporting.length) })) };
   savePacketAssets(round, next);
   return next;
 }
