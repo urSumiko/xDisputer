@@ -60,6 +60,9 @@ export type AccountDirectoryListResult = {
 
 const CONTROL_DIRECTORY_DEFAULT_PAGE_SIZE = 20;
 const CONTROL_DIRECTORY_MAX_PAGE_SIZE = 25;
+const ACTIVE_STATUSES = new Set(['active']);
+const PENDING_STATUSES = new Set(['pending_manager_assignment', 'pending_manager_approval']);
+const BLOCKED_STATUSES = new Set(['disabled', 'suspended']);
 
 function safeNumber(value: unknown, fallback: number) {
   const parsed = Number(value);
@@ -225,6 +228,55 @@ async function listWorkspaceAttentionQueue(
   };
 }
 
+function managerViewOf(view: DirectoryView) {
+  return view === 'all' ? 'clients' : view;
+}
+
+function rowMatchesManagerView(row: AccountDirectoryRow, view: DirectoryView) {
+  const status = row.account_status || 'active';
+  if (view === 'active') return ACTIVE_STATUSES.has(status);
+  if (view === 'pending') return PENDING_STATUSES.has(status);
+  if (view === 'blocked') return BLOCKED_STATUSES.has(status);
+  return row.role === 'client';
+}
+
+function rowMatchesSearch(row: AccountDirectoryRow, query = '') {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  return [row.email, row.full_name, row.role, row.account_status, row.manager_invite_code]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes(needle));
+}
+
+function mergeDirectoryRows(primary: AccountDirectoryRow[], fallback: AccountDirectoryRow[]) {
+  const map = new Map<string, AccountDirectoryRow>();
+  primary.forEach((row) => map.set(row.id, row));
+  fallback.forEach((row) => {
+    if (!map.has(row.id)) map.set(row.id, row);
+  });
+  return Array.from(map.values());
+}
+
+async function listDirectManagerAssignedClients(
+  supabase: SupabaseServerClient,
+  managerId: string,
+  options: AccountDirectoryOptions
+): Promise<AccountDirectoryRow[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id,email,full_name,role,account_status,manager_id,manager_invite_code,created_at,updated_at')
+    .eq('role', 'client')
+    .eq('manager_id', managerId)
+    .order('updated_at', { ascending: false });
+
+  if (error || !Array.isArray(data)) return [];
+
+  return (data as AccountDirectoryRow[])
+    .map((row) => normalizeAccount({ ...row, workspace_role: 'client', membership_status: 'legacy_manager_assignment', assignment_status: 'direct_manager_id' }))
+    .filter((row) => rowMatchesManagerView(row, managerViewOf(options.view)))
+    .filter((row) => rowMatchesSearch(row, options.query));
+}
+
 export async function getManagerClientSummary(supabase: SupabaseServerClient): Promise<{
   summary: AccountDirectorySummary;
   errorMessage: string | null;
@@ -243,12 +295,25 @@ export async function getManagerClientSummary(supabase: SupabaseServerClient): P
 
 export async function listManagerClientDirectory(
   supabase: SupabaseServerClient,
-  options: AccountDirectoryOptions
+  options: AccountDirectoryOptions,
+  managerId?: string
 ) {
-  return listWorkspaceAccountDirectory(supabase, {
+  const workspace = await listWorkspaceAccountDirectory(supabase, {
     ...options,
-    view: options.view === 'all' ? 'clients' : options.view
+    view: managerViewOf(options.view)
   });
+
+  if (!managerId) return workspace;
+
+  const direct = await listDirectManagerAssignedClients(supabase, managerId, options);
+  const accounts = mergeDirectoryRows(workspace.accounts, direct);
+
+  return {
+    ...workspace,
+    accounts,
+    total: Math.max(workspace.total, accounts.length),
+    errorMessage: workspace.errorMessage
+  };
 }
 
 export async function listManagerAttentionQueue(supabase: SupabaseServerClient, limit = 5) {
