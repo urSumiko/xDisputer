@@ -1,15 +1,16 @@
 import JSZip from 'jszip';
 import { NextResponse, type NextRequest } from 'next/server';
 import { requireRole } from '../../../../lib/saas/session';
-import { formatReportDate, formatReportDateRange, listManagerReportData, moneyText, parseManagerReportInput, type ManagerReportData } from '../../../../lib/manager-console/manager-reporting';
+import { formatReportDate, formatReportDateRange, listManagerReportData, moneyText, parseManagerReportInput, type ManagerReportData, type ManagerReportType } from '../../../../lib/manager-console/manager-reporting';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 type CellStyle = 'text' | 'header' | 'money' | 'totalPay' | 'title' | 'muted';
 type CellValue = string | number | null | undefined;
+type SheetRole = ManagerReportType | 'output_detail';
 type SheetRow = Array<{ value: CellValue; style?: CellStyle }>;
-type SheetSpec = { name: string; rows: SheetRow[]; widths?: number[] };
+type SheetSpec = { name: string; role: SheetRole; rows: SheetRow[]; widths?: number[] };
 
 function escapeXml(value: unknown) {
   return String(value ?? '')
@@ -60,20 +61,36 @@ function columnName(index: number) {
 function cellXml(cell: SheetRow[number], rowIndex: number, columnIndex: number) {
   const reference = `${columnName(columnIndex)}${rowIndex + 1}`;
   const style = styleId(cell.style);
-  const styleAttr = style ? ` s="${style}"` : ' s="0"';
+  const styleAttr = ` s="${style}"`;
   const value = cell.value;
   if (typeof value === 'number' && Number.isFinite(value)) return `<c r="${reference}"${styleAttr}><v>${value}</v></c>`;
   return `<c r="${reference}" t="inlineStr"${styleAttr}><is><t>${escapeXml(value ?? '')}</t></is></c>`;
 }
 
-function sheetXml(sheet: SheetSpec) {
+function sheetDimension(sheet: SheetSpec) {
+  const maxColumns = Math.max(1, ...sheet.rows.map((row) => row.length));
+  const maxRows = Math.max(1, sheet.rows.length);
+  return `A1:${columnName(maxColumns - 1)}${maxRows}`;
+}
+
+function tableRange(sheet: SheetSpec) {
+  const headerIndex = sheet.rows.findIndex((row) => row.length > 1 && row.every((cell) => cell.style === 'header'));
+  if (headerIndex < 0) return null;
+  const width = sheet.rows[headerIndex].length;
+  const lastDataIndex = Math.max(headerIndex, sheet.rows.length - 1);
+  return `A${headerIndex + 1}:${columnName(width - 1)}${lastDataIndex + 1}`;
+}
+
+function sheetXml(sheet: SheetSpec, active = false) {
   const widthXml = sheet.widths?.length ? `<cols>${sheet.widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join('')}</cols>` : '';
   const rowXml = sheet.rows.map((row, rowIndex) => `<row r="${rowIndex + 1}">${row.map((cell, columnIndex) => cellXml(cell, rowIndex, columnIndex)).join('')}</row>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${widthXml}<sheetData>${rowXml}</sheetData></worksheet>`;
+  const filter = tableRange(sheet);
+  const filterXml = filter ? `<autoFilter ref="${filter}"/>` : '';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="${sheetDimension(sheet)}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"${active ? ' tabSelected="1"' : ''}/></sheetViews><sheetFormatPr defaultRowHeight="18"/>${widthXml}<sheetData>${rowXml}</sheetData>${filterXml}</worksheet>`;
 }
 
 function workbookXml(sheets: SheetSpec[]) {
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((sheet, index) => `<sheet name="${escapeXml(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`).join('')}</sheets></workbook>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0" firstSheet="0"/></bookViews><sheets>${sheets.map((sheet, index) => `<sheet name="${escapeXml(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`).join('')}</sheets></workbook>`;
 }
 
 function workbookRelsXml(sheets: SheetSpec[]) {
@@ -93,11 +110,22 @@ function xf(fontId: number, fillId: number, borderId = 1, extra = '') {
 }
 
 function stylesXml() {
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFF0000"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1D4ED8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFCBD5E1"/></left><right style="thin"><color rgb="FFCBD5E1"/></right><top style="thin"><color rgb="FFCBD5E1"/></top><bottom style="thin"><color rgb="FFCBD5E1"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellStyleXfs><cellXfs count="6">${xf(0, 0)}${xf(1, 2)}${xf(2, 0)}${xf(3, 0)}${xf(4, 0)}${xf(0, 3)}</cellXfs></styleSheet>`;
+  const tableBorder = '<border><left style="thin"><color rgb="FF475569"/></left><right style="thin"><color rgb="FF475569"/></right><top style="thin"><color rgb="FF475569"/></top><bottom style="thin"><color rgb="FF475569"/></bottom><diagonal/></border>';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="5"><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><sz val="11"/><color theme="1"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFB91C1C"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0F172A"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1D4ED8"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>${tableBorder}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellStyleXfs><cellXfs count="6">${xf(0, 0)}${xf(1, 2)}${xf(2, 0)}${xf(3, 0)}${xf(4, 0)}${xf(0, 3)}</cellXfs></styleSheet>`;
 }
 
 function cell(value: CellValue, style: CellStyle = 'text') { return { value, style }; }
 function header(values: string[]): SheetRow { return values.map((value) => cell(value, 'header')); }
+
+function sheetForRole(sheets: SheetSpec[], role: SheetRole) {
+  return sheets.find((sheet) => sheet.role === role);
+}
+
+function selectedFirst(sheets: SheetSpec[], selected: ManagerReportType) {
+  const selectedSheet = sheetForRole(sheets, selected);
+  if (!selectedSheet) return sheets;
+  return [selectedSheet, ...sheets.filter((sheet) => sheet !== selectedSheet)];
+}
 
 function buildSheets(report: ManagerReportData, managerEmail: string): SheetSpec[] {
   const summaryRows: SheetRow[] = [
@@ -152,9 +180,16 @@ function buildSheets(report: ManagerReportData, managerEmail: string): SheetSpec
     ...report.bosses.map((item) => [cell(item.bossName), cell(item.disputerCount), cell(item.outputRows), cell(item.outputItems), cell(item.approvedOutputs), cell(item.pendingOutputs), cell(item.returnedOutputs), cell(item.fulltimeRows), cell(moneyText(item.outputPay), 'money'), cell(moneyText(item.totalPay), 'totalPay')])
   ];
 
-  if (report.input.type === 'users') return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Users', rows: userRows, widths: [24, 32, 16, 16, 18, 12, 12, 12, 12, 16] }];
-  if (report.input.type === 'per_boss') return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Per Boss', rows: bossRows, widths: [26, 14, 14, 14, 18, 18, 18, 16, 16, 16] }, { name: 'Output Detail', rows: outputRows, widths: [18, 22, 22, 26, 16, 16, 18, 10, 14, 14] }];
-  return [{ name: 'Summary', rows: summaryRows, widths: [24, 34] }, { name: 'Salary', rows: salaryRows, widths: [24, 32, 16, 18, 16, 14, 18, 18, 18, 16, 16] }, { name: 'Output Detail', rows: outputRows, widths: [18, 22, 22, 26, 16, 16, 18, 10, 14, 14] }];
+  const summary: SheetSpec = { name: 'Summary', role: 'summary', rows: summaryRows, widths: [24, 34] };
+  const salary: SheetSpec = { name: 'Salary', role: 'salary_outputs', rows: salaryRows, widths: [24, 32, 16, 18, 16, 14, 18, 18, 18, 16, 16] };
+  const users: SheetSpec = { name: 'Users', role: 'users', rows: userRows, widths: [24, 32, 16, 16, 18, 12, 12, 12, 12, 16] };
+  const perBoss: SheetSpec = { name: 'Per Boss', role: 'per_boss', rows: bossRows, widths: [26, 14, 14, 14, 18, 18, 18, 16, 16, 16] };
+  const outputDetail: SheetSpec = { name: 'Output Detail', role: 'output_detail', rows: outputRows, widths: [18, 22, 22, 26, 16, 16, 18, 10, 14, 14] };
+
+  if (report.input.type === 'users') return selectedFirst([users, summary], report.input.type);
+  if (report.input.type === 'per_boss') return selectedFirst([perBoss, summary, outputDetail], report.input.type);
+  if (report.input.type === 'salary_outputs') return selectedFirst([salary, summary, outputDetail], report.input.type);
+  return selectedFirst([summary, salary, outputDetail], report.input.type);
 }
 
 async function createWorkbook(report: ManagerReportData, managerEmail: string) {
@@ -166,7 +201,7 @@ async function createWorkbook(report: ManagerReportData, managerEmail: string) {
   zip.folder('xl')?.file('styles.xml', stylesXml());
   zip.folder('xl')?.folder('_rels')?.file('workbook.xml.rels', workbookRelsXml(sheets));
   const worksheetFolder = zip.folder('xl')?.folder('worksheets');
-  sheets.forEach((sheet, index) => worksheetFolder?.file(`sheet${index + 1}.xml`, sheetXml(sheet)));
+  sheets.forEach((sheet, index) => worksheetFolder?.file(`sheet${index + 1}.xml`, sheetXml(sheet, index === 0)));
   return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
 }
 
