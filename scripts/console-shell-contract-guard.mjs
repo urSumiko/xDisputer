@@ -52,7 +52,10 @@ must(shell, '<AccountMenu', 'account menu placement missing');
 must(shell, 'switchModeContract', 'switch mode contract missing');
 must(shell, 'data-console-mode-switch="sidebar-bottom"', 'bottom switch missing');
 must(shell, 'data-console-has-switch-card={hasSwitchCard', 'shell must expose optional switch-card state');
-must(shell, '{hasSwitchCard && switchMode ?', 'shell must not render switch link when target is missing');
+must(shell, 'const masterSwitchSuppressed = role === \'master\'', 'master shells must suppress the sidebar switch card globally');
+must(shell, 'const hasSwitchCard = !masterSwitchSuppressed && Boolean(finalSwitchTarget && finalSwitchLabel)', 'switch card must be disabled for master even when wrapper supplies a target');
+must(shell, 'data-master-switch-card-suppressed={masterSwitchSuppressed', 'shell must expose master switch suppression marker');
+must(shell, '{hasSwitchCard && switchMode ?', 'shell must not render switch link when target is missing or master role suppresses it');
 must(shell, 'finalSwitchTarget as string', 'switch link must only use a proven string target');
 mustNot(shell, wrapperTag, 'canonical shell must not mount wrapper');
 
