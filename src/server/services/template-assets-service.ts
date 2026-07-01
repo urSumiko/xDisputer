@@ -14,6 +14,15 @@ type MutationClient = {
   warning: string | null;
 };
 
+type TemplateAssetTenantRow = {
+  id?: unknown;
+  manager_user_id?: unknown;
+  owner_id?: unknown;
+  uploaded_by_user_id?: unknown;
+  validation_json?: unknown;
+  rule_json?: unknown;
+};
+
 function mutationClient(session: SessionContext): MutationClient {
   try {
     return { supabase: createSupabaseAdminClient() as SessionContext['supabase'], mode: 'service-role', warning: null };
@@ -24,6 +33,37 @@ function mutationClient(session: SessionContext): MutationClient {
       warning: error instanceof Error ? error.message : 'Service client unavailable; using session fallback.'
     };
   }
+}
+
+function objectValue(value: unknown) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function stringValue(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function nestedManagerId(value: unknown) {
+  const object = objectValue(value);
+  return stringValue(object?.managerUserId) || stringValue(object?.manager_user_id) || null;
+}
+
+function rowBelongsToManager(row: TemplateAssetTenantRow, managerUserId: string) {
+  const managerColumn = stringValue(row.manager_user_id);
+  const ownerColumn = stringValue(row.owner_id);
+  const validationManager = nestedManagerId(row.validation_json);
+  const ruleManager = nestedManagerId(row.rule_json);
+
+  if (managerColumn !== managerUserId) return false;
+  if (ownerColumn && ownerColumn !== managerUserId) return false;
+  if (validationManager && validationManager !== managerUserId) return false;
+  if (ruleManager && ruleManager !== managerUserId) return false;
+  return true;
+}
+
+function isolateManagerAssets(rows: unknown, managerUserId: string) {
+  if (!Array.isArray(rows)) return [];
+  return (rows as TemplateAssetTenantRow[]).filter((row) => rowBelongsToManager(row, managerUserId));
 }
 
 async function autoBackfillDynamicTemplateV2() {
@@ -44,9 +84,16 @@ export async function readTemplateAssetsForRequest(input: { round: string | null
 
     await autoBackfillDynamicTemplateV2();
 
+    const assets = isolateManagerAssets(result.data, scope.managerUserId);
+    const droppedCrossTenantAssets = Array.isArray(result.data) ? Math.max(0, result.data.length - assets.length) : 0;
+
     return serviceSuccess({
-      assets: result.data || [],
+      assets,
       managerTemplateScope: managerTemplateScopePayload(scope),
+      tenantGuard: {
+        managerUserId: scope.managerUserId,
+        droppedCrossTenantAssets
+      },
       templateStorage: {
         mode: managerTemplateStorageMode(),
         mutationMode: client.mode,
