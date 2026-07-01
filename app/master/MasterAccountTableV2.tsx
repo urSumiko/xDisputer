@@ -61,7 +61,7 @@ function ManagerLimitSnapshot({ limit, assigned }: { limit?: EntitlementLimitRow
   const saved = savedManagerLimits(limit);
   const live = Math.max(assigned.length, saved.active);
   if (saved.maxClients === null || saved.defaultOutput === null) return <div className="limit-editor-help compact-limit-note">No saved manager limits yet. Enter both numbers and save once. Live assigned Disputers: {live}.</div>;
-  return <div className="limit-editor-help compact-limit-note"><strong>Saved:</strong> {saved.maxClients} seats · {saved.defaultOutput} outputs/Disputer/day · {live} live assigned.</div>;
+  return <div className="limit-editor-help compact-limit-note"><strong>Saved limits:</strong> {saved.maxClients} seats · {saved.defaultOutput} outputs/Disputer/day · {live} live assigned.</div>;
 }
 
 function LimitForm({ account, limit, formId, assigned }: { account: ManagedAccount; limit?: EntitlementLimitRow; formId: string; assigned: AssignedDisputerPreview[] }) {
