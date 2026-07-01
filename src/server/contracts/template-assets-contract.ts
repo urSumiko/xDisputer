@@ -14,6 +14,10 @@ export type TemplateAssetsListInput = {
 export type TemplateAssetsListPayload = {
   assets: unknown[];
   managerTemplateScope: unknown;
+  tenantGuard?: {
+    managerUserId: string;
+    droppedCrossTenantAssets: number;
+  };
   templateStorage: {
     mode: string;
     mutationMode: string;
