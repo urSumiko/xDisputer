@@ -27,13 +27,14 @@ function mustAny(paths, text, message) {
   if (!paths.some((path) => read(path).includes(text))) failures.push(message);
 }
 
-must('app/layout.tsx', "import './ui-layout-contracts.css';", 'Root layout must import final UI layout contracts.');
-must('app/layout.tsx', "import './ui-collapse-recovery.css';", 'Root layout must keep collapse recovery before final contracts.');
-
 const layout = read('app/layout.tsx');
-if (layout.includes("import './ui-layout-contracts.css';") && layout.includes("import './ui-collapse-recovery.css';") && layout.indexOf("import './ui-layout-contracts.css';") < layout.indexOf("import './ui-collapse-recovery.css';")) {
-  failures.push('ui-layout-contracts.css must load after ui-collapse-recovery.css.');
-}
+const rootContracts = read('app/root-css-contracts.css');
+const importsLayoutContracts = layout.includes("import './ui-layout-contracts.css';") || rootContracts.includes("@import './ui-layout-contracts.css';");
+const importsCollapseRecovery = layout.includes("import './ui-collapse-recovery.css';") || rootContracts.includes("@import './ui-collapse-recovery.css';");
+if (!importsLayoutContracts) failures.push('Root layout must import final UI layout contracts.');
+if (!importsCollapseRecovery) failures.push('Root layout must keep collapse recovery before final contracts.');
+if (rootContracts.includes("@import './ui-layout-contracts.css';") && rootContracts.includes("@import './ui-collapse-recovery.css';") && rootContracts.indexOf("@import './ui-layout-contracts.css';") < rootContracts.indexOf("@import './ui-collapse-recovery.css';")) failures.push('ui-layout-contracts.css must load after ui-collapse-recovery.css.');
+if (layout.includes("import './ui-layout-contracts.css';") && layout.includes("import './ui-collapse-recovery.css';") && layout.indexOf("import './ui-layout-contracts.css';") < layout.indexOf("import './ui-collapse-recovery.css';")) failures.push('ui-layout-contracts.css must load after ui-collapse-recovery.css.');
 
 must('app/ui-layout-contracts.css', '[data-layout-contract="supporting-documents-editor"]', 'Supporting Documents editor data contract selector missing.');
 must('app/ui-layout-contracts.css', '.support-layout-grid.word-crop-grid', 'Supporting Documents existing class contract missing.');
@@ -54,7 +55,7 @@ must('components/SupportingDocumentsLayoutEditor.tsx', 'word-left-evidence-manag
 must('components/SupportingDocumentsLayoutEditor.tsx', 'support-page-frame', 'Supporting editor must still render Preview zone.');
 must('components/SupportingDocumentsLayoutEditor.tsx', 'support-layout-controls word-crop-controls', 'Supporting editor must still render Controls zone.');
 
-mustAny(['components/GuidedSourceDataFlow.tsx', 'app/master/accounts/page.tsx'], 'data-layout-contract="command-header"', 'At least one command header must declare the explicit command contract.');
+mustAny(['components/GuidedSourceDataFlow.tsx', 'app/master/accounts/page.tsx', 'components/TemplateProgressiveWorkspace.tsx'], 'data-layout-contract="command-header"', 'At least one command header must declare the explicit command contract.');
 must('components/GuidedSourceDataFlow.tsx', 'disabled={busy || !packetReady}', 'Generate must remain controlled by deterministic packetReady.');
 must('components/GuidedSourceDataFlow.tsx', 'generation-blocked-reasons', 'Visible generation blocker panel must remain.');
 
