@@ -156,7 +156,6 @@ export default function TemplateRoundOnlyLibrary() {
         <span>{message}</span>
       </div>
     </section> : null}
-    <ManagerTemplateProfilesPanel round={round} slots={slots} exhibits={exhibits} assets={activeAssets} canManageTemplates={Boolean(managerTemplateScope?.canManageTemplates)} onMessage={setMessage} />
     <TemplateProgressiveWorkspace
       round={round}
       slots={slots}
@@ -170,5 +169,6 @@ export default function TemplateRoundOnlyLibrary() {
       onTemplateMutation={handleTemplateMutation}
       onMessage={setMessage}
     />
+    <ManagerTemplateProfilesPanel round={round} slots={slots} exhibits={exhibits} assets={activeAssets} canManageTemplates={Boolean(managerTemplateScope?.canManageTemplates)} onMessage={setMessage} />
   </section>;
 }
