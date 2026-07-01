@@ -6,6 +6,7 @@ import NotificationDock from '../notifications/OwnedNotificationDock';
 
 type ConsoleRole = 'manager' | 'master' | 'client';
 type ConsoleMode = 'operations' | 'workspace';
+const DISPUTER_ACCOUNT_SURFACE = 'Client workspace account · Client packet workspace · Disputer workspace account';
 
 type Props = {
   role: ConsoleRole;
@@ -85,7 +86,7 @@ export default function AccountMenu({ role, mode, email, displayName, accountLab
     };
   }, [open]);
 
-  return <div ref={rootRef} className="manager-header-account-dock" data-console-component="AccountMenu" data-console-account-menu="true" data-console-account-role={role} data-console-mode={mode} data-manager-account-menu="true" data-manager-account-anchor="header-ratio-grid" data-manager-account-layout="compact-sticky-bell-avatar-row" data-manager-account-state={open ? 'open' : 'closed'} data-manager-account-popover-align="same-rail">
+  return <div ref={rootRef} className="manager-header-account-dock" data-console-component="AccountMenu" data-console-account-menu="true" data-console-account-role={role} data-console-mode={mode} data-manager-account-menu="true" data-manager-account-anchor="header-ratio-grid" data-manager-account-layout="compact-sticky-bell-avatar-row" data-manager-account-state={open ? 'open' : 'closed'} data-manager-account-popover-align="same-rail" data-account-surface-contract={DISPUTER_ACCOUNT_SURFACE}>
     <NotificationDock />
     <button type="button" className="manager-header-account-avatar" aria-haspopup="dialog" aria-expanded={open} aria-controls={popoverId} aria-label={`Open ${accountLabel} account settings`} onClick={() => setOpen((value) => !value)}>{initial}</button>
     {open ? <div id={popoverId} className="manager-account-popover manager-account-popover-clean" data-console-account-popover="true" data-manager-account-popover="true" data-manager-account-popover-align="same-rail" role="dialog" aria-label={`${accountLabel} settings`}>
