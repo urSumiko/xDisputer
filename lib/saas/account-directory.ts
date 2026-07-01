@@ -7,7 +7,7 @@ export type DirectoryView = 'all' | 'pending' | 'active' | 'blocked' | 'managers
 
 export type AccountDirectoryRow = ManagedAccount & {
   total_count?: number;
-  workspace_id?: string;
+  workspace_id?: string | null;
   workspace_role?: string;
   membership_status?: string;
   assignment_status?: string | null;
@@ -24,7 +24,7 @@ type WorkspaceDirectoryRpcRow = {
   manager_invite_code: string | null;
   created_at: string;
   updated_at: string;
-  workspace_id: string;
+  workspace_id: string | null;
   workspace_role: string;
   membership_status: string;
   assignment_status: string | null;
@@ -262,6 +262,19 @@ async function listDirectManagerAssignedClients(
   managerId: string,
   options: AccountDirectoryOptions
 ): Promise<AccountDirectoryRow[]> {
+  const pageSize = Math.min(CONTROL_DIRECTORY_MAX_PAGE_SIZE, Math.max(10, options.pageSize || CONTROL_DIRECTORY_DEFAULT_PAGE_SIZE));
+  const repaired = await supabase.rpc('access_manager_direct_clients_v1', {
+    manager_id_input: managerId,
+    view_input: managerViewOf(options.view),
+    search_input: options.query || null,
+    page_input: options.page || 1,
+    page_size_input: pageSize
+  });
+
+  if (!repaired.error && Array.isArray(repaired.data)) {
+    return (repaired.data as WorkspaceDirectoryRpcRow[]).map(mapWorkspaceRow);
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .select('id,email,full_name,role,account_status,manager_id,manager_invite_code,created_at,updated_at')
