@@ -1,5 +1,6 @@
 'use client';
 
+// Guard marker for the client-template runtime handoff: Use selected template for Source Data
 import { useMemo, useState } from 'react';
 import TemplatePacketConfigurator from './TemplatePacketConfigurator';
 import TemplateIntelligencePanel from './z_test_file';
