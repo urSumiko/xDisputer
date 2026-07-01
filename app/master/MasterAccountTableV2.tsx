@@ -23,12 +23,12 @@ function statusText(value?: string | null) {
 function isManager(account: ManagedAccount) { return account.role === 'manager' || account.role === 'admin'; }
 function canEditLimits(account: ManagedAccount) { return isManager(account); }
 function positiveValue(value?: number | string | null) { const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN; return Number.isFinite(parsed) && parsed > 0 ? parsed : null; }
-function savedManagerLimits(limit?: EntitlementLimitRow) { return { maxClients: positiveValue(limit?.max_clients), defaultOutput: positiveValue(limit?.default_client_output_limit), reportedActive: limit?.current_clients || 0 }; }
+function savedManagerLimits(limit?: EntitlementLimitRow) { return { maxClients: positiveValue(limit?.max_clients), defaultOutput: positiveValue(limit?.default_client_output_limit), active: limit?.current_clients || 0 }; }
 
 function agreementSummary(account: ManagedAccount, limit?: EntitlementLimitRow) {
   if (isManager(account)) {
     const saved = savedManagerLimits(limit);
-    return saved.maxClients === null || saved.defaultOutput === null ? `${saved.reportedActive} reported active · Needs Master limit` : `${saved.reportedActive}/${saved.maxClients} reported · ${saved.defaultOutput} outputs/day`;
+    return saved.maxClients === null || saved.defaultOutput === null ? `${saved.active} live active · Needs Master limit` : `${saved.active}/${saved.maxClients} live · ${saved.defaultOutput} outputs/day`;
   }
   if (account.role === 'client') return account.manager_id ? 'Boss assigned' : 'Needs boss assignment';
   return 'Protected';
@@ -54,7 +54,7 @@ function LinkBadge({ account }: { account: ManagedAccount }) {
 function ManagerLimitSnapshot({ limit }: { limit?: EntitlementLimitRow }) {
   const saved = savedManagerLimits(limit);
   if (saved.maxClients === null || saved.defaultOutput === null) return <div className="limit-editor-help">No saved manager limits found yet. Enter both numbers and save once.</div>;
-  return <div className="limit-editor-help"><strong>Saved limits:</strong> {saved.maxClients} Disputer seats · {saved.defaultOutput} default outputs per Disputer/day · {saved.reportedActive} reported active now.</div>;
+  return <div className="limit-editor-help"><strong>Saved limits:</strong> {saved.maxClients} Disputer seats · {saved.defaultOutput} default outputs per Disputer/day · {saved.active} live active now.</div>;
 }
 
 function LimitForm({ account, limit, formId }: { account: ManagedAccount; limit?: EntitlementLimitRow; formId: string }) {
@@ -68,16 +68,17 @@ function BossAssignmentForm({ account, bossOptions }: { account: ManagedAccount;
   return <form action="/api/master/assign-manager" method="post" className="boss-assignment-form flyout-form"><input type="hidden" name="clientId" value={account.id} /><label><span>Boss / manager</span><select name="managerId" defaultValue={account.manager_id || ''}><option value="" disabled>Choose manager boss</option>{bossOptions.map((boss) => <option key={boss.id} value={boss.id}>{boss.label}{boss.email ? ` · ${boss.email}` : ''}</option>)}</select></label><button type="submit" className="admin-action-button primary">Save boss</button></form>;
 }
 
-function ManagerSafeDemotionNote({ limit }: { limit?: EntitlementLimitRow }) {
-  const reported = savedManagerLimits(limit).reportedActive;
-  return <span className="flyout-muted">Demotion uses a live database safety check. Reported active count here: {reported}. If no active Disputer is actually linked, demotion can proceed.</span>;
+function ManagerDemotionAction({ account, limit }: { account: ManagedAccount; limit?: EntitlementLimitRow }) {
+  const active = savedManagerLimits(limit).active;
+  if (active > 0) return <span className="flyout-action-group"><button type="button" className="admin-action-button" disabled>Demote locked</button><span className="flyout-muted">{active} active assigned Disputer{active === 1 ? '' : 's'}. Open this manager's Access Control and unlink/reassign first.</span></span>;
+  return <ControlForm profileId={account.id} intent="demote_client" label="Demote" />;
 }
 
 function ActionForms({ account, currentUserId, limit }: { account: ManagedAccount; currentUserId: string; limit?: EntitlementLimitRow }) {
   if (account.role === 'master') return <p className="flyout-muted">Master account is protected.</p>;
   if (account.id === currentUserId) return <p className="flyout-muted">Current signed-in account.</p>;
   const blocked = account.account_status === 'disabled' || account.account_status === 'suspended';
-  return <div className="admin-actions-row flyout-actions">{account.role === 'client' && <ControlForm key="promote" profileId={account.id} intent="make_manager" label="Promote" primary />}{isManager(account) && <span key="manager-actions" className="flyout-action-group"><ControlForm profileId={account.id} intent="demote_client" label="Demote" /><ManagerSafeDemotionNote limit={limit} /><RotateInvite managerId={account.id} /></span>}{blocked ? <ControlForm key="reactivate" profileId={account.id} intent="reactivate" label="Reactivate" primary /> : <span key="block-actions" className="flyout-action-group"><ControlForm profileId={account.id} intent="suspend" label="Suspend" /><ControlForm profileId={account.id} intent="disable" label="Disable" /></span>}{account.role === 'client' && account.manager_id && <ControlForm key="unlink" profileId={account.id} intent="clear_manager" label="Unlink" />}</div>;
+  return <div className="admin-actions-row flyout-actions">{account.role === 'client' && <ControlForm key="promote" profileId={account.id} intent="make_manager" label="Promote" primary />}{isManager(account) && <span key="manager-actions" className="flyout-action-group"><ManagerDemotionAction account={account} limit={limit} /><RotateInvite managerId={account.id} /></span>}{blocked ? <ControlForm key="reactivate" profileId={account.id} intent="reactivate" label="Reactivate" primary /> : <span key="block-actions" className="flyout-action-group"><ControlForm profileId={account.id} intent="suspend" label="Suspend" /><ControlForm profileId={account.id} intent="disable" label="Disable" /></span>}{account.role === 'client' && account.manager_id && <ControlForm key="unlink" profileId={account.id} intent="clear_manager" label="Unlink" />}</div>;
 }
 
 function AccountTrigger({ account, limit }: { account: ManagedAccount; limit?: EntitlementLimitRow }) {
