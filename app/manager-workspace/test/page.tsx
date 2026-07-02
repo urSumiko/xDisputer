@@ -6,6 +6,7 @@ import { buildTemplateTestLabContext } from '../../../lib/templates/workspace/te
 import type { TemplateRound } from '../../../lib/templates/workspace/template-workspace-contract';
 
 const allowedRounds: TemplateRound[] = ['1st Round', '2nd Round', '3rd Round', 'Final'];
+type SearchParams = Record<string, string | string[] | undefined>;
 
 function parseRound(value: string | string[] | undefined): TemplateRound {
   const text = Array.isArray(value) ? value[0] : value;
@@ -20,12 +21,13 @@ function parsePacket(value: string | string[] | undefined) {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function ManagerTemplateTestLabPage({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {
+export default async function ManagerTemplateTestLabPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
   const session = await requireAuth();
   if (!session.isManager && !session.isMaster) redirect(session.dashboardPath);
 
-  const round = parseRound(searchParams?.round);
-  const packet = parsePacket(searchParams?.packet);
+  const params = await searchParams;
+  const round = parseRound(params?.round);
+  const packet = parsePacket(params?.packet);
   const context = await buildTemplateTestLabContext({ supabase: session.supabase, managerId: session.user.id, round, packet });
 
   return <TemplateWorkspaceShell
