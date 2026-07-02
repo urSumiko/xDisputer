@@ -22,26 +22,15 @@ function safe(value: string) {
   return (value || 'CLIENT').replace(/[\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
 }
 
-function cleanClientName(value: string) {
-  let text = (value || 'CLIENT')
-    .replace(/\.(docx|pdf|zip)$/i, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  text = text.replace(/\b(TRANSUNION|EQUIFAX|EXPERIAN)\b.*$/i, '').trim();
-  text = text.replace(/\b(DISPUTE|LATE PAYMENT)\s+LETTER\b.*$/i, '').trim();
-  text = text.replace(/\b(1ST|2ND|3RD|FIRST|SECOND|THIRD|FINAL)\s+ROUND\b.*$/i, '').trim();
-  text = text.replace(/\bMERGED\s+PDF\b.*$/i, '').trim();
-  return safe(text || value || 'CLIENT');
-}
-
-function letterLabel(type: LetterType) {
-  return type === 'LATE_PAYMENT' ? 'Late Payment Letter' : 'Dispute Letter';
+function fileBase(value: string) {
+  return safe(value).replace(/[^A-Z0-9]+/g, '_');
 }
 
 function uniqueRoutes(docs: ReviewOutput[], routeHints: PacketRoute[] = []) {
   const generated = new Set(docs.filter((doc) => !doc.role || doc.role === 'LETTER').map((doc) => `${doc.type}:${doc.bureau}`));
-  const fromDocs = docs.filter((doc) => !doc.role || doc.role === 'LETTER').map((doc) => ({ type: doc.type, bureau: doc.bureau }));
+  const fromDocs = docs
+    .filter((doc) => !doc.role || doc.role === 'LETTER')
+    .map((doc) => ({ type: doc.type, bureau: doc.bureau }));
   const fromHints = routeHints.filter((route) => generated.has(`${route.type}:${route.bureau}`));
   return Array.from(new Map([...fromDocs, ...fromHints].map((route) => [`${route.type}:${route.bureau}`, route])).values());
 }
@@ -54,8 +43,18 @@ function findDocument(docs: ReviewOutput[], route: PacketRoute, role: 'LETTER' |
   ));
 }
 
+function letterLabel(type: LetterType) {
+  return type === 'LATE_PAYMENT' ? 'Late Payment Letter' : 'Dispute Letter';
+}
+
 function packetFileName(input: { client: string; route: PacketRoute }) {
-  return `${input.client} ${input.route.bureau} MERGED PDF.pdf`;
+  const packetType = input.route.type === 'DISPUTE' ? 'DISPUTE' : 'LATE PAYMENT';
+  return `${input.client} ${input.route.bureau} ${packetType} PACKET.pdf`;
+}
+
+function packetZipPath(input: { client: string; route: PacketRoute; groupByType: boolean }) {
+  const name = packetFileName(input);
+  return input.groupByType ? `${letterLabel(input.route.type)}/${name}` : name;
 }
 
 async function buildPacketPdf(input: {
@@ -68,7 +67,7 @@ async function buildPacketPdf(input: {
   if (!supporting) throw new Error('Required component missing: 02 Supporting Documents.pdf could not be prepared.');
 
   const letter = findDocument(input.docs, input.route, 'LETTER');
-  if (!letter) throw new Error(`Required component missing: ${input.route.bureau} ${letterLabel(input.route.type)} was not generated.`);
+  if (!letter) throw new Error(`Required component missing: ${input.route.bureau} 01 ${letterLabel(input.route.type)}.docx was not generated.`);
 
   const parts: PdfPacketPart[] = [
     { label: `01 ${letterLabel(input.route.type)}`, kind: 'DOCX', blob: letter.blob },
@@ -109,19 +108,21 @@ export async function buildFinalMergedPdfPackage(input: {
   const routes = uniqueRoutes(input.docs, input.routeHints);
   if (!routes.length) throw new Error('No generated packet routes are available for final PDF assembly.');
 
-  const client = cleanClientName(input.clientName);
+  const client = safe(input.clientName);
   const zip = new JSZip();
+  const hasLatePayment = routes.some((route) => route.type === 'LATE_PAYMENT');
+  const groupByType = hasLatePayment;
   const packetNames: string[] = [];
 
   for (const route of routes) {
     const pdf = await buildPacketPdf({ docs: input.docs, round: input.round, evidenceKey: input.evidenceKey, route });
-    const path = packetFileName({ client, route });
+    const path = packetZipPath({ client, route, groupByType });
     zip.file(path, pdf);
     packetNames.push(path);
   }
 
   return {
-    name: `${client} MERGED PDF.zip`,
+    name: `${fileBase(input.clientName)}_${fileBase(input.round)}_MERGED_PDF_PACKETS.zip`,
     blob: await zip.generateAsync({ type: 'blob' }),
     packetCount: packetNames.length,
     packetNames
