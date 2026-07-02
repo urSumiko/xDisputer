@@ -14,6 +14,8 @@ type Props = {
   email?: string | null;
   displayName?: string | null;
   accountLabel: string;
+  switchTarget?: string | null;
+  switchTargetLabel?: string | null;
 };
 
 function cleanDisplayName(value?: string | null) {
