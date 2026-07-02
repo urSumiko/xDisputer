@@ -1,0 +1,57 @@
+# Vercel deployment upload exclusions
+# Keep this repo deployable from Codespaces without uploading local build/cache artifacts.
+
+# Dependencies and package-manager caches
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.yarn/cache/
+
+# Next.js/Vercel local build output
+.next/
+.next-quarantine/
+out/
+.vercel/output/
+.vercel/cache/
+
+# TypeScript/cache/test artifacts
+*.tsbuildinfo
+.xdisputer-cache/
+.local-backups/
+.codespace-sync/
+coverage/
+playwright-report/
+test-results/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Large accidental local artifacts that should never be uploaded to Vercel
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+*.bak
+*.tmp
+*.pdf
+*.docx
+*.xlsx
+*.xls
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
