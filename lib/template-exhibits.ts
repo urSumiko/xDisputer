@@ -35,6 +35,10 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
+export function configuredExhibits(exhibits: TemplateExhibits) {
+  return exhibitKinds.filter((kind) => Boolean(exhibits[kind]));
+}
+
 export function loadTemplateExhibits(round: string): TemplateExhibits {
   if (typeof window === 'undefined') return emptyTemplates();
   try {
