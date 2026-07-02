@@ -10,7 +10,7 @@ export default function AutoRouteRefresh() {
   const router = useRouter();
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let timer: number | null = null;
     let lastRefreshAt = 0;
 
     const refresh = () => {
