@@ -64,6 +64,10 @@ function resolvedSwitchTarget(role: ConsoleShellRole, fallback: string | null) {
   return fallback;
 }
 
+function roleAttr(current: ConsoleShellRole, expected: ConsoleShellRole, value = 'true') {
+  return current === expected ? value : undefined;
+}
+
 function switchModeContract(role: ConsoleShellRole, mode: ConsoleShellMode, switchTargetLabel: string): SwitchModeContract {
   if (role === 'manager' && mode === 'workspace') {
     return { currentLabel: 'Workspace authoring', targetLabel: switchTargetLabel || 'Operations console', intent: 'Switch to monitoring', helper: 'Review clients, outputs, access, reports, and audit queues.', icon: 'up-right' };
@@ -99,9 +103,9 @@ export default function ConsoleShell({ role, mode, email, accountName, accountLa
           ? <ConsoleNavLink key={item.href} className={item.active ? 'active' : ''} href={item.href}>{item.label}</ConsoleNavLink>
           : <a key={item.href} className={item.active ? 'active' : ''} href={item.href}>{item.label}</a>)}
       </nav>
-      {hasSwitchCard && switchMode ? <section className="console-sidebar-mode-switch" data-console-mode-switch="sidebar-bottom" data-console-mode-switch-role={role} data-console-mode-switch-current={mode} data-console-mode-switch-target={finalSwitchTarget || undefined} data-console-mode-switch-target-label={switchMode.targetLabel} aria-label={role === 'master' ? MASTER_CONSOLE_LABEL : 'Switch console mode'}>
+      {hasSwitchCard && switchMode ? <section className="console-sidebar-mode-switch" data-console-mode-switch="sidebar-bottom" data-console-mode-switch-role={role} data-console-mode-switch-current={mode} data-console-mode-switch-target={finalSwitchTarget || undefined} data-console-mode-switch-target-label={switchMode.targetLabel} aria-label={roleAttr(role, 'master', MASTER_CONSOLE_LABEL) || 'Switch console mode'}>
         <div><span>{switchMode.currentLabel}</span><strong>{switchMode.intent}</strong><small>{switchMode.helper}</small></div>
-        <ConsoleNavLink href={finalSwitchTarget as string} className="console-sidebar-mode-switch-button" data-console-canonical-switch="true" data-console-switch-visible-slot="sidebar-bottom" data-console-switch-role={role} data-console-switch-current={mode} data-console-switch-target={finalSwitchTarget || undefined} data-console-switch-target-label={switchMode.targetLabel} data-manager-canonical-switch={role === 'manager' ? 'true' : undefined} data-manager-switch-visible-slot="sidebar-bottom" data-manager-switch-target={role === 'manager' ? finalSwitchTarget || undefined : undefined} data-manager-switch-target-label={role === 'manager' ? switchMode.targetLabel : undefined} data-master-canonical-switch={role === 'master' ? 'true' : undefined} data-master-switch-visible-slot="sidebar-bottom" data-master-switch-target={role === 'master' ? finalSwitchTarget || undefined : undefined} data-master-switch-target-label={role === 'master' ? switchMode.targetLabel : undefined}><span>{switchMode.targetLabel}</span><em aria-hidden="true">{switchIcon(switchMode.icon)}</em></ConsoleNavLink>
+        <ConsoleNavLink href={finalSwitchTarget as string} className="console-sidebar-mode-switch-button" data-console-canonical-switch="true" data-console-switch-visible-slot="sidebar-bottom" data-console-switch-role={role} data-console-switch-current={mode} data-console-switch-target={finalSwitchTarget || undefined} data-console-switch-target-label={switchMode.targetLabel} data-manager-canonical-switch={roleAttr(role, 'manager')} data-manager-switch-visible-slot="sidebar-bottom" data-manager-switch-target={roleAttr(role, 'manager', finalSwitchTarget || undefined)} data-manager-switch-target-label={roleAttr(role, 'manager', switchMode.targetLabel)} data-master-canonical-switch={roleAttr(role, 'master')} data-master-switch-visible-slot="sidebar-bottom" data-master-switch-target={roleAttr(role, 'master', finalSwitchTarget || undefined)} data-master-switch-target-label={roleAttr(role, 'master', switchMode.targetLabel)}><span>{switchMode.targetLabel}</span><em aria-hidden="true">{switchIcon(switchMode.icon)}</em></ConsoleNavLink>
       </section> : null}
     </aside>
     <section className="admin-monitor-main native-console-main" data-console-main="true" data-console-component="ConsoleMain" data-console-header-grid="true" data-console-has-header={header ? 'true' : 'false'}>
