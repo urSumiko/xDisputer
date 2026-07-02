@@ -65,7 +65,7 @@ function normalizeDailyEntitlement(row: any): DailyEntitlement | null {
   const outputLimit = positiveOrNull(row.output_limit);
   const outputUsedToday = nonnegativeOrNull(row.output_used_today ?? row.output_used_this_month) ?? 0;
   const outputRemainingToday = outputLimit === null ? null : nonnegativeOrNull(row.output_remaining_today ?? row.output_remaining_this_month) ?? Math.max(outputLimit - outputUsedToday, 0);
-  const allowed = outputLimit !== null && row.allowed !== false && outputRemainingToday > 0;
+  const allowed = outputLimit !== null && row.allowed !== false && outputRemainingToday !== null && outputRemainingToday > 0;
   return {
     allowed,
     outputLimit,
