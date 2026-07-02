@@ -28,7 +28,6 @@ type PacketFonts = { regular: PDFFont; bold: PDFFont };
 const renderedDocxPdfCache = new WeakMap<Blob, Promise<Blob>>();
 const blobBufferCache = new WeakMap<Blob, Promise<ArrayBuffer>>();
 const packetFontCache = new WeakMap<PDFDocument, Promise<PacketFonts>>();
-let serverDocxConversionUnavailable = false;
 
 function toPdfBlob(bytes: Uint8Array) {
   const copy = new Uint8Array(bytes.byteLength);
@@ -85,28 +84,18 @@ export async function createBlankPdf(label = 'Packet component') {
 }
 
 async function convertDocxWithServer(blob: Blob, label: string) {
-  if (serverDocxConversionUnavailable) throw new Error('Server DOCX conversion is unavailable for this deployment.');
   if (typeof fetch !== 'function') throw new Error('Server conversion unavailable.');
   const formData = new FormData();
-  formData.set('file', new File([blob], `${label.replace(/[\\/:*?"<>|]+/g, '_') || 'document'}.docx`, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+  formData.set('file', new File([blob], `${label.replace(/[\/:*?"<>|]+/g, '_') || 'document'}.docx`, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
   const response = await fetch('/api/convert/docx-to-pdf', { method: 'POST', body: formData, cache: 'no-store' });
   if (!response.ok) {
-    if (response.status === 501) serverDocxConversionUnavailable = true;
     const payload = await response.json().catch(() => null);
     throw new Error(payload?.error || `Server DOCX conversion failed with HTTP ${response.status}.`);
   }
   return await response.blob();
 }
 
-function docxPageCandidates(host: HTMLElement) {
-  const nodes = Array.from(host.querySelectorAll('section.docx, .docx-wrapper > section, .packet-pdf-docx-wrapper > section, .packet-pdf-docx.docx, .packet-pdf-docx .docx')) as HTMLElement[];
-  const unique = nodes.filter((node, index) => nodes.indexOf(node) === index);
-  const pages = unique.filter((node) => Math.max(node.scrollWidth, node.offsetWidth) > 0 && Math.max(node.scrollHeight, node.offsetHeight) > 0);
-  return pages.length ? pages : [host];
-}
-
 async function renderDocxToPdfInBrowser(blob: Blob, label: string) {
-  if (typeof document === 'undefined') throw new Error('Browser DOCX rendering is unavailable outside the browser.');
   const [{ renderAsync }, html2canvas] = await Promise.all([
     import('docx-preview'),
     import('html2canvas').then((module) => module.default)
@@ -117,35 +106,26 @@ async function renderDocxToPdfInBrowser(blob: Blob, label: string) {
   host.setAttribute('aria-hidden', 'true');
   Object.assign(host.style, {
     position: 'fixed',
-    left: '0',
+    left: '-100000px',
     top: '0',
-    width: '816px',
-    minHeight: '1056px',
+    width: '900px',
+    height: '1px',
     overflow: 'visible',
-    opacity: '1',
+    opacity: '0',
     pointerEvents: 'none',
-    zIndex: '-2147483647',
-    transform: 'translateX(-140vw)',
-    background: '#ffffff'
+    zIndex: '-1'
   });
   document.body.appendChild(host);
   try {
     await renderAsync(await readBlobBuffer(blob), host, undefined, {
-      className: 'packet-pdf-docx',
-      inWrapper: true,
-      ignoreWidth: false,
-      ignoreHeight: false,
-      breakPages: true,
-      renderHeaders: true,
-      renderFooters: true
+      className: 'packet-pdf-docx', inWrapper: true, ignoreWidth: false, ignoreHeight: false,
+      breakPages: true, renderHeaders: true, renderFooters: true
     });
-    await yieldToBrowser();
-    await yieldToBrowser();
-    const pages = docxPageCandidates(host);
+    const candidates = Array.from(host.querySelectorAll('.packet-pdf-docx.docx, .packet-pdf-docx .docx, .docx')) as HTMLElement[];
+    const pages = candidates.filter((node, index) => candidates.indexOf(node) === index && !node.querySelector('.docx'));
     if (!pages.length) throw new Error(`${label} could not be rendered into PDF pages.`);
     for (const page of pages) {
-      const canvas = await html2canvas(page, { scale: 1.25, useCORS: true, backgroundColor: '#ffffff', logging: false, removeContainer: false });
-      if (!canvas.width || !canvas.height) throw new Error(`${label} rendered to an empty PDF canvas.`);
+      const canvas = await html2canvas(page, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff', logging: false });
       const embedded = await target.embedPng(canvas.toDataURL('image/png'));
       const pdfPage = target.addPage([embedded.width, embedded.height]);
       pdfPage.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
@@ -158,18 +138,11 @@ async function renderDocxToPdfInBrowser(blob: Blob, label: string) {
 }
 
 async function renderDocxToPdf(blob: Blob, label: string) {
-  if (typeof document !== 'undefined') {
-    try {
-      return await renderDocxToPdfInBrowser(blob, label);
-    } catch (browserError) {
-      try {
-        return await convertDocxWithServer(blob, label);
-      } catch (serverError) {
-        throw new Error(`${label} could not be converted to PDF in the browser or server. Browser: ${browserError instanceof Error ? browserError.message : 'failed'}. Server: ${serverError instanceof Error ? serverError.message : 'failed'}`);
-      }
-    }
+  try {
+    return await convertDocxWithServer(blob, label);
+  } catch {
+    return await renderDocxToPdfInBrowser(blob, label);
   }
-  return convertDocxWithServer(blob, label);
 }
 
 function renderedDocxPdf(blob: Blob, label: string) {
