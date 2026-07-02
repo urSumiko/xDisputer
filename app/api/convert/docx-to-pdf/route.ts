@@ -10,6 +10,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const TIMEOUT_MS = 45_000;
+const EXTERNAL_CONVERTER_TIMEOUT_MS = 55_000;
 const LETTER_WIDTH = 612;
 const LETTER_HEIGHT = 792;
 const PAGE_MARGIN_X = 54;
@@ -21,6 +22,7 @@ const TITLE_FONT_SIZE = 11;
 const TITLE_LINE_HEIGHT = 18;
 
 type ConversionResult = { ok: true; engine: string } | { ok: false; error: Error };
+type ExternalConversionResult = { ok: true; bytes: Uint8Array; engine: string } | { ok: false; error: Error };
 type TextToken = { text: string; bold: boolean; italic: boolean };
 type Paragraph = { tokens: TextToken[]; text: string };
 type PdfFonts = { regular: PDFFont; bold: PDFFont; italic: PDFFont; boldItalic: PDFFont };
@@ -37,6 +39,57 @@ function bodyBuffer(bytes: Uint8Array): ArrayBuffer {
   const body = new Uint8Array(bytes.byteLength);
   body.set(bytes);
   return body.buffer;
+}
+
+function pdfBytesLookValid(bytes: Uint8Array) {
+  return bytes.byteLength > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+}
+
+function externalConverterUrl() {
+  const raw = process.env.DOCX_CONVERTER_URL?.trim();
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if (!url.pathname || url.pathname === '/') url.pathname = '/convert';
+    return url.toString();
+  } catch {
+    return raw;
+  }
+}
+
+async function convertWithExternalService(file: File, fileBuffer: ArrayBuffer): Promise<ExternalConversionResult> {
+  const url = externalConverterUrl();
+  if (!url) return { ok: false, error: new Error('DOCX_CONVERTER_URL is not configured.') };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), EXTERNAL_CONVERTER_TIMEOUT_MS);
+  try {
+    const formData = new FormData();
+    formData.set('file', new File([fileBuffer], safeFileName(file.name), { type: file.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+    const token = process.env.DOCX_CONVERTER_TOKEN?.trim();
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: token ? { authorization: `Bearer ${token}` } : undefined
+    });
+    const engine = response.headers.get('x-conversion-engine') || new URL(url).hostname || 'external-libreoffice';
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      return { ok: false, error: new Error(`External converter failed with HTTP ${response.status}${detail ? `: ${detail.slice(0, 400)}` : ''}`) };
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (!pdfBytesLookValid(bytes)) return { ok: false, error: new Error('External converter returned a non-PDF response.') };
+    return { ok: true, bytes, engine };
+  } catch (error) {
+    const message = error instanceof Error && error.name === 'AbortError'
+      ? `External converter timed out after ${Math.round(EXTERNAL_CONVERTER_TIMEOUT_MS / 1000)} seconds.`
+      : error instanceof Error ? error.message : 'External converter request failed.';
+    return { ok: false, error: new Error(message) };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function run(command: string, args: string[], cwd: string) {
@@ -257,6 +310,9 @@ export async function POST(request: NextRequest) {
     }
 
     const fileBuffer = await file.arrayBuffer();
+    const externalResult = await convertWithExternalService(file, fileBuffer);
+    if (externalResult.ok) return noStorePdf(externalResult.bytes, `external-libreoffice:${externalResult.engine}`);
+
     workDir = await mkdtemp(join(tmpdir(), 'xdisputer-docx-pdf-'));
     const outDir = join(workDir, 'out');
     const profileDir = join(workDir, 'profile');
