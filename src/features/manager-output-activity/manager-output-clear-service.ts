@@ -28,7 +28,8 @@ function notificationHrefs(activityIds: string[]) {
   ]);
 }
 
-async function deleteInChunks<T extends string>(action: (items: T[]) => Promise<{ error?: { message: string } | null }>, items: T[]) {
+type DeleteResult = { error?: { message: string } | null };
+async function deleteInChunks<T extends string>(action: (items: T[]) => PromiseLike<DeleteResult>, items: T[]) {
   let deleted = 0;
   for (const part of chunks(items)) {
     const result = await action(part as T[]);
@@ -44,7 +45,7 @@ export async function clearManagerOutputHistory(request: NextRequest) {
   const preservePending = String(formData?.get('preservePending') || 'true') !== 'false';
   const admin = createSupabaseAdminClient();
 
-  let query = admin
+  const query = admin
     .from('manager_disputer_output_approvals')
     .select('id,generation_run_id,is_per_output,status')
     .eq('manager_id', user.id)
