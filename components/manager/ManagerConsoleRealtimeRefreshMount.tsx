@@ -9,7 +9,7 @@ const MANAGER_REFRESH_MIN_INTERVAL_MS = 8000;
 
 export default function ManagerConsoleRealtimeRefreshMount() {
   const router = useRouter();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<number | null>(null);
   const lastRefreshAtRef = useRef(0);
 
   useEffect(() => {
