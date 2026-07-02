@@ -33,8 +33,10 @@ function safeFileName(value: string) {
   return (value || 'document.docx').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, ' ').trim() || 'document.docx';
 }
 
-function bufferBody(bytes: Uint8Array) {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+function bodyBuffer(bytes: Uint8Array): ArrayBuffer {
+  const body = new Uint8Array(bytes.byteLength);
+  body.set(bytes);
+  return body.buffer;
 }
 
 function run(command: string, args: string[], cwd: string) {
@@ -235,7 +237,7 @@ async function renderDocxTextFallback(fileBuffer: ArrayBuffer, filename: string)
 }
 
 function noStorePdf(bytes: Uint8Array, engine: string) {
-  return new NextResponse(bufferBody(bytes), {
+  return new NextResponse(bodyBuffer(bytes), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf; charset=utf-8',
