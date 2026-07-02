@@ -35,6 +35,10 @@ function cleanClientName(value: string) {
   return safe(text || value || 'CLIENT');
 }
 
+function letterLabel(type: LetterType) {
+  return type === 'LATE_PAYMENT' ? 'Late Payment Letter' : 'Dispute Letter';
+}
+
 function uniqueRoutes(docs: ReviewOutput[], routeHints: PacketRoute[] = []) {
   const generated = new Set(docs.filter((doc) => !doc.role || doc.role === 'LETTER').map((doc) => `${doc.type}:${doc.bureau}`));
   const fromDocs = docs.filter((doc) => !doc.role || doc.role === 'LETTER').map((doc) => ({ type: doc.type, bureau: doc.bureau }));
@@ -64,10 +68,10 @@ async function buildPacketPdf(input: {
   if (!supporting) throw new Error('Required component missing: 02 Supporting Documents.pdf could not be prepared.');
 
   const letter = findDocument(input.docs, input.route, 'LETTER');
-  if (!letter) throw new Error(`Required component missing: ${input.route.bureau} Dispute Letter was not generated.`);
+  if (!letter) throw new Error(`Required component missing: ${input.route.bureau} ${letterLabel(input.route.type)} was not generated.`);
 
   const parts: PdfPacketPart[] = [
-    { label: '01 Dispute Letter', kind: 'DOCX', blob: letter.blob },
+    { label: `01 ${letterLabel(input.route.type)}`, kind: 'DOCX', blob: letter.blob },
     { label: '02 Supporting Documents', kind: 'PDF', blob: supporting }
   ];
 
